@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &2035160881312068806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6031076906260657065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e782b903bfcd163498e2e8f645047b2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TrackCenter: 1
+  targets: []
+  targetOffset: {x: 0, y: 5, z: -10}
+  key: default
+--- !u!1001 &567363386182235781
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6083551108872930604, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_Name
+      value: TransformFollowCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7936728955950426771, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+--- !u!1 &6031076906260657065 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6083551108872930604, guid: 490d978069bf4f449a4c45990e459312, type: 3}
+  m_PrefabInstance: {fileID: 567363386182235781}
+  m_PrefabAsset: {fileID: 0}
