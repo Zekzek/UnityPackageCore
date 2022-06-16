@@ -10,31 +10,25 @@ namespace Zekzek.JsonContent
     {
         private static Dictionary<string, Dictionary<string, object>> cachedData = new Dictionary<string, Dictionary<string, object>>();
 
-        public static string GetPath<TYPE>()
-        {
-            return typeof(TYPE).Name;
-        }
-
         public static TYPE LoadData<TYPE>(string id, bool reload = false)
         {
-            string path = GetPath<TYPE>();
-            if (path == null) { return default(TYPE); }
+            string type = typeof(TYPE).Name;
 
-            if (!cachedData.ContainsKey(path)) {
-                cachedData.Add(path, new Dictionary<string, object>());
-            } else if (reload && cachedData[path].ContainsKey(id)) {
-                cachedData[path].Remove(id);
-            } else if (cachedData[path].ContainsKey(id)) {
-                return (TYPE)cachedData[path][id];
+            if (!cachedData.ContainsKey(type)) {
+                cachedData.Add(type, new Dictionary<string, object>());
+            } else if (reload && cachedData[type].ContainsKey(id)) {
+                cachedData[type].Remove(id);
+            } else if (cachedData[type].ContainsKey(id)) {
+                return (TYPE)cachedData[type][id];
             }
 
-            string fullPath = Path.Combine(path, id);
+            string fullPath = Path.Combine(type, id);
 
             TextAsset json = Resources.Load<TextAsset>(fullPath);
             if (json != null && !string.IsNullOrEmpty(json.text)) {
                 TYPE data = JsonUtility.FromJson<TYPE>(json.text);
                 Resources.UnloadAsset(json);
-                cachedData[path].Add(id, data);
+                cachedData[type].Add(id, data);
                 Debug.Log(string.Format("Loaded {0} from Resources: {1}", fullPath, data));
                 return data;
             }
@@ -51,31 +45,31 @@ namespace Zekzek.JsonContent
         // Note: This method will fail to find additional data if any has already been loaded
         private static List<TYPE> LoadAllData<TYPE>(bool reload = false)
         {
-            string path = GetPath<TYPE>();
-            if (path == null) { return new List<TYPE>(); }
+            string type = typeof(TYPE).Name;
+            if (type == null) { return new List<TYPE>(); }
 
             List<TYPE> datas = new List<TYPE>();
 
             // Check the cache
-            if (cachedData.ContainsKey(path)) {
+            if (cachedData.ContainsKey(type)) {
                 if (reload) {
-                    cachedData.Remove(path);
+                    cachedData.Remove(type);
                 } else {
-                    var values = cachedData[path].Values.GetEnumerator();
+                    var values = cachedData[type].Values.GetEnumerator();
                     while (values.MoveNext()) { datas.Add((TYPE)values.Current); }
                     return datas;
                 }
             }
 
             // Load the files
-            cachedData.Add(path, new Dictionary<string, object>());
-            TextAsset[] jsons = Resources.LoadAll<TextAsset>(path);
+            cachedData.Add(type, new Dictionary<string, object>());
+            TextAsset[] jsons = Resources.LoadAll<TextAsset>(type);
             foreach (TextAsset json in jsons)
                 if (json != null && !String.IsNullOrEmpty(json.text)) {
-                    Debug.Log(string.Format("Loading {0} from Resources", path));
+                    Debug.Log(string.Format("Loading {0} from Resources", type));
                     TYPE data = JsonUtility.FromJson<TYPE>(json.text);
                     Resources.UnloadAsset(json);
-                    cachedData[path].Add(json.name, data);
+                    cachedData[type].Add(json.name, data);
                     datas.Add(data);
                 }
 

@@ -1,0 +1,98 @@
+{
+  "beatsPerBar": 3,
+  "quarterNotesPerBar": 6,
+  "tempo": "GRAVE",
+  "noteFade": 0,
+  "key": {
+    "key": "C",
+    "octive": 3
+  },
+  "chordType": "WIDE_TRIAD",
+  "chords": [
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.5
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+
+
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.5
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+
+
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.5
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+
+    {
+      "noteOffset": 5,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.5
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    }
+  ]
+}

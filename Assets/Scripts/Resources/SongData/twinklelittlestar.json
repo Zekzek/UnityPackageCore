@@ -1,0 +1,205 @@
+{
+  "beatsPerBar": 4,
+  "quarterNotesPerBar": 4,
+  "tempo": "LARGHISSIMO",
+  "noteFade": 0.4,
+  "key": {
+    "key": "C",
+    "octive": 3
+  },
+  "chordType": "TRIAD",
+  "chords": [
+    {
+      "noteOffset": 0,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 5,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 5,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.25
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 5,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 5,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 4,
+      "duration": 0.25
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 3,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 2,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 1,
+      "duration": 0.25
+    },
+    {
+      "noteOffset": 0,
+      "duration": 0.25
+    },
+    {
+      "rest": true,
+      "duration": 0.25
+    }
+  ]
+}

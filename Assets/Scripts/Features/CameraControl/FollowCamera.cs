@@ -5,7 +5,6 @@ namespace Zekzek.CameraControl
 {
     public class FollowCamera<T> : MonoBehaviour
     {
-        public bool TrackCenter;
         public Camera Camera { get; private set; }
         public string Key => key;
 
@@ -16,6 +15,8 @@ namespace Zekzek.CameraControl
         [SerializeField] private string key = "default";
 
         private new Rigidbody rigidbody;
+        private Vector3 idealPosition;
+        private Vector3 targetPosition;
 
         public void AddTarget(T target)
         {
@@ -40,6 +41,21 @@ namespace Zekzek.CameraControl
             return false;
         }
 
+        public void RotateHorizontal(float degrees)
+        {
+            Quaternion rotation = Quaternion.AngleAxis(degrees, Vector3.up);
+            targetOffset = rotation * targetOffset;
+        }
+
+        public void RotateVertical(float degrees) 
+        {
+            if (degrees > 0) {
+                targetOffset = Vector3.RotateTowards(targetOffset, Vector3.up, degrees * Mathf.Deg2Rad, 0);
+            } else if (degrees < 0) {
+                targetOffset = Vector3.RotateTowards(targetOffset, Vector3.down, -degrees * Mathf.Deg2Rad, 0);
+            }
+        } 
+
         private void Start()
         {
             CameraController<T>.Register(Key, this);
@@ -54,12 +70,16 @@ namespace Zekzek.CameraControl
 
         private void FixedUpdate()
         {
-            Vector3 targetPosition = CalcTargetPosition();
-            Vector3 deltaPosition = (targetPosition - transform.position) - 0.5f * rigidbody.velocity;
+            UpdateTargetPosition();
+            UpdateGoalPosition();
+
+            Vector3 deltaPosition = (idealPosition - transform.position) - 0.5f * rigidbody.velocity;
             rigidbody.AddForce(Time.deltaTime * 5000f * deltaPosition);
+
+            transform.LookAt(targetPosition);
         }
 
-        private Vector3 CalcTargetPosition()
+        private void UpdateTargetPosition()
         {
             int count = 0;
             Vector3 targetPositionSum = Vector3.zero;
@@ -70,7 +90,12 @@ namespace Zekzek.CameraControl
                 }
             }
 
-            return count == 0 ? Vector3.zero : targetPositionSum / count + targetOffset;
+            targetPosition = count == 0 ? Vector3.zero : targetPositionSum / count;
+        }
+
+        private void UpdateGoalPosition()
+        {
+            idealPosition = targetPosition + targetOffset;
         }
 
         private Vector3 GetPosition(T target)
