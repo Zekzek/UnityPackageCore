@@ -22,8 +22,6 @@ public class GameController : MonoBehaviour
             }
         }
 
-
-
         if (Input.GetKeyDown(KeyCode.UpArrow)) {
             CameraController<Transform>.Priority.RotateVertical(10);
         }
