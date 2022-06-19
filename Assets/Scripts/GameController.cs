@@ -17,27 +17,22 @@ public class GameController : MonoBehaviour
         if (!following) {
             GameObject target = GameObject.Find("HexTile: (0, 0)");
             if (target != null) {
-                CameraController<Transform>.Priority.AddTarget(target.transform);
+                //CameraController<Transform>.Priority.AddTarget(target.transform);
                 following = true;
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow)) {
-            CameraController<Transform>.Priority.RotateVertical(10);
-        }
-        if (Input.GetKeyDown(KeyCode.DownArrow)) {
-            CameraController<Transform>.Priority.RotateVertical(-10);
-        }
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) {
-            CameraController<Transform>.Priority.RotateHorizontal(-10);
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow)) {
-            CameraController<Transform>.Priority.RotateHorizontal(10);
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        CameraController<Transform>.Priority.RotateHorizontal(0.5f);
+//        if (Input.GetKeyDown(KeyCode.UpArrow)) {
+//            CameraController<Transform>.Priority.RotateVertical(10);
+//        }
+//        if (Input.GetKeyDown(KeyCode.DownArrow)) {
+//            CameraController<Transform>.Priority.RotateVertical(-10);
+//        }
+//        if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+//            CameraController<Transform>.Priority.RotateHorizontal(-10);
+//        }
+//        if (Input.GetKeyDown(KeyCode.RightArrow)) {
+//            CameraController<Transform>.Priority.RotateHorizontal(10);
+//        }
     }
 }

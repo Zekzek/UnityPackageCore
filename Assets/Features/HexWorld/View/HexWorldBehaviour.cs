@@ -3,17 +3,15 @@ using UnityEngine;
 
 namespace Zekzek.HexWorld
 {
-    public class HexWorldDisplay : MonoBehaviour
+    public class HexWorldBehaviour : MonoBehaviour
     {
         [SerializeField] private float _playSpeed = 1f;
         [SerializeField] private int _screenHeight = 3;
         [SerializeField] private int _screenWidth = 3;
+        [SerializeField] private MonoBehaviour[] prefabList;
 
-        [SerializeField] private Transform tileContainer;
-        [SerializeField] private Transform entityContainer;
-
-        [SerializeField] private HexTileBehaviour hexTilePrefab;
-        //[SerializeField] private PlayerBehaviour playerPrefab;
+        private Dictionary<System.Type, Transform> containers = new Dictionary<System.Type, Transform>();
+        private Dictionary<System.Type, MonoBehaviour> prefabs = new Dictionary<System.Type, MonoBehaviour>();
 
         private Camera _camera;
 
@@ -41,14 +39,15 @@ namespace Zekzek.HexWorld
         {
             _camera = Camera.main;
             InitScreenSize();
-            PreallocateAllTiles();
+            PreallocateContainers();
+            //PreallocateAllTiles();
         }
 
         private void Update()
         {
             UpdateVisibleHexTiles();
             UpdateWorldObjects();
-            UpdateTileHighlight();
+            //UpdateTileHighlight();
 
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
         }
@@ -59,25 +58,56 @@ namespace Zekzek.HexWorld
             maxVisibleTiles = (_screenWidth + 1) * (_screenHeight + 1);
         }
 
+        private void PreallocateContainers()
+        {
+            if (containers == null) { containers = new Dictionary<System.Type, Transform>(); }
+            if (prefabs == null) { prefabs = new Dictionary<System.Type, MonoBehaviour>(); }
+            foreach (MonoBehaviour prefab in prefabList) {
+                InitPrefabContainer(prefab);
+            }
+        }
+
+        private void InitPrefabContainer<T>(T prefab) where T : MonoBehaviour
+        {
+            System.Type type = prefab.GetType();
+            if (!prefabs.ContainsKey(type)) {
+                prefabs[type] = prefab;
+            }
+            if (!containers.ContainsKey(type)) {
+                containers[type] = new GameObject($"{type.Name}Container").transform;
+                containers[type].parent = transform;
+            }
+        }
+
         private void PreallocateAllTiles()
         {
             while (allTiles.Count < maxVisibleTiles) {
-                HexTileBehaviour tile = Instantiate(hexTilePrefab, tileContainer);
+                HexTileBehaviour tile = (HexTileBehaviour)Instantiate(prefabs[typeof(HexTileBehaviour)], containers[typeof(HexTileBehaviour)]);
                 tile.gameObject.SetActive(false);
                 allTiles.Add(tile);
             }
         }
 
+        private void AllocatePrefab<T>(T prefab) where T : MonoBehaviour
+        {
+            System.Type type = prefab.GetType();
+
+            MonoBehaviour tile = Instantiate(prefabs[type], containers[type]);
+            tile.gameObject.SetActive(false);
+            allTiles.Add((HexTileBehaviour)tile);
+        }
+
         private void UpdateVisibleHexTiles()
         {
-            //if (!TilesDirty) { return; }
+            if (!TilesDirty) { return; }
 
             // Clear all current tiles
-            foreach (var tile in allTiles) { tile.gameObject.SetActive(false); }
+            foreach (HexTileBehaviour tile in allTiles) { tile.gameObject.SetActive(false); }
 
             // Build new tiles from visible region
             int tileIndex = 0;
             foreach (HexTile tile in World.Instance.GetScreenTilesAround(centerTile)) {
+                if (tileIndex >= allTiles.Count) { AllocatePrefab(prefabs[typeof(HexTileBehaviour)]); }
                 allTiles[tileIndex].Apply(tile);
                 tileIndex++;
             }

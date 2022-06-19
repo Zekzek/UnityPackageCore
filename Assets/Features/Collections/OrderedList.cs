@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Zekzek.HexWorld
+namespace Zekzek
 {
     public class OrderedList<T>
     {

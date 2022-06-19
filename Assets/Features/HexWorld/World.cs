@@ -14,21 +14,21 @@ namespace Zekzek.HexWorld
         public List<ulong> EncodedWorld {
             get {
                 List<ulong> encodings = new List<ulong>();
-                foreach (HexTile tile in worldMap.Values) { encodings.Add(tile.Encoding); }
+                foreach (HexTile tile in tileMap.Values) { encodings.Add(tile.Encoding); }
                 return encodings;
             }
             set {
-                worldMap.Clear();
+                tileMap.Clear();
                 foreach (ulong encodedTile in value) {
                     HexTile tile = new HexTile(encodedTile);
-                    worldMap[tile.GridIndex] = tile;
+                    tileMap[tile.GridIndex] = tile;
                 }
             }
         }
 
         // Containers
         private readonly IList<Vector2Int> relativeScreenIndices = new List<Vector2Int>();
-        private readonly IDictionary<Vector2Int, HexTile> worldMap = new Dictionary<Vector2Int, HexTile>();
+        private readonly IDictionary<Vector2Int, HexTile> tileMap = new Dictionary<Vector2Int, HexTile>();
         private readonly IDictionary<uint, WorldObject> worldObjects = new Dictionary<uint, WorldObject>();
 
         // Categorized
@@ -62,8 +62,8 @@ namespace Zekzek.HexWorld
         }
         public void Add(HexTile tile)
         {
-            if (worldMap.ContainsKey(tile.GridIndex)) { Debug.LogError(string.Format("Attempt to add duplicate HexTile at {0}", tile.GridIndex)); return; }
-            worldMap[tile.GridIndex] = tile;
+            if (tileMap.ContainsKey(tile.GridIndex)) { Debug.LogError(string.Format("Attempt to add duplicate HexTile at {0}", tile.GridIndex)); return; }
+            tileMap[tile.GridIndex] = tile;
         }
 
         // Remove
@@ -84,7 +84,7 @@ namespace Zekzek.HexWorld
 
         public void ClearTiles()
         {
-            worldMap.Clear();
+            tileMap.Clear();
         }
 
         public void ClearAll()
@@ -139,7 +139,7 @@ namespace Zekzek.HexWorld
         }
 
         // At Position
-        public HexTile TileAt(Vector2Int gridIndex) { return worldMap.ContainsKey(gridIndex) ? worldMap[gridIndex] : null; }
+        public HexTile TileAt(Vector2Int gridIndex) { return tileMap.ContainsKey(gridIndex) ? tileMap[gridIndex] : null; }
         public HexTile TileAt(int x, int y) { return TileAt(new Vector2Int(x, y)); }
         public HexTile TileAt(Vector3Int gridPos) { return TileAt(WorldUtil.GridPosToGridIndex(gridPos)); }
 
