@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Zekzek.HexWorld
 {
-    public abstract class WorldObject
+    public class WorldObject
     {
         public readonly uint Id;
         public WorldLocation Location { get; protected set; }

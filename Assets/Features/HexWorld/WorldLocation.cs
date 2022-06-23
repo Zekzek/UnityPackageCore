@@ -1,5 +1,3 @@
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,8 +5,6 @@ namespace Zekzek.HexWorld
 {
     public class WorldLocation
     {
-        [JsonIgnore] public Action<Vector2Int, Vector2Int, uint> OnSectorChange;
-
         public uint WorldObjectId { get; private set; }
 
         private Vector3 position;

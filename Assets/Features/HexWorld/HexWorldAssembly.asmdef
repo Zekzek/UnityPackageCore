@@ -1,0 +1,16 @@
+{
+    "name": "HexWorldAssembly",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b718b534371dbcf4f9e99702d1c02fb7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

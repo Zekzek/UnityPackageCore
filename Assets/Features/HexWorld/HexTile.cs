@@ -55,13 +55,13 @@ namespace Zekzek.HexWorld
             encoding >>= 10;
             _id = (uint)encoding;
 
-            Location = new WorldLocation(_id, WorldUtil.PositionToGridPos(new Vector3Int(gridPosX, gridPosY, gridPosZ)), 0);
+            Location = new WorldLocation(_id, WorldUtil.GridPosToPosition(new Vector3Int(gridPosX, gridPosY, gridPosZ)), 0);
         }
 
         public HexTile(int x, int y, int z)
         {
             _id = HexWorld.Instance.NextId;
-            Location = new WorldLocation(_id, WorldUtil.PositionToGridPos(new Vector3Int(x, y, z)), 0);
+            Location = new WorldLocation(_id, WorldUtil.GridPosToPosition(new Vector3Int(x, y, z)), 0);
         }
 
         public void Raise()
