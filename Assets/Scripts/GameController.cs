@@ -9,7 +9,7 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         var tile = new HexTile(0,0,0);
-        World.Instance.Add(tile);
+        HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
     }
 
     private void Update()

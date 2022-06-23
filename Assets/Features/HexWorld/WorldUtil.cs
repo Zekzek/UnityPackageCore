@@ -18,7 +18,7 @@ namespace Zekzek.HexWorld
 
         public static Vector3 GridIndexToPosition(Vector2Int gridIndex)
         {
-            return new Vector3((gridIndex.x + gridIndex.y / 2f) * HORIZONTAL_DISTANCE, HEIGHT * (World.Instance.TileAt(gridIndex.x, gridIndex.y)?.Height ?? -1), gridIndex.y * VERTICAL_DISTANCE);
+            return new Vector3((gridIndex.x + gridIndex.y / 2f) * HORIZONTAL_DISTANCE, HEIGHT * (HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(gridIndex.x, gridIndex.y))?.Location.GridPosition.y ?? -1), gridIndex.y * VERTICAL_DISTANCE);
         }
 
         public static Vector3Int GridIndexToGridPos(Vector2Int gridIndex, int height)
@@ -58,6 +58,22 @@ namespace Zekzek.HexWorld
             } else {
                 return Math.Max(Mathf.Abs(deltaX), Mathf.Abs(deltaZ)) + Mathf.Abs(deltaY);
             }
+        }
+
+        public static IEnumerable<Vector2Int> GetIndicesAround(Vector2Int center, int width, int height)
+        {
+            List<Vector2Int> indices = new List<Vector2Int>();
+
+            int halfWidth = width / 2;
+            int halfHeight = height / 2;
+
+            for (int y = -halfHeight; y <= halfHeight; y++) {
+                for (int x = -halfWidth; x <= halfWidth; x++) {
+                    indices.Add(new Vector2Int(center.x + x - y / 2, center.y + y));
+                }
+            }
+
+            return indices;
         }
 
         public static async void FindShortestPathAsync(NavStep start, Vector3Int end, MovementSpeed movementSpeed, Action<List<NavStep>> callback)
@@ -132,47 +148,47 @@ namespace Zekzek.HexWorld
         {
             List<NavStep> neighbors = new List<NavStep>();
 
-            HexTile currentTile = World.Instance.TileAt(currentStep.GridPos);
+            HexTile currentTile = HexWorld.Instance.tiles.GetFirstItemAt(GridPosToGridIndex(currentStep.GridPos));
             Vector2Int forwardGridIndex = currentStep.GridIndex + currentStep.Facing;
             Vector2Int backwardGridIndex = currentStep.GridIndex - currentStep.Facing;
-            HexTile forwardTile = World.Instance.TileAt(forwardGridIndex);
-            HexTile backwardTile = World.Instance.TileAt(backwardGridIndex);
+            HexTile forwardTile = HexWorld.Instance.tiles.GetFirstItemAt(forwardGridIndex);
+            HexTile backwardTile = HexWorld.Instance.tiles.GetFirstItemAt(backwardGridIndex);
 
             // waiting is always an option
             TryAddStep(new NavStep(MoveType.NONE, currentStep.GridPos, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Wait), ref neighbors);
 
             // walk if path forward is unobstructed
-            if (forwardTile != null && currentStep.Height >= forwardTile.Height) {
+            if (forwardTile != null && currentStep.Height >= forwardTile.Location.GridPosition.y) {
                 TryAddStep(new NavStep(MoveType.WALK_FORWARD, forwardGridIndex, currentStep.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors);
             }
 
             // take a step back if path is unobstructed
-            if (backwardTile != null && currentStep.Height >= backwardTile.Height) {
+            if (backwardTile != null && currentStep.Height >= backwardTile.Location.GridPosition.y) {
                 TryAddStep(new NavStep(MoveType.WALK_BACKWARD, backwardGridIndex, currentStep.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors);
             }
 
             // rotate if on solid ground
-            if (currentTile.Height == currentStep.Height) {
+            if (currentTile.Location.GridPosition.y == currentStep.Height) {
                 TryAddStep(new NavStep(MoveType.TURN_LEFT, currentStep.GridPos, FacingUtil.GetLeft(currentStep.Facing), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
                 TryAddStep(new NavStep(MoveType.TURN_RIGHT, currentStep.GridPos, FacingUtil.GetRight(currentStep.Facing), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
             }
 
             // climb/drop down if not on solid ground
-            if (currentTile.Height < currentStep.Height) {
-                if (currentStep.Height - currentTile.Height <= movementSpeed.MaxDrop) { // drop
-                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.GridIndex, currentTile.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors);
+            if (currentTile.Location.GridPosition.y < currentStep.Height) {
+                if (currentStep.Height - currentTile.Location.GridPosition.y <= movementSpeed.MaxDrop) { // drop
+                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.GridIndex, currentTile.Location.GridPosition.y, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors);
                 } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.GridIndex, currentTile.Height + movementSpeed.MaxDrop, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.GridIndex, currentTile.Location.GridPosition.y + movementSpeed.MaxDrop, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
                 }
             }
 
             // climb/jump up if path forward is higher
-            if (forwardTile != null && currentStep.Height < forwardTile.Height) {
-                if (currentStep.Height == currentTile.Height && movementSpeed.MaxJump > 0) { // jump
+            if (forwardTile != null && currentStep.Height < forwardTile.Location.GridPosition.y) {
+                if (currentStep.Height == currentTile.Location.GridPosition.y && movementSpeed.MaxJump > 0) { // jump
                     int maxJump = currentStep.Height + movementSpeed.MaxJump;
-                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.GridIndex, maxJump >= forwardTile.Height ? forwardTile.Height : maxJump, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.GridIndex, maxJump >= forwardTile.Location.GridPosition.y ? forwardTile.Location.GridPosition.y : maxJump, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors);
                 } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.GridIndex, forwardTile.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.GridIndex, forwardTile.Location.GridPosition.y, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
                 }
             }
 

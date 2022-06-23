@@ -116,7 +116,7 @@ namespace Zekzek.HexWorld
             lock (locationsById) {
                 foreach (OrderedList<TimedLocation> locations in new List<OrderedList<TimedLocation>>(locationsById.Values)) {
                     if (locations.TryGetAround(atTime, out TimedLocation previous, out TimedLocation next) && previous.location.GridPosition == gridPosition) {
-                        result = World.Instance.GetObject(previous.location.WorldObjectId);
+                        result = HexWorld.Instance.worldObjects.GetItem(previous.location.WorldObjectId);
                         return true;
                     }
                 }

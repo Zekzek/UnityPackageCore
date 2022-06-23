@@ -25,7 +25,7 @@ namespace Zekzek.HexWorld
 
             // Activate and name unity object
             gameObject.SetActive(tile != null);
-            gameObject.name = "HexTile: " + tile?.GridIndex;
+            gameObject.name = "HexTile: " + tile?.Location.GridIndex;
 
             // Apply listeners for new model
             if (tile != null) {
@@ -38,8 +38,8 @@ namespace Zekzek.HexWorld
 
         private void HandleHeightChanged()
         {
-            tileObject.SetActive(Model.Height >= 0);
-            transform.localPosition = WorldUtil.GridPosToPosition(Model.GridPos);
+            tileObject.SetActive(Model.Location.GridPosition.y >= 0);
+            transform.localPosition = Model.Location.Position;
         }
 
         private void HandleHighlightChanged()

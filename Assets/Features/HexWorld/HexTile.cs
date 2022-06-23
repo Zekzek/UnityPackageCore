@@ -13,17 +13,10 @@ namespace Zekzek.HexWorld
         public const int MAX_HEIGHT = (1 << 4) - 1;
         public const int MAX_POS = (1 << 10) - 1;
 
-        // Grid Index is fixed once created, but height and other details may change.
-        public readonly Vector2Int GridIndex;
-        private int height;
-        public int Height {
-            get => height;
-            private set {
-                height = value;
-                GridPos = WorldUtil.GridIndexToGridPos(GridIndex, height);
-                OnHeightChanged?.Invoke();
-            }
-        }
+        private uint _id;
+        public uint Id => _id;
+        public readonly WorldLocation Location;
+
         private bool highlight;
         public bool Highlight {
             get => highlight;
@@ -35,21 +28,19 @@ namespace Zekzek.HexWorld
 
         // Lazy load and cache neighbors. No need to update unless new tiles are created.
         private HexTile ne, e, se, sw, w, nw;
-        public HexTile NE => ne ??= World.Instance.TileAt(GridIndex.x, GridIndex.y + 1);
-        public HexTile E => e ??= World.Instance.TileAt(GridIndex.x + 1, GridIndex.y);
-        public HexTile SE => se ??= World.Instance.TileAt(GridIndex.x + 1, GridIndex.y - 1);
-        public HexTile SW => sw ??= World.Instance.TileAt(GridIndex.x, GridIndex.y - 1);
-        public HexTile W => w ??= World.Instance.TileAt(GridIndex.x - 1, GridIndex.y);
-        public HexTile NW => nw ??= World.Instance.TileAt(GridIndex.x - 1, GridIndex.y + 1);
+        public HexTile NE => ne ??= HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(Location.GridIndex.x, Location.GridIndex.y + 1));
+        public HexTile E => e ??= HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(Location.GridIndex.x + 1, Location.GridIndex.y));
+        public HexTile SE => se ??= HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(Location.GridIndex.x + 1, Location.GridIndex.y - 1));
+        public HexTile SW => sw ??= HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(Location.GridIndex.x, Location.GridIndex.y - 1));
+        public HexTile W => w ??= HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(Location.GridIndex.x - 1, Location.GridIndex.y));
+        public HexTile NW => nw ??= HexWorld.Instance.tiles.GetFirstItemAt(new Vector2Int(Location.GridIndex.x - 1, Location.GridIndex.y + 1));
 
-        // Cached convenience variables
-        public Vector3Int GridPos { get; private set; }
         public ulong Encoding {
             get {
                 ulong encoding = 0;
-                encoding = (encoding << 10) + (ulong)GridPos.x; //max 1024
-                encoding = (encoding << 4) + (ulong)GridPos.y; //max 16
-                encoding = (encoding << 10) + (ulong)GridPos.z; //max 1024
+                encoding = (encoding << 10) + (ulong)Location.GridPosition.x; //max 1024
+                encoding = (encoding << 4) + (ulong)Location.GridPosition.y; //max 16
+                encoding = (encoding << 10) + (ulong)Location.GridPosition.z; //max 1024
                 return encoding;
             }
         }
@@ -61,31 +52,31 @@ namespace Zekzek.HexWorld
             int gridPosY = (int)(encoding & ((1 << 4) - 1));
             encoding >>= 4;
             int gridPosX = (int)(encoding & ((1 << 10) - 1));
-            //encoding >>= 10;
+            encoding >>= 10;
+            _id = (uint)encoding;
 
-            GridIndex = new Vector2Int(gridPosX, gridPosZ);
-            Height = gridPosY;
+            Location = new WorldLocation(_id, WorldUtil.PositionToGridPos(new Vector3Int(gridPosX, gridPosY, gridPosZ)), 0);
         }
 
         public HexTile(int x, int y, int z)
         {
-            GridIndex = new Vector2Int(x, z);
-            Height = y;
+            _id = HexWorld.Instance.NextId;
+            Location = new WorldLocation(_id, WorldUtil.PositionToGridPos(new Vector3Int(x, y, z)), 0);
         }
 
         public void Raise()
         {
-            if (Height < MAX_HEIGHT) { Height++; }
+            if (Location.GridPosition.y < MAX_HEIGHT) { Location.Position += Vector3.up; }
         }
 
         public void Lower()
         {
-            if (Height > 0) { Height--; }
+            if (Location.GridPosition.y > 0) { Location.Position -= Vector3.up; }
         }
 
         public override string ToString()
         {
-            return string.Format("Grid Index:({0},{1}), Height:{2}", GridPos.x, GridPos.z, GridPos.y);
+            return string.Format("Grid Index:({0},{1}), Height:{2}", Location.GridPosition.x, Location.GridPosition.z, Location.GridPosition.y);
         }
     }
 }

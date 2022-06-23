@@ -38,7 +38,6 @@ namespace Zekzek.HexWorld
         private void Awake()
         {
             _camera = Camera.main;
-            InitScreenSize();
             PreallocateContainers();
             //PreallocateAllTiles();
         }
@@ -50,12 +49,6 @@ namespace Zekzek.HexWorld
             //UpdateTileHighlight();
 
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
-        }
-
-        private void InitScreenSize()
-        {
-            World.Instance.SetScreenDimensions(_screenWidth, _screenHeight);
-            maxVisibleTiles = (_screenWidth + 1) * (_screenHeight + 1);
         }
 
         private void PreallocateContainers()
@@ -106,7 +99,7 @@ namespace Zekzek.HexWorld
 
             // Build new tiles from visible region
             int tileIndex = 0;
-            foreach (HexTile tile in World.Instance.GetScreenTilesAround(centerTile)) {
+            foreach (HexTile tile in HexWorld.Instance.tiles.GetItemsAt(WorldUtil.GetIndicesAround(centerTile, _screenWidth, _screenHeight))) {
                 if (tileIndex >= allTiles.Count) { AllocatePrefab(prefabs[typeof(HexTileBehaviour)]); }
                 allTiles[tileIndex].Apply(tile);
                 tileIndex++;
@@ -150,7 +143,7 @@ namespace Zekzek.HexWorld
                 Transform objectHit = hit.transform;
                 HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
                 if (tile != null && tile.Model != null) {
-                    Highlight(tile.Model.GridIndex, Vector2Int.zero, 0);
+                    Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
                     tile.HandleInput();
                     if (Input.GetMouseButtonDown(0)) {
                         //WorldObject worldObject = allWorldObjects[0].WorldObject;
@@ -164,7 +157,7 @@ namespace Zekzek.HexWorld
         {
             Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
 
-            HexTile tile = World.Instance.TileAt(rotated);
+            HexTile tile = HexWorld.Instance.tiles.GetFirstItemAt(rotated);
 
             if (tile != null) {
                 tile.Highlight = true;

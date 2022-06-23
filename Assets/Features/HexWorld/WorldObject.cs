@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Zekzek.HexWorld
@@ -12,12 +11,12 @@ namespace Zekzek.HexWorld
 
         public WorldObject(Vector3? location, float? rotationAngle)
         {
-            Id = World.Instance.NextId;
+            Id = HexWorld.Instance.NextId;
             if (location.HasValue && rotationAngle.HasValue) {
                 Location = new WorldLocation(Id, location.Value, rotationAngle.Value);
                 Location.AddToWorld();
             }
-            World.Instance.Add(this);
+            HexWorld.Instance.worldObjects.Add(Id, Location.GridIndex, this);
         }
 
         public override string ToString()

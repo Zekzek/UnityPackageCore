@@ -17,7 +17,7 @@ namespace Zekzek.HexWorld
             set {
                 position = value;
                 gridPosition = null;
-                sector = null;
+                gridIndex = null;
             }
         }
 
@@ -29,12 +29,11 @@ namespace Zekzek.HexWorld
             }
         }
 
-        private Vector2Int? sector;
-        public Vector2Int Sector {
+        private Vector2Int? gridIndex;
+        public Vector2Int GridIndex {
             get {
-                //TODO: figure out sectors - should callback OnSectorChange
-                if (!sector.HasValue) { sector = Vector2Int.zero; }
-                return sector.Value;
+                if (!gridIndex.HasValue) { gridIndex = WorldUtil.PositionToGridIndex(position); }
+                return gridIndex.Value;
             }
         }
 
@@ -65,13 +64,13 @@ namespace Zekzek.HexWorld
         public void AddToWorld()
         {
             WorldScheduler.Instance.RegisterIn(0, this);
-            World.Instance.Add(this);
+            //HexWorld.Instance.Add(this);
         }
 
         public void RemoveFromWorld()
         {
             WorldScheduler.Instance.Unregister(WorldObjectId);
-            World.Instance.Remove(this);
+            //HexWorld.Instance.Remove(this);
         }
 
         public static WorldLocation Lerp(WorldLocation previous, WorldLocation next, float percentComplete)
@@ -92,7 +91,7 @@ namespace Zekzek.HexWorld
         private void UpdateGoalPath(List<NavStep> path)
         {
             WorldScheduler.Instance.TryGetLocation(WorldObjectId, out WorldLocation previous, out WorldLocation next, out float percent);
-            WorldLocation currentLocation = WorldLocation.Lerp(previous, next, percent);
+            WorldLocation currentLocation = Lerp(previous, next, percent);
             WorldScheduler.Instance.Unregister(WorldObjectId);
             WorldScheduler.Instance.RegisterIn(0, currentLocation);
             if (path == null) { return; }
