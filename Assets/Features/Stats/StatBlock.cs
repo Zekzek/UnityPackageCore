@@ -36,7 +36,7 @@ namespace Zekzek.Stats
 
         public float GetTotalValue(StatType statType)
         {
-            return GetAccumulatedAmount(statType) * GetAccumulatedMultiplier(statType);
+            return GetAccumulatedAmount(statType) * (1 + GetAccumulatedMultiplier(statType));
         }
 
         public bool Equip(SlotType slot, StatBlock statBlock)
