@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Zekzek.CameraControl
 {
@@ -7,8 +7,7 @@ namespace Zekzek.CameraControl
     {
         public static ShoulderCamera Instance { get; private set; }
 
-        public Camera Camera { get; private set; }
-
+        [SerializeField] private Camera Camera { get; set; }
         [SerializeField] private Transform target;
         [SerializeField] private Vector3 targetOffset;
         [SerializeField] private Vector3 shoulderOffset;
@@ -60,11 +59,19 @@ namespace Zekzek.CameraControl
 
             transform.LookAt(targetPosition + shoulderOffset);
 
-            if (Input.GetKey(KeyCode.UpArrow)) { RotateVertical(1f); }
-            if (Input.GetKey(KeyCode.LeftArrow)) { RotateHorizontal(-1f); }
-            if (Input.GetKey(KeyCode.DownArrow)) { RotateVertical(-1f); }
-            if (Input.GetKey(KeyCode.RightArrow)) { RotateHorizontal(1f); }
-            if (Input.GetKey(KeyCode.Space)) { Recenter(); }
+            Vector2 rotateAmount = InputManager.Instance.Get("Rotate").ReadValue<Vector2>();
+            RotateVertical(rotateAmount.y);
+            RotateHorizontal(rotateAmount.x);
+            //if (Input.GetKey(KeyCode.UpArrow)) { RotateVertical(1f); }
+            //if (Input.GetKey(KeyCode.LeftArrow)) { RotateHorizontal(-1f); }
+            //if (Input.GetKey(KeyCode.DownArrow)) { RotateVertical(-1f); }
+            //if (Input.GetKey(KeyCode.RightArrow)) { RotateHorizontal(1f); }
+            //if (Input.GetKey(KeyCode.Space)) { Recenter(); }
+        }
+
+        private void OnMove()
+        {
+            
         }
 
         private void UpdateTargetPosition()

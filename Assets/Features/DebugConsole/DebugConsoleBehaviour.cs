@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace Zekzek.DebugConsole
@@ -56,7 +57,7 @@ namespace Zekzek.DebugConsole
         {
             if (UnityEngine.EventSystems.EventSystem.current == null) {
                 Debug.LogWarning("No EventSystem found. Generating one now.");
-                new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+                new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             }
 
             // Register new commands here
@@ -65,11 +66,11 @@ namespace Zekzek.DebugConsole
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote)) { Toggle(); }
-            if (_active) {
-                if (Input.GetKeyDown(KeyCode.UpArrow)) { ShowLastCommand(); }
-                if (Input.GetKeyDown(KeyCode.DownArrow)) { ShowNextCommand(); }
-            }
+            //if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote)) { Toggle(); }
+            //if (_active) {
+            //    if (Input.GetKeyDown(KeyCode.UpArrow)) { ShowLastCommand(); }
+            //    if (Input.GetKeyDown(KeyCode.DownArrow)) { ShowNextCommand(); }
+            //}
         }
 
         private void ShowLastCommand()

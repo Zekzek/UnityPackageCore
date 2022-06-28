@@ -49,8 +49,8 @@ namespace Zekzek.HexWorld
 
         public void HandleInput()
         {
-            if (Input.GetKeyDown(KeyCode.Equals)) { Model.Raise(); }
-            if (Input.GetKeyDown(KeyCode.Minus)) { Model.Lower(); }
+            //if (Input.GetKeyDown(KeyCode.Equals)) { Model.Raise(); }
+            //if (Input.GetKeyDown(KeyCode.Minus)) { Model.Lower(); }
         }
     }
 }
