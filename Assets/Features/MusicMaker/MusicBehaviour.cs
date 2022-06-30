@@ -37,7 +37,7 @@ namespace Zekzek.MusicMaker
         private void Start()
         {
             source = GetComponent<AudioSource>();
-            song = Zekzek.JsonContent.ContentUtil.LoadData<SongData>(songID);
+            song = JsonContent.ContentUtil.LoadData<SongData>(songID);
             song.Init();
             chords = song.Chords;
         }

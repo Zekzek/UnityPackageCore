@@ -8,8 +8,10 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        var tile = new HexTile(0,0,0);
-        HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
+        foreach(Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 3, true)) {
+            HexTile tile = new HexTile(index.x, 0, index.y);
+            HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
+        }
     }
 
     private void Update()
@@ -21,18 +23,5 @@ public class GameController : MonoBehaviour
                 following = true;
             }
         }
-
-//        if (Input.GetKeyDown(KeyCode.UpArrow)) {
-//            CameraController<Transform>.Priority.RotateVertical(10);
-//        }
-//        if (Input.GetKeyDown(KeyCode.DownArrow)) {
-//            CameraController<Transform>.Priority.RotateVertical(-10);
-//        }
-//        if (Input.GetKeyDown(KeyCode.LeftArrow)) {
-//            CameraController<Transform>.Priority.RotateHorizontal(-10);
-//        }
-//        if (Input.GetKeyDown(KeyCode.RightArrow)) {
-//            CameraController<Transform>.Priority.RotateHorizontal(10);
-//        }
     }
 }

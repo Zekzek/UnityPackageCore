@@ -60,7 +60,7 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public static IEnumerable<Vector2Int> GetIndicesAround(Vector2Int center, int width, int height)
+        public static IEnumerable<Vector2Int> GetRectangleIndicesAround(Vector2Int center, int width, int height)
         {
             List<Vector2Int> indices = new List<Vector2Int>();
 
@@ -70,6 +70,23 @@ namespace Zekzek.HexWorld
             for (int y = -halfHeight; y <= halfHeight; y++) {
                 for (int x = -halfWidth; x <= halfWidth; x++) {
                     indices.Add(new Vector2Int(center.x + x - y / 2, center.y + y));
+                }
+            }
+
+            return indices;
+        }
+
+        public static IEnumerable<Vector2Int> GetBurstIndicesAround(Vector2Int center, int radius, bool fill)
+        {
+            List<Vector2Int> indices = new List<Vector2Int>();
+
+            for (int y = -radius; y <= radius; y++) {
+                for (int x = -radius; x <= radius; x++) {
+                    int absoluteSum = Mathf.Abs(y + x);
+                    if (absoluteSum > radius) { continue; } // Skip the corners to leave just a hex burst
+                    if (fill || Mathf.Abs(x) == radius || Mathf.Abs(y) == radius || absoluteSum == radius) {
+                        indices.Add(new Vector2Int(center.x + x, center.y + y));
+                    }
                 }
             }
 

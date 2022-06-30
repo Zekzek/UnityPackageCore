@@ -6,8 +6,8 @@ namespace Zekzek.HexWorld
     public class HexWorldBehaviour : MonoBehaviour
     {
         [SerializeField] private float _playSpeed = 1f;
-        [SerializeField] private int _screenHeight = 3;
-        [SerializeField] private int _screenWidth = 3;
+        [SerializeField] private int _screenHeight = 15;
+        [SerializeField] private int _screenWidth = 15;
         [SerializeField] private MonoBehaviour[] prefabList;
 
         private Dictionary<System.Type, Transform> containers = new Dictionary<System.Type, Transform>();
@@ -99,7 +99,7 @@ namespace Zekzek.HexWorld
 
             // Build new tiles from visible region
             int tileIndex = 0;
-            foreach (HexTile tile in HexWorld.Instance.tiles.GetItemsAt(WorldUtil.GetIndicesAround(centerTile, _screenWidth, _screenHeight))) {
+            foreach (HexTile tile in HexWorld.Instance.tiles.GetItemsAt(WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight))) {
                 if (tileIndex >= allTiles.Count) { AllocatePrefab(prefabs[typeof(HexTileBehaviour)]); }
                 allTiles[tileIndex].Apply(tile);
                 tileIndex++;

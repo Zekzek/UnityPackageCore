@@ -523,7 +523,7 @@ GameObject:
   - component: {fileID: 896164719}
   m_Layer: 0
   m_Name: ShoulderCamera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -557,7 +557,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1930807291}
-  targetOffset: {x: 0, y: 0, z: -5}
+  targetOffset: {x: 0, y: 5, z: -5}
   shoulderOffset: {x: 1, y: 1, z: 0}
 --- !u!81 &896164721
 AudioListener:
