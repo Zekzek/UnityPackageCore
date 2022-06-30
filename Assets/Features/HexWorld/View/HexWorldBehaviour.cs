@@ -46,7 +46,7 @@ namespace Zekzek.HexWorld
         {
             UpdateVisibleHexTiles();
             UpdateWorldObjects();
-            //UpdateTileHighlight();
+            UpdateTileHighlight();
 
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
         }
@@ -136,21 +136,22 @@ namespace Zekzek.HexWorld
             foreach (HexTile tile in highlightedTiles) { tile.Highlight = false; }
             highlightedTiles.Clear();
 
-            //RaycastHit hit;
-            //Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
-            //
-            //if (Physics.Raycast(ray, out hit)) {
-            //    Transform objectHit = hit.transform;
-            //    HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
-            //    if (tile != null && tile.Model != null) {
-            //        Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
-            //        tile.HandleInput();
-            //        if (Input.GetMouseButtonDown(0)) {
-            //            //WorldObject worldObject = allWorldObjects[0].WorldObject;
-            //            //worldObject.Location.NavigateTo(tile.Model.GridPos, worldObject.Speed);
-            //        }
-            //    }
-            //}
+
+            RaycastHit hit;
+            Ray ray = _camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
+            
+            if (Physics.Raycast(ray, out hit)) {
+                Transform objectHit = hit.transform;
+                HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
+                if (tile != null && tile.Model != null) {
+                    Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
+                    tile.HandleInput();
+                    if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
+                        //WorldObject worldObject = allWorldObjects[0].WorldObject;
+                        //worldObject.Location.NavigateTo(tile.Model.GridPos, worldObject.Speed);
+                    }
+                }
+            }
         }
 
         private void Highlight(Vector2Int center, Vector2Int offset, float rotation)

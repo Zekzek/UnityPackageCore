@@ -1,9 +1,8 @@
 {
-    "name": "HexWorldAssembly",
+    "name": "InputManagerAssembly",
     "rootNamespace": "",
     "references": [
-        "GUID:b718b534371dbcf4f9e99702d1c02fb7",
-        "GUID:567da4c491c769742b8bff315ecee564"
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

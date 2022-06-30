@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Zekzek.CameraControl
 {
@@ -59,19 +58,9 @@ namespace Zekzek.CameraControl
 
             transform.LookAt(targetPosition + shoulderOffset);
 
-            Vector2 rotateAmount = InputManager.Instance.Get("Rotate").ReadValue<Vector2>();
+            Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Rotate);
             RotateVertical(rotateAmount.y);
             RotateHorizontal(rotateAmount.x);
-            //if (Input.GetKey(KeyCode.UpArrow)) { RotateVertical(1f); }
-            //if (Input.GetKey(KeyCode.LeftArrow)) { RotateHorizontal(-1f); }
-            //if (Input.GetKey(KeyCode.DownArrow)) { RotateVertical(-1f); }
-            //if (Input.GetKey(KeyCode.RightArrow)) { RotateHorizontal(1f); }
-            //if (Input.GetKey(KeyCode.Space)) { Recenter(); }
-        }
-
-        private void OnMove()
-        {
-            
         }
 
         private void UpdateTargetPosition()
