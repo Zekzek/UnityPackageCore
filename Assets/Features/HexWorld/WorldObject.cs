@@ -17,6 +17,7 @@ namespace Zekzek.HexWorld
                 Location.AddToWorld();
             }
             HexWorld.Instance.worldObjects.Add(Id, Location.GridIndex, this);
+            Speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         }
 
         public override string ToString()

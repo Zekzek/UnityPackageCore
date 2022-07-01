@@ -12,6 +12,8 @@ public class GameController : MonoBehaviour
             HexTile tile = new HexTile(index.x, 0, index.y);
             HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
         }
+
+        WorldObject player = new WorldObject(Vector3.zero, 0);
     }
 
     private void Update()

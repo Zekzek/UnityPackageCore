@@ -20,7 +20,7 @@ namespace Zekzek.HexWorld
         public static bool WorldObjectsDirty { get; set; } = true;
 
         private readonly List<HexTileBehaviour> allTiles = new List<HexTileBehaviour>();
-        //private List<LocationBehaviour> allWorldObjects = new List<LocationBehaviour>();
+        private readonly List<WorldObjectBehaviour> allWorldObjects = new List<WorldObjectBehaviour>();
 
         private List<HexTile> highlightedTiles = new List<HexTile>();
 
@@ -65,6 +65,7 @@ namespace Zekzek.HexWorld
             System.Type type = prefab.GetType();
             if (!prefabs.ContainsKey(type)) {
                 prefabs[type] = prefab;
+                Debug.Log("Added prefab to list, up to " + prefabs.Count);
             }
             if (!containers.ContainsKey(type)) {
                 containers[type] = new GameObject($"{type.Name}Container").transform;
@@ -72,22 +73,20 @@ namespace Zekzek.HexWorld
             }
         }
 
-        private void PreallocateAllTiles()
-        {
-            while (allTiles.Count < maxVisibleTiles) {
-                HexTileBehaviour tile = (HexTileBehaviour)Instantiate(prefabs[typeof(HexTileBehaviour)], containers[typeof(HexTileBehaviour)]);
-                tile.gameObject.SetActive(false);
-                allTiles.Add(tile);
-            }
-        }
-
-        private void AllocatePrefab<T>(T prefab) where T : MonoBehaviour
+        private void AllocatePrefab(HexTileBehaviour prefab)
         {
             System.Type type = prefab.GetType();
 
-            MonoBehaviour tile = Instantiate(prefabs[type], containers[type]);
-            tile.gameObject.SetActive(false);
-            allTiles.Add((HexTileBehaviour)tile);
+            HexTileBehaviour tile = (HexTileBehaviour)Instantiate(prefabs[type], containers[type]);
+            allTiles.Add(tile);
+        }
+
+        private void AllocatePrefab(WorldObjectBehaviour prefab)
+        {
+            System.Type type = prefab.GetType();
+
+            WorldObjectBehaviour worldObject = (WorldObjectBehaviour)Instantiate(prefabs[type], containers[type]);
+            allWorldObjects.Add(worldObject);
         }
 
         private void UpdateVisibleHexTiles()
@@ -100,7 +99,7 @@ namespace Zekzek.HexWorld
             // Build new tiles from visible region
             int tileIndex = 0;
             foreach (HexTile tile in HexWorld.Instance.tiles.GetItemsAt(WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight))) {
-                if (tileIndex >= allTiles.Count) { AllocatePrefab(prefabs[typeof(HexTileBehaviour)]); }
+                if (tileIndex >= allTiles.Count) { AllocatePrefab((HexTileBehaviour)prefabs[typeof(HexTileBehaviour)]); }
                 allTiles[tileIndex].Apply(tile);
                 tileIndex++;
             }
@@ -110,6 +109,14 @@ namespace Zekzek.HexWorld
         private void UpdateWorldObjects()
         {
             if (!WorldObjectsDirty) { return; }
+
+            int objectIndex = 0;
+            foreach (WorldObject entity in HexWorld.Instance.worldObjects.GetItemsAt(WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight))) {
+                if (objectIndex >= allWorldObjects.Count) { AllocatePrefab((WorldObjectBehaviour)prefabs[typeof(WorldObjectBehaviour)]); }
+                allWorldObjects[objectIndex].Model = entity;
+                objectIndex++;
+            }
+
 
             Debug.Log("updating world objects");
 
@@ -136,7 +143,6 @@ namespace Zekzek.HexWorld
             foreach (HexTile tile in highlightedTiles) { tile.Highlight = false; }
             highlightedTiles.Clear();
 
-
             RaycastHit hit;
             Ray ray = _camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
             
@@ -147,8 +153,8 @@ namespace Zekzek.HexWorld
                     Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
                     tile.HandleInput();
                     if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-                        //WorldObject worldObject = allWorldObjects[0].WorldObject;
-                        //worldObject.Location.NavigateTo(tile.Model.GridPos, worldObject.Speed);
+                        WorldObject worldObject = HexWorld.Instance.worldObjects.GetFirstItemAt(Vector2Int.zero);
+                        worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Speed);
                     }
                 }
             }
