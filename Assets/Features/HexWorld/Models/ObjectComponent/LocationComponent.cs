@@ -18,22 +18,22 @@ namespace Zekzek.HexWorld
         }
 
         public Vector3Int GridPosition {
-            get => _location.GridPosition;
+            get => Current.GridPosition;
             set { UpdateLocation(new WorldLocation(value, _location?.Facing ?? Vector2Int.right)); }
         }
 
         public Vector2Int GridIndex {
-            get => _location.GridIndex;
+            get => Current.GridIndex;
             set { UpdateLocation(new WorldLocation(WorldUtil.GridIndexToPosition(value, _location?.GridPosition.y ?? 0), _location?.RotationAngle ?? 0f)); }
         }
 
         public float RotationAngle {
-            get => _location.RotationAngle;
+            get => Current.RotationAngle;
             set { UpdateLocation(new WorldLocation(_location?.Position ?? Vector3.zero, value)); }
         }
 
         public Vector2Int Facing {
-            get => _location.Facing;
+            get => Current.Facing;
             set { UpdateLocation(new WorldLocation(_location?.Position ?? Vector3.zero, value)); }
         }
 
