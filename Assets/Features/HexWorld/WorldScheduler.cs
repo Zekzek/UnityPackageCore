@@ -90,6 +90,7 @@ namespace Zekzek.HexWorld
 
             lock (locationsById) {
                 if (!locationsById.ContainsKey(id) || locationsById[id].First.time > atTime) {
+                    Debug.LogWarning("No location found for " + id);
                     previous = next = null;
                     percentComplete = -1;
                     return false;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Zekzek.HexWorld
@@ -9,9 +10,10 @@ namespace Zekzek.HexWorld
 
         public override WorldComponentType ComponentType => WorldComponentType.Location;
         public WorldLocation Current => _location;
+        public MovementSpeed Speed { get; private set; }
 
         public virtual Vector3 Position {
-            get => _location.Position;
+            get => Current.Position;
             set { UpdateLocation(new WorldLocation(value, _location?.RotationAngle ?? 0f)); }
         }
 
@@ -37,14 +39,11 @@ namespace Zekzek.HexWorld
 
         private WorldLocation _location;
 
-        public LocationComponent(uint worldObjectId, Vector3Int gridPosition, float rotationAngle = 0) : base(worldObjectId)
+        public LocationComponent(uint worldObjectId, Vector3Int gridPosition, float rotationAngle = 0, MovementSpeed speed = null) : base(worldObjectId)
         {
             _location = new WorldLocation(gridPosition, rotationAngle);
-        }
-
-        public LocationComponent(uint worldObjectId, Vector3Int gridPosition, Vector2Int facing) : base(worldObjectId)
-        {
-            _location = new WorldLocation(gridPosition, facing);
+            Speed = speed; 
+            WorldScheduler.Instance.RegisterIn(0, WorldObjectId, Current);
         }
 
         private void UpdateLocation(WorldLocation location)
@@ -57,21 +56,29 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public void AddToWorld()
+        public void NavigateTo(Vector3Int targetGridPos, MovementSpeed speed)
         {
-            WorldScheduler.Instance.RegisterIn(0, WorldObjectId, Current);
-            //HexWorld.Instance.Add(this);
+            WorldScheduler.Instance.TryGetLocation(WorldObjectId, out WorldLocation previous, out WorldLocation next, out float percent);
+            NavStep lastStep = new NavStep(MoveType.NONE, previous.GridPosition, FacingUtil.GetFacing(previous.RotationAngle), WorldScheduler.Instance.Time);
+            WorldUtil.FindShortestPathAsync(lastStep, targetGridPos, speed, (path) => { UpdateGoalPath(path); });
         }
 
-        public void RemoveFromWorld()
+        private void UpdateGoalPath(List<NavStep> path)
         {
+            WorldScheduler.Instance.TryGetLocation(WorldObjectId, out WorldLocation previous, out WorldLocation next, out float percent);
+            WorldLocation currentLocation = WorldLocation.Lerp(previous, next, percent);
             WorldScheduler.Instance.Unregister(WorldObjectId);
-            //HexWorld.Instance.Remove(this);
+            WorldScheduler.Instance.RegisterIn(0, WorldObjectId, currentLocation);
+            if (path == null) { return; }
+            foreach (NavStep step in path) {
+                Debug.Log("Register " + WorldObjectId);
+                WorldScheduler.Instance.RegisterAt(step.WorldTime, WorldObjectId, new WorldLocation(step.GridPos, step.Facing));
+            }
         }
 
         public override string ToString()
         {
-            return $"Position:{GridPosition}, Facing{Facing}";
+            return $"Position:{Current.GridPosition}, Facing:{Current.Facing}, Speed:{Speed}";
         }
     }
 }

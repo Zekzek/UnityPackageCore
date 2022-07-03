@@ -175,12 +175,12 @@ namespace Zekzek.HexWorld
             TryAddStep(new NavStep(MoveType.NONE, currentStep.GridPos, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Wait), ref neighbors);
 
             // walk if path forward is unobstructed
-            if (forwardTile != null && currentStep.Height >= forwardTile.GridPosition.y && !HexWorld.Instance.IsOccupied(forwardTile.GridIndex, WorldComponentType.Moveable)) {
+            if (forwardTile != null && currentStep.Height >= forwardTile.GridPosition.y && !HexWorld.Instance.IsOccupied(forwardTile.GridIndex, WorldObjectType.Entity)) {
                 TryAddStep(new NavStep(MoveType.WALK_FORWARD, forwardGridIndex, currentStep.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors);
             }
 
             // take a step back if path is unobstructed
-            if (backwardTile != null && currentStep.Height >= backwardTile.GridPosition.y && !HexWorld.Instance.IsOccupied(backwardTile.GridIndex, WorldComponentType.Moveable)) {
+            if (backwardTile != null && currentStep.Height >= backwardTile.GridPosition.y && !HexWorld.Instance.IsOccupied(backwardTile.GridIndex, WorldObjectType.Entity)) {
                 TryAddStep(new NavStep(MoveType.WALK_BACKWARD, backwardGridIndex, currentStep.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors);
             }
 

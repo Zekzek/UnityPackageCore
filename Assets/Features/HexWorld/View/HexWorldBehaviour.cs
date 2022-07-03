@@ -105,8 +105,8 @@ namespace Zekzek.HexWorld
                 if (tile != null && tile.Model != null) {
                     Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
                     if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-                        WorldObject worldObject = HexWorld.Instance.GetFirstAt(Vector2Int.zero, WorldComponentType.Moveable);
-                        worldObject.Moveable.NavigateTo(tile.Model.Location.GridPosition, worldObject.Moveable.Speed);
+                        WorldObject worldObject = HexWorld.Instance.GetFirstAt(Vector2Int.zero, WorldObjectType.Entity);
+                        worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Location.Speed);
                     }
                 }
             }

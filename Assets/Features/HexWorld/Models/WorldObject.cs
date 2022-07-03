@@ -8,7 +8,6 @@ namespace Zekzek.HexWorld
     {
         public readonly uint Id;
         public LocationComponent Location => (LocationComponent)GetComponent(WorldComponentType.Location);
-        public MoveComponent Moveable => (MoveComponent)GetComponent(WorldComponentType.Moveable);
         public WorldObjectType Type { get; private set; }
 
         private Dictionary<WorldComponentType, WorldObjectComponent> _components = new Dictionary<WorldComponentType, WorldObjectComponent>();
@@ -44,8 +43,7 @@ namespace Zekzek.HexWorld
         public static WorldObject CreateEntity(MovementSpeed speed, Vector3Int gridPosition, float rotationAngle = 0)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
-            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, rotationAngle));
-            instance.AddComponent(new MoveComponent(instance.Id, speed));
+            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, rotationAngle, speed));
             HexWorld.Instance.Add(instance);
             return instance;
         }
