@@ -1,12 +1,14 @@
+using System;
 using UnityEngine;
 
 namespace Zekzek.HexWorld
 {
-    public class WorldObjectBehaviour : MonoBehaviour
+    public abstract class WorldObjectBehaviour : MonoBehaviour
     {
-        public WorldObject Model { get; set; }
+        public virtual WorldObject Model { get; set; }
+        protected abstract Type ModelType { get; }
 
-        private void Update()
+        protected virtual void Update()
         {
             if (Model == null) { return; }
             transform.position = Model.Location.Position;

@@ -46,6 +46,8 @@ namespace Zekzek.HexWorld
             throw new MissingReferenceException();
         }
 
+        //TODO: Shouldn't these be the same? ↑↓
+
         public static Vector2Int GetFacing(Vector2Int fromGridPos, Vector2Int toGridPos)
         {
             float offsetAngle = -Vector2.SignedAngle(Vector2.up, (toGridPos - fromGridPos));
@@ -60,13 +62,7 @@ namespace Zekzek.HexWorld
 
         public static Quaternion GetRotation(Vector2Int facing)
         {
-            if (facing.Equals(NE)) { return Quaternion.AngleAxis(30, Vector3.up); }
-            if (facing.Equals(E)) { return Quaternion.AngleAxis(90, Vector3.up); }
-            if (facing.Equals(SE)) { return Quaternion.AngleAxis(150, Vector3.up); }
-            if (facing.Equals(SW)) { return Quaternion.AngleAxis(-150, Vector3.up); }
-            if (facing.Equals(W)) { return Quaternion.AngleAxis(-90, Vector3.up); }
-            if (facing.Equals(NW)) { return Quaternion.AngleAxis(-30, Vector3.up); }
-            throw new MissingReferenceException();
+            return Quaternion.AngleAxis(GetRotationAroundUpAxis(facing), Vector3.up);
         }
 
         public static float GetRotationAroundUpAxis(Vector2Int facing)
@@ -108,8 +104,8 @@ namespace Zekzek.HexWorld
 
         public static Vector2Int RotateAround(Vector2Int toRotate, Vector2Int center, float degree)
         {
-            Vector3 toRotatePos = WorldUtil.GridIndexToPosition(toRotate);
-            Vector3 centerPos = WorldUtil.GridIndexToPosition(center);
+            Vector3 toRotatePos = WorldUtil.GridIndexToPosition(toRotate, 0);
+            Vector3 centerPos = WorldUtil.GridIndexToPosition(center, 0);
 
             Vector3 rotatedPos = centerPos + Quaternion.AngleAxis(degree, Vector3.up) * (toRotatePos - centerPos);
             return WorldUtil.PositionToGridIndex(rotatedPos);

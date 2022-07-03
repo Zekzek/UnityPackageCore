@@ -39,10 +39,10 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public void RegisterAt(float atTime, WorldLocation location)
+        public void RegisterAt(float atTime, uint id, WorldLocation location)
         {
             if (atTime >= time) {
-                InternalRegisterAt(atTime, location);
+                InternalRegisterAt(atTime, id, location);
             } else {
                 Debug.LogWarning($"Ignoring request to schedule location in the past. {atTime} is before current {time}");
             }
@@ -53,9 +53,9 @@ namespace Zekzek.HexWorld
             RegisterAt(time + delay, callback, period);
         }
 
-        public void RegisterIn(float delay, WorldLocation location)
+        public void RegisterIn(float delay, uint id, WorldLocation location)
         {
-            RegisterAt(time + delay, location);
+            RegisterAt(time + delay, id, location);
         }
 
         private void InternalRegisterAt(float atTime, Action callback, float period)
@@ -64,9 +64,8 @@ namespace Zekzek.HexWorld
         }
 
         //TODO: find a better thread-safe solution than these clumsy locks
-        private void InternalRegisterAt(float atTime, WorldLocation location)
+        private void InternalRegisterAt(float atTime, uint id, WorldLocation location)
         {
-            uint id = location.WorldObjectId;
             lock (locationsById) {
                 if (!locationsById.ContainsKey(id)) { locationsById.Add(id, new OrderedList<TimedLocation>()); }
                 locationsById[id].Add(atTime, new TimedLocation() { time = atTime, location = location });
@@ -114,9 +113,10 @@ namespace Zekzek.HexWorld
             float atTime = time + delay;
             result = null;
             lock (locationsById) {
-                foreach (OrderedList<TimedLocation> locations in new List<OrderedList<TimedLocation>>(locationsById.Values)) {
+                foreach(uint id in locationsById.Keys) {
+                    OrderedList<TimedLocation> locations = locationsById[id];
                     if (locations.TryGetAround(atTime, out TimedLocation previous, out TimedLocation next) && previous.location.GridPosition == gridPosition) {
-                        result = HexWorld.Instance.worldObjects.GetItem(previous.location.WorldObjectId);
+                        result = HexWorld.Instance.Get(id);
                         return true;
                     }
                 }

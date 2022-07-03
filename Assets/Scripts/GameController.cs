@@ -9,11 +9,9 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         foreach(Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 3, true)) {
-            HexTile tile = new HexTile(index.x, 0, index.y);
-            HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
+            WorldObject.CreateTile(new Vector3Int(index.x, 0, index.y));
         }
-
-        WorldObject player = new WorldObject(Vector3.zero, 0);
+        WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), Vector3Int.zero);
     }
 
     private void Update()

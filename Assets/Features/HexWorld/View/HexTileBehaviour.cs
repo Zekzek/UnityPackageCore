@@ -1,56 +1,45 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Zekzek.HexWorld
 {
-    public class HexTileBehaviour : MonoBehaviour
+    public class HexTileBehaviour : WorldObjectBehaviour
     {
-        [SerializeField]
-        private GameObject tileObject;
+        protected override Type ModelType => default;
+        private TargetableComponent _targetableComponent;
 
-        [SerializeField]
-        private GameObject highlightObject;
+        [SerializeField] private GameObject tileObject;
+        [SerializeField] private GameObject highlightObject;
 
-        public HexTile Model { get; private set; }
+        public override WorldObject Model { 
+            get => base.Model; 
+            set {
+                if (Model != null) {
+                    if (_targetableComponent == null) {
+                        _targetableComponent = (TargetableComponent)Model.GetComponent(WorldComponentType.Targetable);
+                    }
+                    _targetableComponent.OnHighlightChanged -= HandleHighlightChanged;
+                }
 
-        public void Apply(HexTile tile)
-        {
-            // Remove listeners to previous model
-            if (Model != null) {
-                Model.OnHeightChanged -= HandleHeightChanged;
-                Model.OnHighlightChanged -= HandleHighlightChanged;
-            }
-
-            // Replace model reference
-            Model = tile;
-
-            // Activate and name unity object
-            gameObject.SetActive(tile != null);
-            gameObject.name = "HexTile: " + tile?.Location.GridIndex;
-
-            // Apply listeners for new model
-            if (tile != null) {
-                Model.OnHeightChanged += HandleHeightChanged;
-                Model.OnHighlightChanged += HandleHighlightChanged;
-                HandleHeightChanged();
+                base.Model = value;
+                InitTargetComponent();
+                _targetableComponent.OnHighlightChanged += HandleHighlightChanged;
                 HandleHighlightChanged();
             }
         }
 
-        private void HandleHeightChanged()
+        private void InitTargetComponent()
         {
-            tileObject.SetActive(Model.Location.GridPosition.y >= 0);
-            transform.localPosition = Model.Location.Position;
+            if (Model == null) {
+                _targetableComponent = null;
+            } else if (_targetableComponent == null) {
+                _targetableComponent = (TargetableComponent)Model.GetComponent(WorldComponentType.Targetable);
+            }
         }
 
         private void HandleHighlightChanged()
         {
-            highlightObject.SetActive(Model.Highlight);
-        }
-
-        public void HandleInput()
-        {
-            //if (Input.GetKeyDown(KeyCode.Equals)) { Model.Raise(); }
-            //if (Input.GetKeyDown(KeyCode.Minus)) { Model.Lower(); }
+            highlightObject.SetActive(_targetableComponent.Highlight);
         }
     }
 }

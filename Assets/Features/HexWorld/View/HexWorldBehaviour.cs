@@ -8,29 +8,26 @@ namespace Zekzek.HexWorld
         [SerializeField] private float _playSpeed = 1f;
         [SerializeField] private int _screenHeight = 15;
         [SerializeField] private int _screenWidth = 15;
-        [SerializeField] private MonoBehaviour[] prefabList;
+        [SerializeField] private BehaviourModelMapping[] prefabList;
 
-        private Dictionary<System.Type, Transform> containers = new Dictionary<System.Type, Transform>();
-        private Dictionary<System.Type, MonoBehaviour> prefabs = new Dictionary<System.Type, MonoBehaviour>();
+        private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
+        private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType = new Dictionary<WorldObjectType, WorldObjectBehaviour>();
+        private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
+        private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
 
         private Camera _camera;
 
-        private static int maxVisibleTiles;
-        public static bool TilesDirty { get; set; } = true;
-        public static bool WorldObjectsDirty { get; set; } = true;
+        private List<TargetableComponent> highlighted = new List<TargetableComponent>();
 
-        private readonly List<HexTileBehaviour> allTiles = new List<HexTileBehaviour>();
-        private readonly List<WorldObjectBehaviour> allWorldObjects = new List<WorldObjectBehaviour>();
-
-        private List<HexTile> highlightedTiles = new List<HexTile>();
-
-        private static Vector2Int centerTile = new Vector2Int(0, 0);
-        public static Vector2Int CenterTile {
+        private Vector2Int centerTile = new Vector2Int(0, 0);
+        public Vector2Int CenterTile {
             get { return centerTile; }
             set {
                 if (value != centerTile) {
                     centerTile = value;
-                    TilesDirty = true;
+                    foreach (WorldObjectType key in _dirtyByType.Keys) {
+                        _dirtyByType[key] = true;
+                    }
                 }
             }
         }
@@ -38,110 +35,66 @@ namespace Zekzek.HexWorld
         private void Awake()
         {
             _camera = Camera.main;
-            PreallocateContainers();
-            //PreallocateAllTiles();
+            InitTypeCollections();
         }
 
         private void Update()
         {
-            UpdateVisibleHexTiles();
-            UpdateWorldObjects();
+            UpdateAllVisible();
             UpdateTileHighlight();
 
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
         }
 
-        private void PreallocateContainers()
+        private void InitTypeCollections()
         {
-            if (containers == null) { containers = new Dictionary<System.Type, Transform>(); }
-            if (prefabs == null) { prefabs = new Dictionary<System.Type, MonoBehaviour>(); }
-            foreach (MonoBehaviour prefab in prefabList) {
-                InitPrefabContainer(prefab);
+            foreach (BehaviourModelMapping mapping in prefabList) {
+                var type = mapping.type;
+                _behavioursByType.Add(type, new List<WorldObjectBehaviour>());
+                _dirtyByType.Add(type, true);
+                if (!_prefabsByType.ContainsKey(type)) {
+                    _prefabsByType[type] = mapping.prefab;
+                }
+                if (!_containersByType.ContainsKey(type)) {
+                    _containersByType[type] = new GameObject($"{type}Container").transform;
+                    _containersByType[type].parent = transform;
+                }
             }
         }
 
-        private void InitPrefabContainer<T>(T prefab) where T : MonoBehaviour
+        private void AllocatePrefab(WorldObjectType type)
         {
-            System.Type type = prefab.GetType();
-            if (!prefabs.ContainsKey(type)) {
-                prefabs[type] = prefab;
-                Debug.Log("Added prefab to list, up to " + prefabs.Count);
-            }
-            if (!containers.ContainsKey(type)) {
-                containers[type] = new GameObject($"{type.Name}Container").transform;
-                containers[type].parent = transform;
-            }
+            WorldObjectBehaviour behaviour = Instantiate(_prefabsByType[type], _containersByType[type]);
+            _behavioursByType[type].Add(behaviour);
         }
 
-        private void AllocatePrefab(HexTileBehaviour prefab)
+        private void UpdateAllVisible()
         {
-            System.Type type = prefab.GetType();
+            var screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
+            //TODO: Can this be handled in a single loop?
+            foreach (WorldObjectType type in _behavioursByType.Keys) {
+                if (!_dirtyByType[type]) { continue; }
 
-            HexTileBehaviour tile = (HexTileBehaviour)Instantiate(prefabs[type], containers[type]);
-            allTiles.Add(tile);
-        }
+                // Clear all current
+                foreach (WorldObjectBehaviour behaviour in _behavioursByType[type]) { behaviour.gameObject.SetActive(false); }
 
-        private void AllocatePrefab(WorldObjectBehaviour prefab)
-        {
-            System.Type type = prefab.GetType();
-
-            WorldObjectBehaviour worldObject = (WorldObjectBehaviour)Instantiate(prefabs[type], containers[type]);
-            allWorldObjects.Add(worldObject);
-        }
-
-        private void UpdateVisibleHexTiles()
-        {
-            if (!TilesDirty) { return; }
-
-            // Clear all current tiles
-            foreach (HexTileBehaviour tile in allTiles) { tile.gameObject.SetActive(false); }
-
-            // Build new tiles from visible region
-            int tileIndex = 0;
-            foreach (HexTile tile in HexWorld.Instance.tiles.GetItemsAt(WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight))) {
-                if (tileIndex >= allTiles.Count) { AllocatePrefab((HexTileBehaviour)prefabs[typeof(HexTileBehaviour)]); }
-                allTiles[tileIndex].Apply(tile);
-                tileIndex++;
+                // Build new behaviours from visible region
+                int index = 0;
+                foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices)) {
+                    if (worldObject.Type == type) {
+                        if (index >= _behavioursByType[type].Count) { AllocatePrefab(type); }
+                        _behavioursByType[type][index].Model = worldObject;
+                        index++;
+                    }
+                }
+                _dirtyByType[type] = false;
             }
-            TilesDirty = false;
-        }
-
-        private void UpdateWorldObjects()
-        {
-            if (!WorldObjectsDirty) { return; }
-
-            int objectIndex = 0;
-            foreach (WorldObject entity in HexWorld.Instance.worldObjects.GetItemsAt(WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight))) {
-                if (objectIndex >= allWorldObjects.Count) { AllocatePrefab((WorldObjectBehaviour)prefabs[typeof(WorldObjectBehaviour)]); }
-                allWorldObjects[objectIndex].Model = entity;
-                objectIndex++;
-            }
-
-
-            Debug.Log("updating world objects");
-
-//            ICollection<WorldObject> worldObjects = World.Instance.GetWorldObjectsAround(centerTile);
-//            foreach (WorldObject worldObject in worldObjects) {
-//                // Check for exisitng location behaviours
-//                bool found = false;
-//                foreach (LocationBehaviour existingBehaviour in allWorldObjects) {
-//                    if (existingBehaviour != null && existingBehaviour.WorldObject.Id == worldObject.Id) { found = true; break; }
-//                }
-//                if (found) { continue; }
-//
-//                // Create new behaviour
-//                LocationBehaviour locationBehaviour = Instantiate(bush1Prefab, ResourceContainer);
-//                locationBehaviour.transform.localPosition = worldObject.Location.Position;
-//                locationBehaviour.WorldObject = worldObject;
-//                allWorldObjects.Add(locationBehaviour);
-//            }
-            WorldObjectsDirty = false;
         }
 
         private void UpdateTileHighlight()
         {
-            foreach (HexTile tile in highlightedTiles) { tile.Highlight = false; }
-            highlightedTiles.Clear();
+            foreach (TargetableComponent targetable in highlighted) { targetable.Highlight = false; }
+            highlighted.Clear();
 
             RaycastHit hit;
             Ray ray = _camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
@@ -151,10 +104,9 @@ namespace Zekzek.HexWorld
                 HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
                 if (tile != null && tile.Model != null) {
                     Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
-                    tile.HandleInput();
                     if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-                        WorldObject worldObject = HexWorld.Instance.worldObjects.GetFirstItemAt(Vector2Int.zero);
-                        worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Speed);
+                        WorldObject worldObject = HexWorld.Instance.GetFirstAt(Vector2Int.zero, WorldComponentType.Moveable);
+                        worldObject.Moveable.NavigateTo(tile.Model.Location.GridPosition, worldObject.Moveable.Speed);
                     }
                 }
             }
@@ -164,11 +116,12 @@ namespace Zekzek.HexWorld
         {
             Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
 
-            HexTile tile = HexWorld.Instance.tiles.GetFirstItemAt(rotated);
+            WorldObject targetableObject = HexWorld.Instance.GetFirstAt(rotated, WorldComponentType.Targetable);
 
-            if (tile != null) {
-                tile.Highlight = true;
-                highlightedTiles.Add(tile);
+            if (targetableObject != null) {
+                TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
+                targetable.Highlight = true;
+                highlighted.Add(targetable);
             }
         }
     }

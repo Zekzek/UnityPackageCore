@@ -7,8 +7,7 @@ public class PathingTest
 {
     [SetUp]
     public void ClearWorld() {
-        HexWorld.Instance.tiles.Clear();
-        HexWorld.Instance.worldObjects.Clear();
+        HexWorld.Instance.Clear();
         WorldScheduler.Instance.Clear();
     }
 
@@ -144,8 +143,7 @@ public class PathingTest
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
-                HexTile tile = new HexTile(x, 0, z);
-                HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
+                WorldObject.CreateTile(new Vector3Int(x, 0, z));
             }
         }
 
@@ -172,13 +170,10 @@ public class PathingTest
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
-                HexTile tile = new HexTile(x, 0, z);
-                HexWorld.Instance.tiles.Add(tile.Id, tile.Location.GridIndex, tile);
+                WorldObject.CreateTile(new Vector3Int(x, 0, z));
             }
         }
-
-        var obstacle = new WorldObject(new Vector3Int(3, 0, 2), 0);
-        HexWorld.Instance.worldObjects.Add(obstacle.Id, obstacle.Location.GridIndex, obstacle);
+        WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(3, 0, 2));
 
         NavStep start = new NavStep(MoveType.NONE, new Vector3Int(0, 0, 2), FacingUtil.E, startTime);
         List<NavStep> path = WorldUtil.FindShortestPath(start, new Vector3Int(5, 0, 2), speed, out int loopCount);

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Zekzek.HexWorld
 {
-    public class HexWorld
+    public class HexWorld : PositionedCollection<WorldObject>
     {
         private static HexWorld instance;
         public static HexWorld Instance { get { if (instance == null) { instance = new HexWorld(); } return instance; } }
@@ -10,23 +11,45 @@ namespace Zekzek.HexWorld
         private uint nextId = 1;
         public uint NextId { get { return nextId++; } }
 
-        public List<ulong> EncodedWorld {
-            get {
-                List<ulong> encodings = new List<ulong>();
-                foreach (HexTile tile in tiles.GetAllItems()) { encodings.Add(tile.Encoding); }
-                return encodings;
-            }
-            set {
-                tiles.Clear();
-                foreach (ulong encodedTile in value) {
-                    HexTile tile = new HexTile(encodedTile);
-                    tiles.Add(tile.Id, tile.Location.GridIndex, tile);
-                }
-            }
+        public bool Add(WorldObject worldObject) {
+            worldObject.Location.OnGridIndexChange += () => UpdatePosition(worldObject.Id, worldObject.Location.GridIndex);
+            return Add(worldObject.Id, worldObject.Location?.GridIndex, worldObject);
         }
 
-        // Containers
-        public readonly PositionedCollection<HexTile> tiles = new PositionedCollection<HexTile>();
-        public readonly PositionedCollection<WorldObject> worldObjects = new PositionedCollection<WorldObject>();
+        public IEnumerable<WorldObject> GetAt(IEnumerable<Vector2Int> gridIndices, WorldComponentType componentType)
+        {
+            List<WorldObject> items = new List<WorldObject>();
+            foreach (var gridIndex in gridIndices) {
+                foreach (uint id in GetIdsAt(gridIndex)) {
+                    WorldObject worldObject = Get(id);
+                    if (worldObject.HasComponent(componentType)) {
+                        items.Add(worldObject);
+                    }
+                }
+            }
+            return items;
+        }
+
+        public WorldObject GetFirstAt(Vector2Int gridIndex, WorldComponentType componentType)
+        {
+            foreach (uint id in GetIdsAt(gridIndex)) {
+                WorldObject worldObject = Get(id);
+                if (worldObject.HasComponent(componentType)) {
+                    return worldObject;
+                }
+            }
+            return default;
+        }
+
+        public bool IsOccupied(Vector2Int gridIndex, WorldComponentType componentType)
+        {
+            foreach (uint id in GetIdsAt(gridIndex)) {
+                WorldObject worldObject = Get(id);
+                if (worldObject.HasComponent(componentType)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
