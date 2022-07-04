@@ -57,6 +57,7 @@ namespace Zekzek.HexWorld
             ClearScheduleAfter(atTime);
             lock (_scheduledLocations) {
                 _scheduledLocations.Add(atTime, new TimedLocation { time = atTime, location = location });
+                HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, location.GridIndex);
             }
         }
 
@@ -67,6 +68,7 @@ namespace Zekzek.HexWorld
             lock (_scheduledLocations) {
                 foreach (NavStep step in path) {
                     _scheduledLocations.Add(step.WorldTime, new TimedLocation { time = step.WorldTime, location = new WorldLocation(step.GridPos, step.Facing) });
+                    HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.GridIndex);
                 }
             }
         }
@@ -80,6 +82,7 @@ namespace Zekzek.HexWorld
         {
             WorldLocation current = Current;
             lock (_scheduledLocations) {
+                ClearScheduleAfter(0);
                 _scheduledLocations.Clear();
                 Schedule(current);
             }
@@ -90,6 +93,7 @@ namespace Zekzek.HexWorld
             lock (_scheduledLocations) {
                 for (int i = _scheduledLocations.Count - 1; i >= 0; i--) {
                     if (_scheduledLocations[i].time > time) {
+                        HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[i].location.GridIndex);
                         _scheduledLocations.RemoveAt(i);
                     } else {
                         break;
@@ -103,6 +107,7 @@ namespace Zekzek.HexWorld
             float now = WorldScheduler.Instance.Time;
             lock (_scheduledLocations) {
                 while (_scheduledLocations.Count > 1 && _scheduledLocations[1].time < now) {
+                    HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[0].location.GridIndex);
                     _scheduledLocations.RemoveAt(0);
                 }
             }

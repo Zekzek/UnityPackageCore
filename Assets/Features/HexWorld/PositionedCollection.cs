@@ -6,21 +6,32 @@ namespace Zekzek.HexWorld
 {
     public class PositionedCollection<T>
     {
-        public int Count => items.Count;
-        protected readonly IDictionary<uint, T> items = new Dictionary<uint, T>();
-        protected readonly IDictionary<uint, Vector2Int> gridIndices = new Dictionary<uint, Vector2Int>();
-        protected readonly IDictionary<Vector2Int, List<uint>> byGridIndex = new Dictionary<Vector2Int, List<uint>>();
+        public int Count => itemsById.Count;
+        protected readonly IDictionary<uint, T> itemsById = new Dictionary<uint, T>();
+        protected readonly IDictionary<uint, List<Vector2Int>> positionsById = new Dictionary<uint, List<Vector2Int>>();
+        protected readonly IDictionary<Vector2Int, List<uint>> idsByPosition = new Dictionary<Vector2Int, List<uint>>();
 
         public bool Add(uint id, Vector2Int? gridIndex, T item)
         {
             if (Contains(id)) { return false; }
 
-            InitGridIndex(gridIndex);
-            items[id] = item;
+            InitCollection(id);
+            InitCollection(gridIndex);
+            itemsById[id] = item;
             if (gridIndex.HasValue) {
-                gridIndices[id] = gridIndex.Value;
-                byGridIndex[gridIndex.Value].Add(id);
+                positionsById[id].Add(gridIndex.Value);
+                idsByPosition[gridIndex.Value].Add(id);
             }
+            return true;
+        }
+
+        public bool AddPositionToExistingItem(uint id, Vector2Int gridIndex)
+        {
+            if (!Contains(id)) { return false; }
+
+            InitCollection(gridIndex);
+            positionsById[id].Add(gridIndex);
+            idsByPosition[gridIndex].Add(id);
             return true;
         }
 
@@ -28,50 +39,44 @@ namespace Zekzek.HexWorld
         {
             if (!Contains(id)) { return false; }
 
-            if (gridIndices.ContainsKey(id)) {
-                byGridIndex[gridIndices[id]].Remove(id);
-                gridIndices.Remove(id);
+            foreach (Vector2Int position in positionsById[id]) {
+                idsByPosition[position].Remove(id);
             }
-            items.Remove(id);
+            positionsById.Remove(id);
+            itemsById.Remove(id);
             return true;
         }
 
-        public bool UpdatePosition(uint id, Vector2Int? gridIndex)
+        public bool RemovePositionFromExistingItem(uint id, Vector2Int gridIndex)
         {
             if (!Contains(id)) { return false; }
 
-            if (gridIndices.ContainsKey(id)) {
-                byGridIndex[gridIndices[id]].Remove(id);
-                gridIndices.Remove(id);
-            }
-            if (gridIndex.HasValue) {
-                gridIndices.Add(id, gridIndex.Value);
-                byGridIndex[gridIndex.Value].Add(id);
-            }
+            idsByPosition[gridIndex].Remove(id);
+            positionsById[id].Remove(gridIndex);
             return true;
         }
 
         public void Clear()
         {
-            items.Clear();
-            gridIndices.Clear();
-            byGridIndex.Clear();
+            itemsById.Clear();
+            positionsById.Clear();
+            idsByPosition.Clear();
         }
 
-        public Vector2Int? GetPosition(uint id)
+        public List<Vector2Int> GetPositionsFor(uint id)
         {
-            if (gridIndices.ContainsKey(id)) { return gridIndices[id]; }
+            if (positionsById.ContainsKey(id)) { return new List<Vector2Int>(positionsById[id]); }
             return null;
         }
 
         public T Get(uint id)
         {
-            return items.ContainsKey(id) ? items[id] : default;
+            return itemsById.ContainsKey(id) ? itemsById[id] : default;
         }
 
         public IEnumerable<uint> GetIdsAt(Vector2Int gridIndex)
         {
-            return byGridIndex.ContainsKey(gridIndex) ? byGridIndex[gridIndex] : Enumerable.Empty<uint>();
+            return idsByPosition.ContainsKey(gridIndex) ? idsByPosition[gridIndex] : Enumerable.Empty<uint>();
         }
 
         public IEnumerable<T> GetAt(IEnumerable<Vector2Int> gridIndices)
@@ -95,24 +100,32 @@ namespace Zekzek.HexWorld
 
         public IEnumerable<T> GetAll()
         {
-            return items.Values;
+            return itemsById.Values;
         }
 
         public bool Contains(uint id)
         {
-            return items.ContainsKey(id);
+            return itemsById.ContainsKey(id);
         }
 
         public bool IsOccupied(Vector2Int gridIndex)
         {
-            return byGridIndex.ContainsKey(gridIndex) && byGridIndex[gridIndex].Count > 0;
+            return idsByPosition.ContainsKey(gridIndex) && idsByPosition[gridIndex].Count > 0;
         }
 
-        private void InitGridIndex(Vector2Int? gridIndex)
+        private void InitCollection(uint id)
         {
-            if (gridIndex.HasValue && !byGridIndex.ContainsKey(gridIndex.Value)) {
-                byGridIndex.Add(gridIndex.Value, new List<uint> { });
+            if (!positionsById.ContainsKey(id)) { 
+                positionsById.Add(id, new List<Vector2Int>()); 
             }
         }
+
+        private void InitCollection(Vector2Int? gridIndex)
+        {
+            if (gridIndex.HasValue && !idsByPosition.ContainsKey(gridIndex.Value)) {
+                idsByPosition.Add(gridIndex.Value, new List<uint>());
+            }
+        }
+
     }
 }
