@@ -85,68 +85,19 @@ public class WorldSchedulerTest
     }
 
     [Test]
-    public void GetUnregisteredState() {
-        WorldScheduler.Instance.RegisterAt(1, 0, new WorldLocation(new Vector3(1, 0, 1), 0));
-        WorldScheduler.Instance.TryGetLocation(0, out WorldLocation previous, out WorldLocation next, out float percentComplete);
-        Assert.IsNull(previous);
-        Assert.IsNull(next);
-        Assert.AreEqual(-1, percentComplete);
-    }
-
-    [Test]
-    public void GetFutureState() {
-        WorldScheduler.Instance.RegisterAt(1, 0, new WorldLocation(new Vector3(1, 0, 1), 0));
-        WorldScheduler.Instance.TryGetLocation(0, out WorldLocation previous, out WorldLocation next, out float percentComplete);
-        Assert.IsNull(previous);
-        Assert.IsNull(next);
-        Assert.AreEqual(-1, percentComplete);
-        WorldScheduler.Instance.RegisterAt(2, 0, new WorldLocation(new Vector3(1, 0, 1), 0));
-        WorldScheduler.Instance.TryGetLocation(0, out previous, out next, out percentComplete);
-        Assert.IsNull(previous);
-        Assert.IsNull(next);
-        Assert.AreEqual(-1, percentComplete);
-    }
-
-    [Test]
-    public void GetPastState() {
-        WorldLocation inState = new WorldLocation(new Vector3(1, 0, 1), 0);
-        WorldScheduler.Instance.RegisterAt(1, 0, inState);
-        WorldScheduler.Instance.Time += 2;
-        WorldScheduler.Instance.TryGetLocation(0, out WorldLocation previous, out WorldLocation next, out float percentComplete);
-        Assert.AreEqual(inState.Position.x, previous.Position.x);
-        Assert.AreEqual(inState.Position.x, next.Position.x);
-        Assert.AreEqual(0, percentComplete);
-    }
-
-    [Test]
-    public void ForgetPastState() {
-        WorldLocation inState = new WorldLocation(new Vector3(2, 0, 2), 0);
-        WorldScheduler.Instance.RegisterAt(1, 0, new WorldLocation(new Vector3(1, 0, 1), 0));
-        WorldScheduler.Instance.RegisterAt(2, 0, inState);
-        WorldScheduler.Instance.Time += 3;
-        WorldScheduler.Instance.TryGetLocation(0, out WorldLocation previous, out WorldLocation next, out float percentComplete);
-        Assert.AreEqual(inState.Position.x, previous.Position.x);
-        Assert.AreEqual(inState.Position.x, next.Position.x);
-        Assert.AreEqual(0, percentComplete);
-    }
-
-    [Test]
     public void GetPercentComplete() {
-        WorldLocation inState1 = new WorldLocation(new Vector3(1, 0, 1), 0);
-        WorldLocation inState2 = new WorldLocation(new Vector3(2, 0, 2), 0);
-        WorldScheduler.Instance.RegisterAt(1, 0, inState1);
-        WorldScheduler.Instance.RegisterAt(3, 0, inState2);
-        WorldScheduler.Instance.Time += 2;
-        WorldScheduler.Instance.TryGetLocation(0, out WorldLocation previous, out WorldLocation next, out float percentComplete);
-        Assert.AreEqual(inState1.Position.x, previous.Position.x);
-        Assert.AreEqual(inState2.Position.x, next.Position.x);
-        Assert.AreEqual(0.5f, percentComplete);
-        WorldScheduler.Instance.RegisterAt(4, 0, inState1);
-        WorldScheduler.Instance.RegisterAt(5, 0, inState2);
-        WorldScheduler.Instance.TryGetLocation(0, out previous, out next, out percentComplete);
-        Assert.AreEqual(inState1.Position.x, previous.Position.x);
-        Assert.AreEqual(inState2.Position.x, next.Position.x);
-        Assert.AreEqual(0.5f, percentComplete);
+        LocationComponent location = new LocationComponent(0, new Vector3Int(1, 0, 1), 0);
+        location.ScheduleGridShift(new Vector3Int(2, 0, 2), 2);
+        Assert.AreEqual(new Vector3Int(1, 0, 1), location.Current.GridPosition, "Starts at specified location");
+        WorldScheduler.Instance.Time += 1;
+        Assert.AreEqual(new Vector3Int(2, 0, 2), location.Current.GridPosition, "Half way between scheduled locations");
+        location.ScheduleGridShift(new Vector3Int(2, 0, 2), 2);
+        location.ScheduleGridShift(new Vector3Int(3, 0, 3), 3);
+        Assert.AreEqual(new Vector3Int(2, 0, 2), location.Current.GridPosition, "Half way between scheduled events with more in the queue");
+        WorldScheduler.Instance.Time += 1;
+        Assert.AreEqual(new Vector3Int(3, 0, 3), location.Current.GridPosition, "Complete a step");
+        WorldScheduler.Instance.Time += 1;
+        Assert.AreEqual(new Vector3Int(4, 0, 4), location.Current.GridPosition, "Complete another step");
     }
 
     private void CallbackCounter() { count++; }

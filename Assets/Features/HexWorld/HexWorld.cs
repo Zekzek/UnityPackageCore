@@ -12,7 +12,8 @@ namespace Zekzek.HexWorld
         public uint NextId { get { return nextId++; } }
 
         public bool Add(WorldObject worldObject) {
-            worldObject.Location.OnGridIndexChange += () => UpdatePosition(worldObject.Id, worldObject.Location.GridIndex);
+            //TODO: find a way to keep bucketing objects by location
+            //worldObject.Location.OnGridIndexChange += () => UpdatePosition(worldObject.Id, worldObject.Location.GridIndex);
             return Add(worldObject.Id, worldObject.Location?.GridIndex, worldObject);
         }
 

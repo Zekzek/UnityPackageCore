@@ -27,7 +27,7 @@ namespace Zekzek.HexWorld
         {
             LocationComponent locationComponent = (LocationComponent)GetSibling(WorldComponentType.Location);
             if (locationComponent != null && locationComponent.GridPosition.y < WorldLocation.MAX_HEIGHT) {
-                locationComponent.GridPosition += Vector3Int.up;
+                locationComponent.ScheduleGridShift(Vector3Int.up, 0.2f);
                 MoveOthers();
                 return true;
             }
@@ -38,7 +38,7 @@ namespace Zekzek.HexWorld
         {
             LocationComponent locationComponent = (LocationComponent)GetSibling(WorldComponentType.Location);
             if (locationComponent != null && locationComponent.GridPosition.y > 0) {
-                locationComponent.GridPosition += Vector3Int.down;
+                locationComponent.ScheduleGridShift(Vector3Int.down, 0.2f); ;
                 MoveOthers();
                 return true;
             }
