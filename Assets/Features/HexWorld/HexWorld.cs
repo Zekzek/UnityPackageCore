@@ -19,74 +19,86 @@ namespace Zekzek.HexWorld
 
         public IEnumerable<WorldObject> GetAt(IEnumerable<Vector2Int> gridIndices, WorldComponentType componentType)
         {
-            List<WorldObject> items = new List<WorldObject>();
-            foreach (var gridIndex in gridIndices) {
-                foreach (uint id in GetIdsAt(gridIndex)) {
-                    WorldObject worldObject = Get(id);
-                    if (worldObject.HasComponent(componentType)) {
-                        items.Add(worldObject);
+            lock (_lockTarget) {
+                List<WorldObject> items = new List<WorldObject>();
+                foreach (var gridIndex in gridIndices) {
+                    foreach (uint id in GetIdsAt(gridIndex)) {
+                        WorldObject worldObject = Get(id);
+                        if (worldObject.HasComponent(componentType)) {
+                            items.Add(worldObject);
+                        }
                     }
                 }
+                return items;
             }
-            return items;
         }
 
         public IEnumerable<WorldObject> GetAt(IEnumerable<Vector2Int> gridIndices, WorldObjectType componentType)
         {
-            List<WorldObject> items = new List<WorldObject>();
-            foreach (var gridIndex in gridIndices) {
-                foreach (uint id in GetIdsAt(gridIndex)) {
-                    WorldObject worldObject = Get(id);
-                    if (worldObject.Type == componentType) {
-                        items.Add(worldObject);
+            lock (_lockTarget) {
+                List<WorldObject> items = new List<WorldObject>();
+                foreach (var gridIndex in gridIndices) {
+                    foreach (uint id in GetIdsAt(gridIndex)) {
+                        WorldObject worldObject = Get(id);
+                        if (worldObject.Type == componentType) {
+                            items.Add(worldObject);
+                        }
                     }
                 }
+                return items;
             }
-            return items;
         }
 
         public WorldObject GetFirstAt(Vector2Int gridIndex, WorldComponentType componentType)
         {
-            foreach (uint id in GetIdsAt(gridIndex)) {
-                WorldObject worldObject = Get(id);
-                if (worldObject.HasComponent(componentType)) {
-                    return worldObject;
+            lock (_lockTarget) {
+                foreach (uint id in GetIdsAt(gridIndex)) {
+                    WorldObject worldObject = Get(id);
+                    if (worldObject.HasComponent(componentType)) {
+                        return worldObject;
+                    }
                 }
+                return default;
             }
-            return default;
         }
 
         public WorldObject GetFirstAt(Vector2Int gridIndex, WorldObjectType objectType)
         {
-            foreach (uint id in GetIdsAt(gridIndex)) {
-                WorldObject worldObject = Get(id);
-                if (worldObject.Type == objectType) {
-                    return worldObject;
+            lock (_lockTarget) {
+                foreach (uint id in GetIdsAt(gridIndex)) {
+                    WorldObject worldObject = Get(id);
+                    if (worldObject.Type == objectType) {
+                        return worldObject;
+                    }
                 }
+                return default;
             }
-            return default;
         }
 
         public bool IsOccupied(Vector2Int gridIndex, WorldComponentType componentType)
         {
-            foreach (uint id in GetIdsAt(gridIndex)) {
-                WorldObject worldObject = Get(id);
-                if (worldObject.HasComponent(componentType)) {
-                    return true;
+            lock (_lockTarget) {
+                foreach (uint id in GetIdsAt(gridIndex)) {
+                    WorldObject worldObject = Get(id);
+                    if (worldObject.HasComponent(componentType)) {
+                        return true;
+                    }
                 }
+                return false;
             }
-            return false;
         }
 
         public bool IsOccupied(Vector2Int gridIndex, WorldObjectType objectType)
         {
-            foreach (uint id in GetIdsAt(gridIndex)) {
-                WorldObject worldObject = Get(id);
-                if (worldObject.Type == objectType) {
-                    return true;
+            lock (_lockTarget) {
+                foreach (uint id in GetIdsAt(gridIndex)) {
+                    WorldObject worldObject = Get(id);
+                    if (worldObject.Type == objectType) {
+                        return true;
+                    }
                 }
+                return false;
             }
-            return false;
         }
     }
 }

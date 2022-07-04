@@ -147,13 +147,28 @@ public class PathingTest
             }
         }
 
-        NavStep start = new NavStep(MoveType.NONE, new Vector3Int(0, 0, 2), FacingUtil.E, startTime);
+        Vector3Int position1 = new Vector3Int(0, 0, 2);
+        Vector3Int position2 = new Vector3Int(5, 0, 2);
 
-        List<NavStep> path = WorldUtil.FindShortestPath(start, new Vector3Int(5, 0, 2), speed, out int loopCount);
+        List<NavStep> path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, position1, FacingUtil.E, startTime), position2, speed, out int loopCount);
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
             Assert.AreEqual(FacingUtil.E, path[i].Facing);
             Assert.AreEqual(i, path[i].GridPos.x);
+            Assert.AreEqual(0, path[i].GridPos.y);
+            Assert.AreEqual(2, path[i].GridPos.z);
+            Assert.AreEqual(startTime + i, path[i].WorldTime);
+            if (i > 0) {
+                Assert.AreEqual(MoveType.WALK_FORWARD, path[i].MoveType);
+            }
+        }
+        Assert.LessOrEqual(loopCount, 7, "Search steps");
+
+        path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, position2, FacingUtil.W, startTime), position1, speed, out loopCount);
+        Assert.AreEqual(6, path.Count, "Path length");
+        for (int i = 0; i < path.Count; i++) {
+            Assert.AreEqual(FacingUtil.W, path[i].Facing);
+            Assert.AreEqual(5 - i, path[i].GridPos.x);
             Assert.AreEqual(0, path[i].GridPos.y);
             Assert.AreEqual(2, path[i].GridPos.z);
             Assert.AreEqual(startTime + i, path[i].WorldTime);

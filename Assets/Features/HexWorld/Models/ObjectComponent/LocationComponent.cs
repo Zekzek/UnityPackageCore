@@ -64,8 +64,8 @@ namespace Zekzek.HexWorld
         public void Schedule(List<NavStep> path)
         {
             ClearSchedule();
-            float now = WorldScheduler.Instance.Time;
             lock (_scheduledLocations) {
+                if (path == null) { return; }
                 foreach (NavStep step in path) {
                     _scheduledLocations.Add(step.WorldTime, new TimedLocation { time = step.WorldTime, location = new WorldLocation(step.GridPos, step.Facing) });
                     HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.GridIndex);
@@ -115,7 +115,7 @@ namespace Zekzek.HexWorld
 
         public void NavigateTo(Vector3Int targetGridPos, MovementSpeed speed)
         {
-            var previous = Previous;
+            var previous = Current; //Previous;
             NavStep lastStep = new NavStep(MoveType.NONE, previous.GridPosition, FacingUtil.GetFacing(previous.RotationAngle), WorldScheduler.Instance.Time);
             WorldUtil.FindShortestPathAsync(lastStep, targetGridPos, speed, (path) => { Schedule(path); });
         }
