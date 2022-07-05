@@ -10,6 +10,7 @@ namespace Zekzek.HexWorld
         private const float HORIZONTAL_DISTANCE = 1f;
         private const float VERTICAL_DISTANCE = 0.85f;
         public const float HEIGHT = 0.25f;
+        private const int UNKNOWN_PATH_SCORE_PENALTY = 10;
 
         public static Vector3 GridPosToPosition(Vector3Int gridPos)
         {
@@ -102,7 +103,7 @@ namespace Zekzek.HexWorld
         {
             loopCount = 0;
             if (start == null) { return null; }
-            if (start.GridPos == end) { return null; }
+            if (start.Location.GridPosition == end) { return null; }
 
             DateTime startTime = DateTime.Now;
             DateTime endTime;
@@ -110,11 +111,11 @@ namespace Zekzek.HexWorld
             float knownBestScore = float.MaxValue;
             NavStep lastStep = null;
             OrderedList<NavStep> openSet = new OrderedList<NavStep>();
-            int shortestKnownDistanceToEnd = FindDistance(start.GridPos, end);
+            int shortestKnownDistanceToEnd = FindDistance(start.Location.GridPosition, end);
             openSet.Add(shortestKnownDistanceToEnd, start);
             Dictionary<NavStep, NavStep> cameFrom = new Dictionary<NavStep, NavStep>();
             Dictionary<NavStep, float> knownCostToStep = new Dictionary<NavStep, float>() { { start, 0 } };
-            Dictionary<NavStep, float> estimatedBestScore = new Dictionary<NavStep, float>() { { start, FindDistance(start.GridPos, end) } };
+            Dictionary<NavStep, float> estimatedBestScore = new Dictionary<NavStep, float>() { { start, FindDistance(start.Location.GridPosition, end) } };
 
             while (openSet.Count > 0) {
                 // Timeout when we get stuck here too long 
@@ -128,13 +129,12 @@ namespace Zekzek.HexWorld
                 if (estimatedBestScore[currentStep] > knownBestScore) { break; }
 
                 // Mark progress if found, but finish processing candidates
-                int currentDistanceToEnd = FindDistance(currentStep.GridPos, end);
+                int currentDistanceToEnd = FindDistance(currentStep.Location.GridPosition, end);
                 if (currentDistanceToEnd < shortestKnownDistanceToEnd) {
                     lastStep = currentStep;
                     shortestKnownDistanceToEnd = currentDistanceToEnd;
-                    float currentScore = knownCostToStep[currentStep] + 10 * shortestKnownDistanceToEnd;
-                    if (currentScore < knownBestScore)
-                        knownBestScore = currentScore;
+                    float currentScore = knownCostToStep[currentStep] + UNKNOWN_PATH_SCORE_PENALTY * shortestKnownDistanceToEnd;
+                    if (currentScore < knownBestScore) { knownBestScore = currentScore; }
                 }
 
                 // Process all neighbors of the most promising hex
@@ -144,7 +144,7 @@ namespace Zekzek.HexWorld
                     if (!knownCostToStep.ContainsKey(nextStep) || costToNeighbor < knownCostToStep[nextStep]) {
                         cameFrom[nextStep] = currentStep;
                         knownCostToStep[nextStep] = costToNeighbor;
-                        estimatedBestScore[nextStep] = costToNeighbor + FindDistance(nextStep.GridPos, end) / movementSpeed.FastestHorizontal;
+                        estimatedBestScore[nextStep] = costToNeighbor + FindDistance(nextStep.Location.GridPosition, end) / movementSpeed.FastestHorizontal;
                         if (costToNeighbor < knownBestScore) { openSet.Add(estimatedBestScore[nextStep], nextStep); }
                     }
                 }
@@ -152,7 +152,7 @@ namespace Zekzek.HexWorld
 
             endTime = DateTime.Now;
             if (lastStep == null) {
-                Debug.Log($"Pathfinding FAILED ({start.GridPos} -> {end}) after {(endTime - startTime).TotalMilliseconds}ms and {loopCount} attempts");
+                Debug.Log($"Pathfinding FAILED ({start.Location.GridPosition} -> {end}) after {(endTime - startTime).TotalMilliseconds}ms and {loopCount} attempts");
                 return null;
             }
 
@@ -165,47 +165,47 @@ namespace Zekzek.HexWorld
         {
             List<NavStep> neighbors = new List<NavStep>();
 
-            LocationComponent currentTile = (LocationComponent)(HexWorld.Instance.GetFirstAt(GridPosToGridIndex(currentStep.GridPos), WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location));
-            Vector2Int forwardGridIndex = currentStep.GridIndex + currentStep.Facing;
-            Vector2Int backwardGridIndex = currentStep.GridIndex - currentStep.Facing;
-            LocationComponent forwardTile = (LocationComponent)(HexWorld.Instance.GetFirstAt(forwardGridIndex, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location));
-            LocationComponent backwardTile = (LocationComponent)(HexWorld.Instance.GetFirstAt(backwardGridIndex, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location));
+            LocationComponent currentTileLocation = (LocationComponent)(HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location));
+            LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex + currentStep.Location.Facing, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location);
+            LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex - currentStep.Location.Facing, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location);
+            bool onSolidGround = currentTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
 
             // waiting is always an option
-            TryAddStep(new NavStep(MoveType.NONE, currentStep.GridPos, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Wait), ref neighbors);
+            //TryAddStep(new NavStep(MoveType.NONE, currentStep.Location, currentStep.WorldTime + 1f / movementSpeed.Wait), ref neighbors);
 
             // walk if path forward is unobstructed
-            if (forwardTile != null && currentStep.Height >= forwardTile.GridPosition.y) {
-                TryAddStep(new NavStep(MoveType.WALK_FORWARD, forwardGridIndex, currentStep.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors);
+            if (forwardTileLocation != null && currentStep.Location.GridPosition.y >= forwardTileLocation.GridPosition.y) {
+                TryAddStep(new NavStep(MoveType.WALK_FORWARD, currentStep.Location.MoveForward(1), currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors);
             }
 
             // take a step back if path is unobstructed
-            if (backwardTile != null && currentStep.Height >= backwardTile.GridPosition.y) {
-                TryAddStep(new NavStep(MoveType.WALK_BACKWARD, backwardGridIndex, currentStep.Height, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors);
+            if (backwardTileLocation != null && currentStep.Location.GridPosition.y >= backwardTileLocation.GridPosition.y) {
+                TryAddStep(new NavStep(MoveType.WALK_BACKWARD, currentStep.Location.MoveBack(1), currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors);
             }
 
             // rotate if on solid ground
-            if (currentTile.GridPosition.y == currentStep.Height) {
-                TryAddStep(new NavStep(MoveType.TURN_LEFT, currentStep.GridPos, FacingUtil.GetLeft(currentStep.Facing), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
-                TryAddStep(new NavStep(MoveType.TURN_RIGHT, currentStep.GridPos, FacingUtil.GetRight(currentStep.Facing), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
+            if (onSolidGround) {
+                TryAddStep(new NavStep(MoveType.TURN_LEFT, currentStep.Location.RotateLeft(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
+                TryAddStep(new NavStep(MoveType.TURN_RIGHT, currentStep.Location.RotateRight(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
             }
 
             // climb/drop down if not on solid ground
-            if (currentTile.GridPosition.y < currentStep.Height) {
-                if (currentStep.Height - currentTile.GridPosition.y <= movementSpeed.MaxDrop) { // drop
-                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.GridIndex, currentTile.GridPosition.y, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors);
+            if (!onSolidGround) {
+                int dropHeight = currentStep.Location.GridHeight - currentTileLocation.GridHeight;
+                if (dropHeight <= movementSpeed.MaxDrop) { // drop
+                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.Location.MoveDown(dropHeight), currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors);
                 } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.GridIndex, currentTile.GridPosition.y + movementSpeed.MaxDrop, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.Location.MoveDown(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
                 }
             }
 
             // climb/jump up if path forward is higher
-            if (forwardTile != null && currentStep.Height < forwardTile.GridPosition.y) {
-                if (currentStep.Height == currentTile.GridPosition.y && movementSpeed.MaxJump > 0) { // jump
-                    int maxJump = currentStep.Height + movementSpeed.MaxJump;
-                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.GridIndex, maxJump >= forwardTile.GridPosition.y ? forwardTile.GridPosition.y : maxJump, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors);
+            if (forwardTileLocation != null && currentStep.Location.GridHeight < forwardTileLocation.GridHeight) {
+                if (currentStep.Location.GridHeight == currentTileLocation.GridHeight && movementSpeed.MaxJump > 0) { // jump
+                    int jumpHeight = Mathf.Min(forwardTileLocation.GridHeight - currentStep.Location.GridHeight, movementSpeed.MaxJump);
+                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.Location.MoveUp(jumpHeight), currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors);
                 } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.GridIndex, forwardTile.GridPosition.y, currentStep.Facing, currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.Location.MoveUp(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
                 }
             }
 
@@ -215,7 +215,7 @@ namespace Zekzek.HexWorld
         private static void TryAddStep(NavStep step, ref List<NavStep> neighbors)
         {
             //TODO: compare entity position at step time instead of current
-            if (!HexWorld.Instance.IsOccupied(step.GridIndex, WorldObjectType.Entity)) {
+            if (!HexWorld.Instance.IsOccupied(step.Location.GridIndex, WorldObjectType.Entity)) {
                 neighbors.Add(step);
             }
         }
@@ -251,7 +251,7 @@ namespace Zekzek.HexWorld
             if (end.MoveType == MoveType.TURN_RIGHT) { return 1f / movementSpeed.Rotate; }
             if (end.MoveType == MoveType.NONE) { return 1f / movementSpeed.Wait; }
 
-            int heightDelta = end.Height - start.Height;
+            int heightDelta = end.Location.GridHeight - start.Location.GridHeight;
             if (end.MoveType == MoveType.JUMP_UP) { return heightDelta / movementSpeed.Jump; }
             if (end.MoveType == MoveType.CLIMB_UP) { return heightDelta / movementSpeed.Climb; }
             if (end.MoveType == MoveType.DROP_DOWN) { return -heightDelta / movementSpeed.Drop; }

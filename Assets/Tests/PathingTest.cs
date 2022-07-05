@@ -54,28 +54,28 @@ public class PathingTest
     public void WalkSpeed() {
         MovementSpeed speed = new MovementSpeed(2, 0, 0, 0, 0, 0, 0, 0, 0);
         Assert.AreEqual(1 / speed.Walk, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.E, 0),
-            new NavStep(MoveType.WALK_FORWARD, new Vector3Int(1,0,0), FacingUtil.E, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.E), 0),
+            new NavStep(MoveType.WALK_FORWARD, new WorldLocation(new Vector3Int(1,0,0), FacingUtil.E), 0),
             speed));
         Assert.AreEqual(1 / speed.Walk, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.NE, 0),
-            new NavStep(MoveType.WALK_FORWARD, new Vector3Int(0, 0, 1), FacingUtil.NE, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.NE), 0),
+            new NavStep(MoveType.WALK_FORWARD, new WorldLocation(new Vector3Int(0, 0, 1), FacingUtil.NE), 0),
             speed));
         Assert.AreEqual(1 / speed.Walk, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.NW, 0),
-            new NavStep(MoveType.WALK_FORWARD, new Vector3Int(-1, 0, 1), FacingUtil.NW, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.NW), 0),
+            new NavStep(MoveType.WALK_FORWARD, new WorldLocation(new Vector3Int(-1, 0, 1), FacingUtil.NW), 0),
             speed));
         Assert.AreEqual(1 / speed.Walk, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.W, 0),
-            new NavStep(MoveType.WALK_FORWARD, new Vector3Int(-1, 0, 0), FacingUtil.W, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.W), 0),
+            new NavStep(MoveType.WALK_FORWARD, new WorldLocation(new Vector3Int(-1, 0, 0), FacingUtil.W), 0),
             speed));
         Assert.AreEqual(1 / speed.Walk, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.SW, 0),
-            new NavStep(MoveType.WALK_FORWARD, new Vector3Int(0, 0, -1), FacingUtil.SW, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.SW), 0),
+            new NavStep(MoveType.WALK_FORWARD, new WorldLocation(new Vector3Int(0, 0, -1), FacingUtil.SW), 0),
             speed));
         Assert.AreEqual(1 / speed.Walk, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.SE, 0),
-            new NavStep(MoveType.WALK_FORWARD, new Vector3Int(1, 0, -1), FacingUtil.SE, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.SE), 0),
+            new NavStep(MoveType.WALK_FORWARD, new WorldLocation(new Vector3Int(1, 0, -1), FacingUtil.SE), 0),
             speed));
     }
 
@@ -83,28 +83,28 @@ public class PathingTest
     public void TurnSpeedRight() {
         MovementSpeed speed = new MovementSpeed(0, 0, 2, 0, 0, 0, 0, 0, 0);
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.E, 0),
-            new NavStep(MoveType.TURN_RIGHT, Vector3Int.zero, FacingUtil.SE, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.E), 0),
+            new NavStep(MoveType.TURN_RIGHT, new WorldLocation(Vector3Int.zero, FacingUtil.SE), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.SE, 0),
-            new NavStep(MoveType.TURN_RIGHT, Vector3Int.zero, FacingUtil.SW, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.SE), 0),
+            new NavStep(MoveType.TURN_RIGHT, new WorldLocation(Vector3Int.zero, FacingUtil.SW), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.SW, 0),
-            new NavStep(MoveType.TURN_RIGHT, Vector3Int.zero, FacingUtil.W, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.SW), 0),
+            new NavStep(MoveType.TURN_RIGHT, new WorldLocation(Vector3Int.zero, FacingUtil.W), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.W, 0),
-            new NavStep(MoveType.TURN_RIGHT, Vector3Int.zero, FacingUtil.NW, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.W), 0),
+            new NavStep(MoveType.TURN_RIGHT, new WorldLocation(Vector3Int.zero, FacingUtil.NW), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.NW, 0),
-            new NavStep(MoveType.TURN_RIGHT, Vector3Int.zero, FacingUtil.NE, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.NW), 0),
+            new NavStep(MoveType.TURN_RIGHT, new WorldLocation(Vector3Int.zero, FacingUtil.NE), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.NE, 0),
-            new NavStep(MoveType.TURN_RIGHT, Vector3Int.zero, FacingUtil.E, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.NE), 0),
+            new NavStep(MoveType.TURN_RIGHT, new WorldLocation(Vector3Int.zero, FacingUtil.E), 0),
             speed));
     }
 
@@ -112,28 +112,28 @@ public class PathingTest
     public void TurnSpeedLeft() {
         MovementSpeed speed = new MovementSpeed(0, 0, 2, 0, 0, 0, 0, 0, 0);
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.E, 0),
-            new NavStep(MoveType.TURN_LEFT, Vector3Int.zero, FacingUtil.NE, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.E), 0),
+            new NavStep(MoveType.TURN_LEFT, new WorldLocation(Vector3Int.zero, FacingUtil.NE), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.NE, 0),
-            new NavStep(MoveType.TURN_LEFT, Vector3Int.zero, FacingUtil.NW, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.NE), 0),
+            new NavStep(MoveType.TURN_LEFT, new WorldLocation(Vector3Int.zero, FacingUtil.NW), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.NW, 0),
-            new NavStep(MoveType.TURN_LEFT, Vector3Int.zero, FacingUtil.W, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.NW), 0),
+            new NavStep(MoveType.TURN_LEFT, new WorldLocation(Vector3Int.zero, FacingUtil.W), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.W, 0),
-            new NavStep(MoveType.TURN_LEFT, Vector3Int.zero, FacingUtil.SW, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.W), 0),
+            new NavStep(MoveType.TURN_LEFT, new WorldLocation(Vector3Int.zero, FacingUtil.SW), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.SW, 0),
-            new NavStep(MoveType.TURN_LEFT, Vector3Int.zero, FacingUtil.SE, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.SW), 0),
+            new NavStep(MoveType.TURN_LEFT, new WorldLocation(Vector3Int.zero, FacingUtil.SE), 0),
             speed));
         Assert.AreEqual(1 / speed.Rotate, WorldUtil.CalcAdjacentTravelCost(
-            new NavStep(MoveType.NONE, Vector3Int.zero, FacingUtil.SE, 0),
-            new NavStep(MoveType.TURN_LEFT, Vector3Int.zero, FacingUtil.E, 0),
+            new NavStep(MoveType.NONE, new WorldLocation(Vector3Int.zero, FacingUtil.SE), 0),
+            new NavStep(MoveType.TURN_LEFT, new WorldLocation(Vector3Int.zero, FacingUtil.E), 0),
             speed));
     }
 
@@ -150,13 +150,13 @@ public class PathingTest
         Vector3Int position1 = new Vector3Int(0, 0, 2);
         Vector3Int position2 = new Vector3Int(5, 0, 2);
 
-        List<NavStep> path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, position1, FacingUtil.E, startTime), position2, speed, out int loopCount);
+        List<NavStep> path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, new WorldLocation(position1, FacingUtil.E), startTime), position2, speed, out int loopCount);
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
-            Assert.AreEqual(FacingUtil.E, path[i].Facing);
-            Assert.AreEqual(i, path[i].GridPos.x);
-            Assert.AreEqual(0, path[i].GridPos.y);
-            Assert.AreEqual(2, path[i].GridPos.z);
+            Assert.AreEqual(FacingUtil.E, path[i].Location.Facing);
+            Assert.AreEqual(i, path[i].Location.GridPosition.x);
+            Assert.AreEqual(0, path[i].Location.GridPosition.y);
+            Assert.AreEqual(2, path[i].Location.GridPosition.z);
             Assert.AreEqual(startTime + i, path[i].WorldTime);
             if (i > 0) {
                 Assert.AreEqual(MoveType.WALK_FORWARD, path[i].MoveType);
@@ -164,13 +164,13 @@ public class PathingTest
         }
         Assert.LessOrEqual(loopCount, 7, "Search steps");
 
-        path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, position2, FacingUtil.W, startTime), position1, speed, out loopCount);
+        path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, new WorldLocation(position2, FacingUtil.W), startTime), position1, speed, out loopCount);
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
-            Assert.AreEqual(FacingUtil.W, path[i].Facing);
-            Assert.AreEqual(5 - i, path[i].GridPos.x);
-            Assert.AreEqual(0, path[i].GridPos.y);
-            Assert.AreEqual(2, path[i].GridPos.z);
+            Assert.AreEqual(FacingUtil.W, path[i].Location.Facing);
+            Assert.AreEqual(5 - i, path[i].Location.GridPosition.x);
+            Assert.AreEqual(0, path[i].Location.GridPosition.y);
+            Assert.AreEqual(2, path[i].Location.GridPosition.z);
             Assert.AreEqual(startTime + i, path[i].WorldTime);
             if (i > 0) {
                 Assert.AreEqual(MoveType.WALK_FORWARD, path[i].MoveType);
@@ -190,7 +190,7 @@ public class PathingTest
         }
         WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(3, 0, 2));
 
-        NavStep start = new NavStep(MoveType.NONE, new Vector3Int(0, 0, 2), FacingUtil.E, startTime);
+        NavStep start = new NavStep(MoveType.NONE, new WorldLocation(new Vector3Int(0, 0, 2), FacingUtil.E), startTime);
         List<NavStep> path = WorldUtil.FindShortestPath(start, new Vector3Int(5, 0, 2), speed, out int loopCount);
 
         Assert.AreEqual(10, path.Count, "Path length");

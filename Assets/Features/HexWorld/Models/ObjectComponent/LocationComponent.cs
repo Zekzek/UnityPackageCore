@@ -28,6 +28,7 @@ namespace Zekzek.HexWorld
         public Vector3 Position => Current.Position;
         public Vector3Int GridPosition => Current.GridPosition;
         public Vector2Int GridIndex => Current.GridIndex;
+        public int GridHeight => Current.GridHeight;
         public float RotationAngle => Current.RotationAngle;
         public Vector2Int Facing => Current.Facing;
 
@@ -57,7 +58,7 @@ namespace Zekzek.HexWorld
             ClearScheduleAfter(atTime);
             lock (_scheduledLocations) {
                 _scheduledLocations.Add(atTime, new TimedLocation { time = atTime, location = location });
-                HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, location.GridIndex);
+                //HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, location.GridIndex);
             }
         }
 
@@ -67,8 +68,8 @@ namespace Zekzek.HexWorld
             lock (_scheduledLocations) {
                 if (path == null) { return; }
                 foreach (NavStep step in path) {
-                    _scheduledLocations.Add(step.WorldTime, new TimedLocation { time = step.WorldTime, location = new WorldLocation(step.GridPos, step.Facing) });
-                    HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.GridIndex);
+                    _scheduledLocations.Add(step.WorldTime, new TimedLocation { time = step.WorldTime, location = step.Location });
+                    //HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.Location.GridIndex);
                 }
             }
         }
@@ -93,7 +94,7 @@ namespace Zekzek.HexWorld
             lock (_scheduledLocations) {
                 for (int i = _scheduledLocations.Count - 1; i >= 0; i--) {
                     if (_scheduledLocations[i].time > time) {
-                        HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[i].location.GridIndex);
+                        //HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[i].location.GridIndex);
                         _scheduledLocations.RemoveAt(i);
                     } else {
                         break;
@@ -107,7 +108,7 @@ namespace Zekzek.HexWorld
             float now = WorldScheduler.Instance.Time;
             lock (_scheduledLocations) {
                 while (_scheduledLocations.Count > 1 && _scheduledLocations[1].time < now) {
-                    HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[0].location.GridIndex);
+                    //HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[0].location.GridIndex);
                     _scheduledLocations.RemoveAt(0);
                 }
             }
@@ -115,8 +116,7 @@ namespace Zekzek.HexWorld
 
         public void NavigateTo(Vector3Int targetGridPos, MovementSpeed speed)
         {
-            var previous = Current; //Previous;
-            NavStep lastStep = new NavStep(MoveType.NONE, previous.GridPosition, FacingUtil.GetFacing(previous.RotationAngle), WorldScheduler.Instance.Time);
+            NavStep lastStep = new NavStep(MoveType.NONE, Previous, WorldScheduler.Instance.Time);
             WorldUtil.FindShortestPathAsync(lastStep, targetGridPos, speed, (path) => { Schedule(path); });
         }
 
