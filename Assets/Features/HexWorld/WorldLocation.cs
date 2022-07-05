@@ -106,5 +106,14 @@ namespace Zekzek.HexWorld
             return new WorldLocation(Position, FacingUtil.GetRight(Facing));
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is WorldLocation other && Equals(GridPosition, other.GridPosition) && Equals(Facing, other.Facing);
+        }
+
+        public override int GetHashCode()
+        {
+            return GridPosition.GetHashCode() + Facing.GetHashCode();
+        }
     }
 }

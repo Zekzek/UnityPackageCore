@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Zekzek
 {
@@ -83,6 +84,16 @@ namespace Zekzek
             if (lowIndex == highIndex) { return lowIndex; }
             int mid = (lowIndex + highIndex) / 2;
             if (order < keys[mid]) { return BinarySearchInsertIndex(order, lowIndex, mid); } else { return BinarySearchInsertIndex(order, mid + 1, highIndex); }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append($"Ordered {typeof(T)} List [{Count}]:");
+            for (int i = 0; i < Count; i++) {
+                builder.Append($"\n\t{keys[i]}: {values[i]}");
+            }
+            return builder.ToString();
         }
     }
 }
