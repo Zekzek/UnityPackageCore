@@ -165,9 +165,9 @@ namespace Zekzek.HexWorld
         {
             List<NavStep> neighbors = new List<NavStep>();
 
-            LocationComponent currentTileLocation = (LocationComponent)(HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location));
-            LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex + currentStep.Location.Facing, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location);
-            LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex - currentStep.Location.Facing, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location);
+            LocationComponent currentTileLocation = (LocationComponent)(HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex, WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location));
+            LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex + currentStep.Location.Facing, WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location);
+            LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex - currentStep.Location.Facing, WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location);
             bool onSolidGround = currentTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
 
             // waiting is always an option
@@ -215,7 +215,7 @@ namespace Zekzek.HexWorld
         private static void TryAddStep(NavStep step, ref List<NavStep> neighbors)
         {
             //TODO: compare entity position at step time instead of current
-            if (!HexWorld.Instance.IsOccupied(step.Location.GridIndex, WorldObjectType.Entity)) {
+            if (!HexWorld.Instance.IsOccupied(step.Location.GridIndex, WorldObjectType.Entity, step.WorldTime)) {
                 neighbors.Add(step);
             }
         }

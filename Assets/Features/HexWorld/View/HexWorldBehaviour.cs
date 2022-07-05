@@ -116,12 +116,14 @@ namespace Zekzek.HexWorld
         {
             Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
 
-            WorldObject targetableObject = HexWorld.Instance.GetFirstAt(rotated, WorldComponentType.Targetable);
+            IEnumerable<WorldObject> targetableObjects = HexWorld.Instance.GetAt(new[] { rotated }, WorldComponentType.Targetable);
 
-            if (targetableObject != null) {
-                TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
-                targetable.Highlight = true;
-                highlighted.Add(targetable);
+            foreach (WorldObject targetableObject in targetableObjects) {
+                if (targetableObject != null) {
+                    TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
+                    targetable.Highlight = true;
+                    highlighted.Add(targetable);
+                }
             }
         }
     }

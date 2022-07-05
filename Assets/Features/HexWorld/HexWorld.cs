@@ -12,8 +12,6 @@ namespace Zekzek.HexWorld
         public uint NextId { get { return nextId++; } }
 
         public bool Add(WorldObject worldObject) {
-            //TODO: find a way to keep bucketing objects by location
-            //worldObject.Location.OnGridIndexChange += () => UpdatePosition(worldObject.Id, worldObject.Location.GridIndex);
             return Add(worldObject.Id, worldObject.Location?.GridIndex, worldObject);
         }
 
@@ -75,25 +73,12 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public bool IsOccupied(Vector2Int gridIndex, WorldComponentType componentType)
+        public bool IsOccupied(Vector2Int gridIndex, WorldObjectType objectType, float worldTime)
         {
             lock (_lockTarget) {
                 foreach (uint id in GetIdsAt(gridIndex)) {
                     WorldObject worldObject = Get(id);
-                    if (worldObject.HasComponent(componentType)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-
-        public bool IsOccupied(Vector2Int gridIndex, WorldObjectType objectType)
-        {
-            lock (_lockTarget) {
-                foreach (uint id in GetIdsAt(gridIndex)) {
-                    WorldObject worldObject = Get(id);
-                    if (worldObject.Type == objectType) {
+                    if (worldObject.Type == objectType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
                         return true;
                     }
                 }
