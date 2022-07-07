@@ -229,7 +229,7 @@ namespace Zekzek.HexWorld
         private static void TryAddStep(NavStep step, ref List<NavStep> neighbors, uint moverId)
         {
             ICollection<WorldObject> entities = HexWorld.Instance.GetAt(step.Location.GridIndex, WorldObjectType.Entity, step.WorldTime);
-            if (entities.Count == 0 || entities.Count == 1 && entities.First().Id == moverId) {
+            if (entities.Count == 0 || (entities.Count == 1 && entities.First().Id == moverId)) {
                 neighbors.Add(step);
             }
         }
