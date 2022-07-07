@@ -30,20 +30,20 @@ namespace Zekzek.HexWorld
             return builder.ToString();
         }
 
-        public static WorldObject CreateTile(Vector3Int gridPosition, float rotationAngle = 0)
+        public static WorldObject CreateTile(Vector3Int gridPosition, Vector2Int? facing = null)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Tile);
-            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, rotationAngle));
+            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, facing));
             instance.AddComponent(new PlatformComponent(instance.Id));
             instance.AddComponent(new TargetableComponent(instance.Id));
             HexWorld.Instance.Add(instance);
             return instance;
         }
 
-        public static WorldObject CreateEntity(MovementSpeed speed, Vector3Int gridPosition, float rotationAngle = 0)
+        public static WorldObject CreateEntity(MovementSpeed speed, Vector3Int gridPosition, Vector2Int? facing = null)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
-            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, rotationAngle, speed));
+            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, facing, speed));
             HexWorld.Instance.Add(instance);
             return instance;
         }

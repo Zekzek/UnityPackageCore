@@ -86,7 +86,7 @@ public class WorldSchedulerTest
 
     [Test]
     public void GetPercentComplete() {
-        LocationComponent location = new LocationComponent(0, new Vector3Int(1, 0, 1), 0);
+        LocationComponent location = new LocationComponent(0, new Vector3Int(1, 0, 1));
         location.ScheduleGridShift(new Vector3Int(2, 0, 2), 2);
         Assert.AreEqual(new Vector3Int(1, 0, 1), location.Current.GridPosition, "Starts at specified location");
         WorldScheduler.Instance.Time += 1;

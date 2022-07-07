@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Zekzek.HexWorld
@@ -105,7 +106,7 @@ namespace Zekzek.HexWorld
                 if (tile != null && tile.Model != null) {
                     Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
                     if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-                        WorldObject worldObject = HexWorld.Instance.GetFirstAt(Vector2Int.zero, WorldObjectType.Entity);
+                        WorldObject worldObject = HexWorld.Instance.GetAll(WorldObjectType.Entity).First();
                         worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Location.Speed);
                     }
                 }

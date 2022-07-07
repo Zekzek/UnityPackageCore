@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,14 +7,13 @@ namespace Zekzek.HexWorld
     public class PositionedCollection<T>
     {
         public int Count => itemsById.Count;
-        protected readonly object _lockTarget = new object();
-        protected readonly IDictionary<uint, T> itemsById = new ConcurrentDictionary<uint, T>();
-        protected readonly IDictionary<uint, List<Vector2Int>> positionsById = new ConcurrentDictionary<uint, List<Vector2Int>>();
-        protected readonly IDictionary<Vector2Int, List<uint>> idsByPosition = new ConcurrentDictionary<Vector2Int, List<uint>>();
+        protected readonly IDictionary<uint, T> itemsById = new Dictionary<uint, T>();
+        protected readonly IDictionary<uint, List<Vector2Int>> positionsById = new Dictionary<uint, List<Vector2Int>>();
+        protected readonly IDictionary<Vector2Int, List<uint>> idsByPosition = new Dictionary<Vector2Int, List<uint>>();
 
         public bool Add(uint id, Vector2Int? gridIndex, T item)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (Contains(id)) { return false; }
 
                 InitCollection(id);
@@ -31,7 +29,7 @@ namespace Zekzek.HexWorld
 
         public bool AddPositionToExistingItem(uint id, Vector2Int gridIndex)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (!Contains(id)) { return false; }
 
                 InitCollection(gridIndex);
@@ -43,7 +41,7 @@ namespace Zekzek.HexWorld
 
         public bool Remove(uint id)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (!Contains(id)) { return false; }
 
                 foreach (Vector2Int position in positionsById[id]) {
@@ -57,7 +55,7 @@ namespace Zekzek.HexWorld
 
         public bool RemovePositionFromExistingItem(uint id, Vector2Int gridIndex)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (!Contains(id)) { return false; }
 
                 idsByPosition[gridIndex].Remove(id);
@@ -68,7 +66,7 @@ namespace Zekzek.HexWorld
 
         public void Clear()
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 itemsById.Clear();
                 positionsById.Clear();
                 idsByPosition.Clear();
@@ -77,7 +75,7 @@ namespace Zekzek.HexWorld
 
         public List<Vector2Int> GetPositionsFor(uint id)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (positionsById.ContainsKey(id)) { return new List<Vector2Int>(positionsById[id]); }
                 return null;
             }
@@ -85,21 +83,21 @@ namespace Zekzek.HexWorld
 
         public T Get(uint id)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 return itemsById.ContainsKey(id) ? itemsById[id] : default;
             }
         }
 
         public IEnumerable<uint> GetIdsAt(Vector2Int gridIndex)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 return idsByPosition.ContainsKey(gridIndex) ? idsByPosition[gridIndex] : Enumerable.Empty<uint>();
             }
         }
 
         public IEnumerable<T> GetAt(IEnumerable<Vector2Int> gridIndices)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 List<T> items = new List<T>();
                 foreach (var gridIndex in gridIndices) {
                     foreach (uint id in GetIdsAt(gridIndex)) {
@@ -112,7 +110,7 @@ namespace Zekzek.HexWorld
 
         public T GetFirstAt(Vector2Int gridIndex)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 foreach (uint id in GetIdsAt(gridIndex)) {
                     return Get(id);
                 }
@@ -122,28 +120,28 @@ namespace Zekzek.HexWorld
 
         public IEnumerable<T> GetAll()
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 return itemsById.Values;
             }
         }
 
         public bool Contains(uint id)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 return itemsById.ContainsKey(id);
             }
         }
 
         public bool IsOccupied(Vector2Int gridIndex)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 return idsByPosition.ContainsKey(gridIndex) && idsByPosition[gridIndex].Count > 0;
             }
         }
 
         private void InitCollection(uint id)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (!positionsById.ContainsKey(id)) {
                     positionsById.Add(id, new List<Vector2Int>());
                 }
@@ -152,7 +150,7 @@ namespace Zekzek.HexWorld
 
         private void InitCollection(Vector2Int? gridIndex)
         {
-            lock (_lockTarget) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (gridIndex.HasValue && !idsByPosition.ContainsKey(gridIndex.Value)) {
                     idsByPosition.Add(gridIndex.Value, new List<uint>());
                 }

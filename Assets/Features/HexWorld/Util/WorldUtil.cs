@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace Zekzek.HexWorld
         private const float VERTICAL_DISTANCE = 0.85f;
         public const float HEIGHT = 0.25f;
         private const int UNKNOWN_PATH_SCORE_PENALTY = 10;
+        public readonly static object SYNC_TARGET = new object();
 
         public static Vector3 GridPosToPosition(Vector3Int gridPos)
         {
@@ -94,13 +96,16 @@ namespace Zekzek.HexWorld
             return indices;
         }
 
-        public static async void FindShortestPathAsync(NavStep start, Vector3Int end, MovementSpeed movementSpeed, Action<List<NavStep>> callback)
+        public static async void FindShortestPathAsync(uint moverId, LocationComponent moverLocation, Vector3Int end, Action<List<NavStep>> callback)
         {
-            await Task.Run(() => callback(FindShortestPath(start, end, movementSpeed, out _)));
+            await Task.Run(() => callback(FindShortestPath(moverId, moverLocation, end, out _)));
         }
 
-        public static List<NavStep> FindShortestPath(NavStep start, Vector3Int end, MovementSpeed movementSpeed, out int loopCount)
+        public static List<NavStep> FindShortestPath(uint moverId, LocationComponent moverLocation, Vector3Int end, out int loopCount)
         {
+            NavStep start = new NavStep(MoveType.NONE, new WorldLocation(moverLocation.GridPosition, moverLocation.Facing), WorldScheduler.Instance.Time);
+            MovementSpeed movementSpeed = moverLocation.Speed;
+
             loopCount = 0;
             if (start == null) { return null; }
             if (start.Location.GridPosition == end) { return null; }
@@ -139,7 +144,7 @@ namespace Zekzek.HexWorld
 
                 // Process all neighbors of the most promising hex
                 float costToCurrentStep = knownCostToStep[currentStep];
-                foreach (NavStep nextStep in FindNeighbors(currentStep, movementSpeed)) {
+                foreach (NavStep nextStep in FindNeighbors(currentStep, movementSpeed, moverId)) {
                     float costToNeighbor = costToCurrentStep + CalcAdjacentTravelCost(currentStep, nextStep, movementSpeed);
                     if (!knownCostToStep.ContainsKey(nextStep) || costToNeighbor < knownCostToStep[nextStep]) {
                         cameFrom[nextStep] = currentStep;
@@ -161,13 +166,22 @@ namespace Zekzek.HexWorld
             return BuildPath(cameFrom, start, lastStep);
         }
 
-        private static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed)
+        private static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
         {
             List<NavStep> neighbors = new List<NavStep>();
 
-            LocationComponent currentTileLocation = (LocationComponent)(HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex, WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location));
-            LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex + currentStep.Location.Facing, WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location);
-            LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(currentStep.Location.GridIndex - currentStep.Location.Facing, WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location);
+            LocationComponent currentTileLocation = (LocationComponent)(HexWorld.Instance.GetFirstAt(
+                currentStep.Location.GridIndex, 
+                WorldObjectType.Tile, 
+                currentStep.WorldTime)?.GetComponent(WorldComponentType.Location));
+            LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(
+                currentStep.Location.GridIndex + currentStep.Location.Facing, 
+                WorldObjectType.Tile, 
+                currentStep.WorldTime)?.GetComponent(WorldComponentType.Location);
+            LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(
+                currentStep.Location.GridIndex - currentStep.Location.Facing, 
+                WorldObjectType.Tile, 
+                currentStep.WorldTime)?.GetComponent(WorldComponentType.Location);
             bool onSolidGround = currentTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
 
             // waiting is always an option
@@ -175,27 +189,27 @@ namespace Zekzek.HexWorld
 
             // walk if path forward is unobstructed
             if (forwardTileLocation != null && currentStep.Location.GridPosition.y >= forwardTileLocation.GridPosition.y) {
-                TryAddStep(new NavStep(MoveType.WALK_FORWARD, currentStep.Location.MoveForward(1), currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors);
+                TryAddStep(new NavStep(MoveType.WALK_FORWARD, currentStep.Location.MoveForward(1), currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors, moverId);
             }
 
             // take a step back if path is unobstructed
             if (backwardTileLocation != null && currentStep.Location.GridPosition.y >= backwardTileLocation.GridPosition.y) {
-                TryAddStep(new NavStep(MoveType.WALK_BACKWARD, currentStep.Location.MoveBack(1), currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors);
+                TryAddStep(new NavStep(MoveType.WALK_BACKWARD, currentStep.Location.MoveBack(1), currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors, moverId);
             }
 
             // rotate if on solid ground
             if (onSolidGround) {
-                TryAddStep(new NavStep(MoveType.TURN_LEFT, currentStep.Location.RotateLeft(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
-                TryAddStep(new NavStep(MoveType.TURN_RIGHT, currentStep.Location.RotateRight(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors);
+                TryAddStep(new NavStep(MoveType.TURN_LEFT, currentStep.Location.RotateLeft(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors, moverId);
+                TryAddStep(new NavStep(MoveType.TURN_RIGHT, currentStep.Location.RotateRight(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors, moverId);
             }
 
             // climb/drop down if not on solid ground
             if (!onSolidGround) {
                 int dropHeight = currentStep.Location.GridHeight - currentTileLocation.GridHeight;
                 if (dropHeight <= movementSpeed.MaxDrop) { // drop
-                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.Location.MoveDown(dropHeight), currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.Location.MoveDown(dropHeight), currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors, moverId);
                 } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.Location.MoveDown(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.Location.MoveDown(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors, moverId);
                 }
             }
 
@@ -203,19 +217,19 @@ namespace Zekzek.HexWorld
             if (forwardTileLocation != null && currentStep.Location.GridHeight < forwardTileLocation.GridHeight) {
                 if (currentStep.Location.GridHeight == currentTileLocation.GridHeight && movementSpeed.MaxJump > 0) { // jump
                     int jumpHeight = Mathf.Min(forwardTileLocation.GridHeight - currentStep.Location.GridHeight, movementSpeed.MaxJump);
-                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.Location.MoveUp(jumpHeight), currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.Location.MoveUp(jumpHeight), currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors, moverId);
                 } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.Location.MoveUp(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors);
+                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.Location.MoveUp(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors, moverId);
                 }
             }
 
             return neighbors;
         }
 
-        private static void TryAddStep(NavStep step, ref List<NavStep> neighbors)
+        private static void TryAddStep(NavStep step, ref List<NavStep> neighbors, uint moverId)
         {
-            //TODO: compare entity position at step time instead of current
-            if (!HexWorld.Instance.IsOccupied(step.Location.GridIndex, WorldObjectType.Entity, step.WorldTime)) {
+            ICollection<WorldObject> entities = HexWorld.Instance.GetAt(step.Location.GridIndex, WorldObjectType.Entity, step.WorldTime);
+            if (entities.Count == 0 || entities.Count == 1 && entities.First().Id == moverId) {
                 neighbors.Add(step);
             }
         }

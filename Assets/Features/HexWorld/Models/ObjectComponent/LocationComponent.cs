@@ -32,9 +32,10 @@ namespace Zekzek.HexWorld
         public float RotationAngle => Current.RotationAngle;
         public Vector2Int Facing => Current.Facing;
 
-        public LocationComponent(uint worldObjectId, Vector3Int gridPosition, float rotationAngle = 0, MovementSpeed speed = null) : base(worldObjectId)
+        public LocationComponent(uint worldObjectId, Vector3Int gridPosition, Vector2Int? facing = null, MovementSpeed speed = null) : base(worldObjectId)
         {
-            Schedule(new WorldLocation(gridPosition, rotationAngle));
+            if (facing == null) { facing = FacingUtil.E; }
+            Schedule(new WorldLocation(gridPosition, facing.Value));
             Speed = speed;
         }
 
@@ -42,7 +43,7 @@ namespace Zekzek.HexWorld
         {
             float now = WorldScheduler.Instance.Time;
             if (atTime < now) { atTime = now; }
-            lock(_scheduledLocations) {
+            lock (WorldUtil.SYNC_TARGET) {
                 _scheduledLocations.TryGetAround(atTime, out TimedLocation before, out TimedLocation after);
                 if (after.location == null) {
                     return before.location;
@@ -56,20 +57,20 @@ namespace Zekzek.HexWorld
         {
             float atTime = WorldScheduler.Instance.Time + delay;
             ClearScheduleAfter(atTime);
-            lock (_scheduledLocations) {
+            lock (WorldUtil.SYNC_TARGET) {
                 _scheduledLocations.Add(atTime, new TimedLocation { time = atTime, location = location });
-                //HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, location.GridIndex);
+                HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, location.GridIndex);
             }
         }
 
         public void Schedule(List<NavStep> path)
         {
             ClearSchedule();
-            lock (_scheduledLocations) {
+            lock (WorldUtil.SYNC_TARGET) {
                 if (path == null) { return; }
                 foreach (NavStep step in path) {
                     _scheduledLocations.Add(step.WorldTime, new TimedLocation { time = step.WorldTime, location = step.Location });
-                    //HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.Location.GridIndex);
+                    HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.Location.GridIndex);
                 }
             }
         }
@@ -82,7 +83,7 @@ namespace Zekzek.HexWorld
         public void ClearSchedule()
         {
             WorldLocation current = Current;
-            lock (_scheduledLocations) {
+            lock (WorldUtil.SYNC_TARGET) {
                 ClearScheduleAfter(0);
                 _scheduledLocations.Clear();
                 Schedule(current);
@@ -91,10 +92,10 @@ namespace Zekzek.HexWorld
 
         public void ClearScheduleAfter(float time)
         {
-            lock (_scheduledLocations) {
+            lock (WorldUtil.SYNC_TARGET) {
                 for (int i = _scheduledLocations.Count - 1; i >= 0; i--) {
                     if (_scheduledLocations[i].time > time) {
-                        //HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[i].location.GridIndex);
+                        HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[i].location.GridIndex);
                         _scheduledLocations.RemoveAt(i);
                     } else {
                         break;
@@ -106,9 +107,9 @@ namespace Zekzek.HexWorld
         private void ForgetPastLocations()
         {
             float now = WorldScheduler.Instance.Time;
-            lock (_scheduledLocations) {
+            lock (WorldUtil.SYNC_TARGET) {
                 while (_scheduledLocations.Count > 1 && _scheduledLocations[1].time < now) {
-                    //HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[0].location.GridIndex);
+                    HexWorld.Instance.RemovePositionFromExistingItem(WorldObjectId, _scheduledLocations[0].location.GridIndex);
                     _scheduledLocations.RemoveAt(0);
                 }
             }
@@ -117,7 +118,7 @@ namespace Zekzek.HexWorld
         public void NavigateTo(Vector3Int targetGridPos, MovementSpeed speed)
         {
             NavStep lastStep = new NavStep(MoveType.NONE, Previous, WorldScheduler.Instance.Time);
-            WorldUtil.FindShortestPathAsync(lastStep, targetGridPos, speed, (path) => { Schedule(path); });
+            WorldUtil.FindShortestPathAsync(WorldObjectId, this, targetGridPos, (path) => { Schedule(path); });
         }
 
         public override string ToString()

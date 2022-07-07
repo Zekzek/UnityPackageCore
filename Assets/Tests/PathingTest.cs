@@ -138,8 +138,8 @@ public class PathingTest
     }
 
     [Test]
-    public void PathingStraightLine() {
-        float startTime = 1;
+    public void PathingStraightEastLine() {
+        float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
@@ -150,7 +150,9 @@ public class PathingTest
         Vector3Int position1 = new Vector3Int(0, 0, 2);
         Vector3Int position2 = new Vector3Int(5, 0, 2);
 
-        List<NavStep> path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, new WorldLocation(position1, FacingUtil.E), startTime), position2, speed, out int loopCount);
+        WorldObject player = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position1, FacingUtil.E);
+        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, position2, out int loopCount);
+
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
             Assert.AreEqual(FacingUtil.E, path[i].Location.Facing);
@@ -163,8 +165,25 @@ public class PathingTest
             }
         }
         Assert.LessOrEqual(loopCount, 7, "Search steps");
+    }
 
-        path = WorldUtil.FindShortestPath(new NavStep(MoveType.NONE, new WorldLocation(position2, FacingUtil.W), startTime), position1, speed, out loopCount);
+    [Test]
+    public void PathingStraightWestLine()
+    {
+        float startTime = WorldScheduler.Instance.Time;
+        MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
+        for (int x = 0; x <= 5; x++) {
+            for (int z = 0; z <= 5; z++) {
+                WorldObject.CreateTile(new Vector3Int(x, 0, z));
+            }
+        }
+
+        Vector3Int position1 = new Vector3Int(0, 0, 2);
+        Vector3Int position2 = new Vector3Int(5, 0, 2);
+
+        WorldObject player = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position2, FacingUtil.W);
+        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, position1, out int loopCount);
+
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
             Assert.AreEqual(FacingUtil.W, path[i].Location.Facing);
@@ -181,17 +200,17 @@ public class PathingTest
 
     [Test]
     public void PathingColliders() {
-        float startTime = 1;
-        MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
+        float startTime = WorldScheduler.Instance.Time;
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
                 WorldObject.CreateTile(new Vector3Int(x, 0, z));
             }
         }
-        WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(3, 0, 2));
+        WorldObject player = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(0, 0, 2));
+        WorldObject obstacle = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(3, 0, 2));
+        NavStep playerStart = new NavStep(MoveType.NONE, new WorldLocation(player.Location.GridPosition, player.Location.Facing), WorldScheduler.Instance.Time);
 
-        NavStep start = new NavStep(MoveType.NONE, new WorldLocation(new Vector3Int(0, 0, 2), FacingUtil.E), startTime);
-        List<NavStep> path = WorldUtil.FindShortestPath(start, new Vector3Int(5, 0, 2), speed, out int loopCount);
+        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(5, 0, 2), out int loopCount);
 
         Assert.AreEqual(10, path.Count, "Path length");
         int walkCount = 0;
