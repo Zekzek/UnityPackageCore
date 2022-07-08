@@ -4,6 +4,7 @@ namespace Zekzek.HexWorld
     {
         Location,
         Platform, 
-        Targetable
+        Targetable,
+        Stats
     }
 }
