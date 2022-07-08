@@ -12,7 +12,7 @@ namespace Zekzek.HexWorld
 
         private Dictionary<WorldComponentType, WorldObjectComponent> _components = new Dictionary<WorldComponentType, WorldObjectComponent>();
 
-        private WorldObject(WorldObjectType type) {
+        public WorldObject(WorldObjectType type) {
             Id = HexWorld.Instance.NextId;
             Type = type;
         }
@@ -28,24 +28,6 @@ namespace Zekzek.HexWorld
             builder.Append($"Id: {Id}");
             foreach(WorldComponentType key in _components.Keys) { builder.Append($"{key}: {_components[key]}"); }
             return builder.ToString();
-        }
-
-        public static WorldObject CreateTile(Vector3Int gridPosition, Vector2Int? facing = null)
-        {
-            WorldObject instance = new WorldObject(WorldObjectType.Tile);
-            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, facing));
-            instance.AddComponent(new PlatformComponent(instance.Id));
-            instance.AddComponent(new TargetableComponent(instance.Id));
-            HexWorld.Instance.Add(instance);
-            return instance;
-        }
-
-        public static WorldObject CreateEntity(MovementSpeed speed, Vector3Int gridPosition, Vector2Int? facing = null)
-        {
-            WorldObject instance = new WorldObject(WorldObjectType.Entity);
-            instance.AddComponent(new LocationComponent(instance.Id, gridPosition, facing, speed));
-            HexWorld.Instance.Add(instance);
-            return instance;
         }
     }
 }

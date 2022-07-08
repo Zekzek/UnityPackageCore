@@ -143,14 +143,14 @@ public class PathingTest
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
-                WorldObject.CreateTile(new Vector3Int(x, 0, z));
+                GenerationUtil.CreateTile(new Vector3Int(x, 0, z));
             }
         }
 
         Vector3Int position1 = new Vector3Int(0, 0, 2);
         Vector3Int position2 = new Vector3Int(5, 0, 2);
 
-        WorldObject player = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position1, FacingUtil.E);
+        WorldObject player = GenerationUtil.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position1, FacingUtil.E);
         List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, position2, out int loopCount);
 
         Assert.AreEqual(6, path.Count, "Path length");
@@ -174,14 +174,14 @@ public class PathingTest
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
-                WorldObject.CreateTile(new Vector3Int(x, 0, z));
+                GenerationUtil.CreateTile(new Vector3Int(x, 0, z));
             }
         }
 
         Vector3Int position1 = new Vector3Int(0, 0, 2);
         Vector3Int position2 = new Vector3Int(5, 0, 2);
 
-        WorldObject player = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position2, FacingUtil.W);
+        WorldObject player = GenerationUtil.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position2, FacingUtil.W);
         List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, position1, out int loopCount);
 
         Assert.AreEqual(6, path.Count, "Path length");
@@ -203,11 +203,11 @@ public class PathingTest
         float startTime = WorldScheduler.Instance.Time;
         for (int x = 0; x <= 5; x++) {
             for (int z = 0; z <= 5; z++) {
-                WorldObject.CreateTile(new Vector3Int(x, 0, z));
+                GenerationUtil.CreateTile(new Vector3Int(x, 0, z));
             }
         }
-        WorldObject player = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(0, 0, 2));
-        WorldObject obstacle = WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(3, 0, 2));
+        WorldObject player = GenerationUtil.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(0, 0, 2));
+        WorldObject obstacle = GenerationUtil.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector3Int(3, 0, 2));
         NavStep playerStart = new NavStep(MoveType.NONE, new WorldLocation(player.Location.GridPosition, player.Location.Facing), WorldScheduler.Instance.Time);
 
         List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(5, 0, 2), out int loopCount);

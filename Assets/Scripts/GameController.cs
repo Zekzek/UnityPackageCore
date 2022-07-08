@@ -8,10 +8,12 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        foreach(Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 3, true)) {
-            WorldObject.CreateTile(new Vector3Int(index.x, 0, index.y));
+        GenerationUtil.CreateTile(Vector3Int.zero);
+        GenerationUtil.CreateRandomTilesAround(Vector2Int.zero);
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 1, false)) {
+            GenerationUtil.CreateRandomTilesAround(index);
         }
-        WorldObject.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), Vector3Int.zero);
+        GenerationUtil.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), Vector3Int.zero);
     }
 
     private void Update()
