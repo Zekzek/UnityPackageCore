@@ -557,7 +557,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1930807291}
-  targetOffset: {x: 0, y: 5, z: -5}
+  targetOffset: {x: 0, y: 40, z: -40}
   shoulderOffset: {x: 1, y: 1, z: 0}
 --- !u!81 &896164721
 AudioListener:
@@ -822,11 +822,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenWidth
-      value: 15
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenHeight
-      value: 15
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.size
