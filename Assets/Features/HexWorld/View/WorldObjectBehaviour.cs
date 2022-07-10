@@ -12,6 +12,7 @@ namespace Zekzek.HexWorld
         {
             if (Model == null) { return; }
             transform.position = Model.Location.Position;
+            transform.rotation = FacingUtil.GetRotation(Model.Location.Facing);
         }
     }
 }

@@ -10,10 +10,10 @@ public class GameController : MonoBehaviour
     {
         GenerationUtil.WorldGenerationType = GenerationUtil.WorldType.Standard;
         GenerationUtil.Seed = 42;
-        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 50, true)) {
-            GenerationUtil.CreateTile(index);
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 100, true)) {
+            GenerationUtil.InstantiateTile(index.x, index.y);
         }
-        GenerationUtil.CreateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), Vector2Int.zero);
+        GenerationUtil.InstantiateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), Vector2Int.zero);
     }
 
     private void Update()

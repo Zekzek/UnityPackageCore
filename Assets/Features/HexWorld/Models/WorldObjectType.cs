@@ -1,4 +1,6 @@
 public enum WorldObjectType {
     Tile,
-    Entity
+    Entity,
+    Rock,
+    Bush
 }
