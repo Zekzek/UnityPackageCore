@@ -5,139 +5,189 @@ namespace Zekzek.HexWorld
 {
     public static class GenerationUtil
     {
-        public enum WorldType
-        {
-            Flat,
-            Standard
-        }
-
         // Should be a power of 2
         private const int NOISE_SIZE = 512;
 
         private static bool _noiseInitialized;
         private static int[] _noiseBase = new int[NOISE_SIZE];
 
-        //TODO: define regions with different generation types? They should be fairly large and have lerp overlap to support smooth transitions
-        private static TerrianType terrainType = TerrianType.Forest;
-
-
-        private static int _seed;
-        public static int Seed { get => _seed; set { Random.InitState(value); _seed = value; } }
-        public static WorldType WorldGenerationType {get; set;}
+        private static List<TerrainType> _terrainTypes = new List<TerrainType>();
+        private static int _regionSize = 50;
 
         public static WorldObject InstantiateEntity(MovementSpeed speed, Vector2Int gridIndex, Vector2Int? facing = null)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
-            instance.AddComponent(new LocationComponent(instance.Id, GetTileGridPosition(gridIndex.x, gridIndex.y), facing, speed));
+            TileGenerationParams tileParams = CalcTileGenerationParams(gridIndex.x, gridIndex.y);
+            instance.AddComponent(new LocationComponent(instance.Id, new Vector3Int(gridIndex.x, tileParams.GridHeight, gridIndex.y), facing, speed));
             HexWorld.Instance.Add(instance);
             return instance;
         }
 
         public static WorldObject InstantiateTile(int x, int z)
         {
-            Vector3Int gridPosition = GetTileGridPosition(x, z);
+            TileGenerationParams tileParams = CalcTileGenerationParams(x, z);
             WorldObject tile = new WorldObject(WorldObjectType.Tile);
-            tile.AddComponent(new LocationComponent(tile.Id, gridPosition));
+            tile.AddComponent(new LocationComponent(tile.Id, new Vector3Int(x, tileParams.GridHeight, z)));
             tile.AddComponent(new PlatformComponent(tile.Id));
             tile.AddComponent(new TargetableComponent(tile.Id));
             HexWorld.Instance.Add(tile);
 
-            InstantiateTileDecoration(gridPosition, CalculateBaseNoise(x, z));
+            InstantiateTileDecoration(tile.Location.GridPosition, tileParams);
 
             return tile;
         }
 
-        private static void InstantiateTileDecoration(Vector3Int gridPosition, int noiseValue)
+        private static void InstantiateTileDecoration(Vector3Int gridPosition, TileGenerationParams generationParams)
         {
-            Vector2Int facing = FacingUtil.GetFacing(GetRotationAngle(gridPosition.x + 1, gridPosition.z + 1));
+            Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
 
-            if (noiseValue > NOISE_SIZE * 0.8f) {
+            if (generationParams.Moisture < 0.1f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Rock);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
                 HexWorld.Instance.Add(decoration);
-            } else if (noiseValue > NOISE_SIZE * 0.75f) {
+            } else if (generationParams.Fertility > 0.8f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Bush);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
                 HexWorld.Instance.Add(decoration);
             }
         }
 
-        private static Vector3Int GetTileGridPosition(int x, int z) { return new Vector3Int(x, GetTileGridHeightAt(x, z), z); }
-        private static int GetTileGridHeightAt(int x, int y) { return (int)(CalculateNoise(x, y) * WorldLocation.MAX_HEIGHT / NOISE_SIZE); }
-        private static int GetRotationAngle(int x, int y) { return (int)(CalculateBaseNoise(x, y) * 360 / NOISE_SIZE - 180); }
 
-
-        private static float CalculateNoise(int x, int y) { return CalculateNoise(x, y, WorldGenerationType); }
-
-        // Guaranteed to return a value between 0 and NOISE_SIZE
-        private static float CalculateNoise(int x, int y, GenerationUtil.WorldType worldType)
+        public static void InitRegions(int seed, int regionSize, params TerrainType[] terrains)
         {
-            if (worldType == GenerationUtil.WorldType.Flat) { return 1; }
-
+            if (seed >= 0) { Random.InitState(seed); }
+            if (regionSize >= 0) { _regionSize = regionSize; }
             InitNoise();
-            return CalculateRollingTerrain(x, y);
+            _terrainTypes.Clear();
+            _terrainTypes.AddRange(terrains);
         }
 
-        private static float CalculateCragsTerrain(int x, int y)
+        private static TileGenerationParams CalcTileGenerationParams(TerrainType terrainType, int x, int z)
         {
-            return Combine(1,
-                    Combine(0.25f,
-                        CalculateLerpNoise(0.01f * x, 0.01f * y),
-                        CalculateLerpNoise(0.5f * x, 0.5f * y)),
-                    Combine(1f,
-                        CalculateLerpNoise(0.03f * x, 0.03f * y),
-                        CalculateLerpNoise(0.01f * x, 0.01f * y)));
+            switch (terrainType) {
+                case TerrainType.Flat: return new TileGenerationParams(5);
+                case TerrainType.Chaos: return new TileGenerationParams(CalcSimpleNoise(x, z) * WorldLocation.MAX_HEIGHT / NOISE_SIZE);
+                case TerrainType.Desert: return CalcDesertTerrain(x, z);
+                case TerrainType.Forest: return CalcForestTerrain(x, z);
+                case TerrainType.Hills: return CalcHillsTerrain(x, z);
+            }
+            throw new System.Exception("No tile generation logic found for " + terrainType);
         }
 
-        private static float CalculateCliffsAndPlainsTerrain(int x, int y)
+        private static TileGenerationParams CalcTileGenerationParams(int x, int z)
         {
-            return Combine(0.8f,
-                    CalculateLerpNoise(0.2f * x, 0.1f * y),
-                    CalculateLerpNoise(0.1f * x, 0.2f * y),
-                    Combine(0.5f,
-                        CalculateLerpNoise(0.01f * x, 0.03f * y),
-                        CalculateLerpNoise(0.03f * x, 0.01f * y)));
+            // Convert to region space
+            float regionX = x / (float)_regionSize;
+            int regionXFloor = Mathf.FloorToInt(regionX);
+            int regionXCeil = Mathf.CeilToInt(regionX);
+            float regionZ = z / (float)_regionSize;
+            int regionZFloor = Mathf.FloorToInt(regionZ);
+            int regionZCeil = Mathf.CeilToInt(regionZ);
+
+            // Capture regions around the point
+            TerrainType lowXLowZTerrain = _terrainTypes[CalcSimpleNoise(regionXFloor, regionZFloor, _terrainTypes.Count)];
+            TerrainType lowXHighZTerrain = _terrainTypes[CalcSimpleNoise(regionXFloor, regionZCeil, _terrainTypes.Count)];
+            TerrainType highXLowZTerrain = _terrainTypes[CalcSimpleNoise(regionXCeil, regionZFloor, _terrainTypes.Count)];
+            TerrainType highXHighZTerrain = _terrainTypes[CalcSimpleNoise(regionXCeil, regionZCeil, _terrainTypes.Count)];
+
+            // Lerp the lower X terrains, skip the lerp if terrain matches
+            TileGenerationParams lowX;
+            if (lowXLowZTerrain == lowXHighZTerrain) {
+                lowX = CalcTileGenerationParams(lowXLowZTerrain, x, z);
+            } else {
+                lowX = TileGenerationParams.Lerp(
+                    CalcTileGenerationParams(lowXLowZTerrain, x, z),
+                    CalcTileGenerationParams(lowXHighZTerrain, x, z),
+                    CalculateSmoothLerpTime(regionZ - regionZFloor));
+            }
+
+            // Lerp the higher X terrains, skip the lerp if terrain matches
+            TileGenerationParams highX;
+            if (highXLowZTerrain == highXHighZTerrain) {
+                highX = CalcTileGenerationParams(highXLowZTerrain, x, z);
+            } else {
+                highX = TileGenerationParams.Lerp(
+                    CalcTileGenerationParams(highXLowZTerrain, x, z),
+                    CalcTileGenerationParams(highXHighZTerrain, x, z),
+                    CalculateSmoothLerpTime(regionZ - regionZFloor));
+            }
+
+            // Lerp the final reult
+            return TileGenerationParams.Lerp(lowX, highX, CalculateSmoothLerpTime(regionX - regionXFloor));
         }
 
-        private static float CalculateRollingTerrain(int x, int y)
+
+        private static int CalcSimpleNoise(int x, int z, int modulo) { return CalcSimpleNoise(x, z) * modulo / NOISE_SIZE; }
+        private static int CalcSimpleNoise(int x, int z) { return (_noiseBase[Mathf.Abs(x) % NOISE_SIZE] + _noiseBase[Mathf.Abs(z) % NOISE_SIZE]) % NOISE_SIZE; }
+        
+
+        private static TileGenerationParams CalcDesertTerrain(int x, int z)
         {
-            return Combine(0.5f,
-                        CalculateLerpNoise(0.04f * x, 0.08f * y),
-                        CalculateLerpNoise(0.08f * x, 0.04f * y));
+            float heightNoise = Combine(0f,
+                        CalcLerpNoise(0.06f * x, 0.03f * z),
+                        CalcLerpNoise(0.03f * x, 0.06f * z));
+
+            return new TileGenerationParams(
+                height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
+                rotation: CalcLerpNoise(0.1f * x, 0.1f * z) / NOISE_SIZE,
+                moisture: CalcLerpNoise(0.1f * x + 1, 0.1f * z + 1) / NOISE_SIZE,
+                temperature: CalcLerpNoise(0.1f * x + 2, 0.1f * z + 2) / NOISE_SIZE,
+                fertility: CalcLerpNoise(0.1f * x + 3, 0.1f * z + 3) / NOISE_SIZE
+            );
         }
 
-        private static float CalculateGentleRollingTerrain(int x, int y)
+        private static TileGenerationParams CalcForestTerrain(int x, int z)
         {
-            return Combine(0f,
-                        CalculateLerpNoise(0.06f * x, 0.03f * y),
-                        CalculateLerpNoise(0.03f * x, 0.06f * y));
+            float heightNoise = Combine(0.8f,
+                        CalcLerpNoise(0.2f * x, 0.1f * z),
+                        CalcLerpNoise(0.1f * x, 0.2f * z),
+                        Combine(0.5f,
+                            CalcLerpNoise(0.01f * x, 0.03f * z),
+                            CalcLerpNoise(0.03f * x, 0.01f * z)));
+
+            return new TileGenerationParams(
+                height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
+                rotation: CalcLerpNoise(0.1f * x, 0.1f * z) / NOISE_SIZE,
+                moisture: CalcLerpNoise(0.1f * x + 1, 0.1f * z + 1) / NOISE_SIZE,
+                temperature: CalcLerpNoise(0.1f * x + 2, 0.1f * z + 2) / NOISE_SIZE,
+                fertility: CalcLerpNoise(0.1f * x + 3, 0.1f * z + 3) / NOISE_SIZE
+            );
         }
 
-        private static int CalculateBaseNoise(int x, int y)
+        private static TileGenerationParams CalcHillsTerrain(int x, int z)
         {
-            return _noiseBase[Mathf.Abs(x * x + y) % NOISE_SIZE];
+            float heightNoise = Combine(0f,
+                        CalcLerpNoise(0.04f * x, 0.08f * z),
+                        CalcLerpNoise(0.08f * x, 0.04f * z));
+            
+            return new TileGenerationParams(
+                height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
+                rotation: CalcLerpNoise(x, z) / NOISE_SIZE,
+                moisture: CalcLerpNoise(0.5f * x + 1, 0.5f * z + 1) / NOISE_SIZE,
+                temperature: CalcLerpNoise(0.1f * x + 2, 0.1f * z + 2) / NOISE_SIZE,
+                fertility: CalcLerpNoise(0.7f * x + 3, 0.7f * z + 3) / NOISE_SIZE
+            );
         }
 
-        private static float CalculateLerpNoise(float x, float y)
+        private static float CalcLerpNoise(float x, float y)
         {
             int floorX = Mathf.FloorToInt(x);
             int floorY = Mathf.FloorToInt(y);
 
-            int lowXLowY = CalculateBaseNoise(floorX, floorY);
-            int lowXHighY = CalculateBaseNoise(floorX, floorY + 1);
-            int highXLowY = CalculateBaseNoise(floorX + 1, floorY);
-            int highXHighY = CalculateBaseNoise(floorX + 1, floorY + 1);
+            int lowXLowY = CalcSimpleNoise(floorX, floorY);
+            int lowXHighY = CalcSimpleNoise(floorX, floorY + 1);
+            int highXLowY = CalcSimpleNoise(floorX + 1, floorY);
+            int highXHighY = CalcSimpleNoise(floorX + 1, floorY + 1);
 
             float lowX = Mathf.Lerp(lowXLowY, lowXHighY, CalculateSmoothLerpTime(y - floorY));
             float highX = Mathf.Lerp(highXLowY, highXHighY, CalculateSmoothLerpTime(y - floorY));
             return Mathf.Lerp(lowX, highX, CalculateSmoothLerpTime(x - floorX));
         }
 
-
         // https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/procedural-patterns-noise-part-1/creating-simple-1D-noise
         private static float CalculateSmoothLerpTime(float time)
         {
-            return time;//6 * time * time * time * time * time - 15 * time * time * time * time + 10 * time * time * time;
+            return 6 * time * time * time * time * time - 15 * time * time * time * time + 10 * time * time * time;
         }
 
         private static float Scale(float value, float minPercent, float maxPercent)
@@ -175,6 +225,35 @@ namespace Zekzek.HexWorld
                 int index = Random.Range(0, values.Count - 1);
                 _noiseBase[values.Count - 1] = values[index];
                 values.RemoveAt(index);
+            }
+        }
+
+        private class TileGenerationParams
+        {
+            public int GridHeight => (int)Height;
+            
+            public float Height { get; private set; }
+            public float Rotation { get; private set; }
+            public float Moisture { get; private set; }
+            public float Temperature { get; private set; }
+            public float Fertility { get; private set; }
+
+            public TileGenerationParams(float height = 0, float rotation = 0, float moisture = 0, float temperature = 0, float fertility = 0) {
+                Height = height;
+                Rotation = rotation;
+                Moisture = moisture;
+                Temperature = temperature;
+                Fertility = fertility;
+            }
+
+            public static TileGenerationParams Lerp(TileGenerationParams a, TileGenerationParams b, float ratio) {
+                return new TileGenerationParams(
+                    height: Mathf.Lerp(a.Height, b.Height, ratio),
+                    rotation: Mathf.Lerp(a.Rotation, b.Rotation, ratio),
+                    moisture: Mathf.Lerp(a.Moisture, b.Moisture, ratio),
+                    temperature: Mathf.Lerp(a.Temperature, b.Temperature, ratio),
+                    fertility: Mathf.Lerp(a.Fertility, b.Fertility, ratio)
+                );
             }
         }
     }

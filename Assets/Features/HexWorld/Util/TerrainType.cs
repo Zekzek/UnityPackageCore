@@ -1,7 +1,9 @@
 namespace Zekzek.HexWorld
 {
-    public enum TerrianType
+    public enum TerrainType
     {
+        Flat,
+        Chaos,
         Desert,
         Forest,
         Hills

@@ -635,6 +635,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ConsoleCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 3998735551931773362, guid: 16d065365bc8bb44d9d0dc5e9cdb0e9c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3998735551931773366, guid: 16d065365bc8bb44d9d0dc5e9cdb0e9c, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -820,6 +824,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HexWorld
       objectReference: {fileID: 0}
+    - target: {fileID: 3440199642746358728, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenWidth
       value: 1000
@@ -855,18 +863,18 @@ PrefabInstance:
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.data[0].prefab
       value: 
-      objectReference: {fileID: 8308761225722011639, guid: f06a9a930fd54714eaad387bd9057001, type: 3}
+      objectReference: {fileID: 6373635653629922844, guid: f06a9a930fd54714eaad387bd9057001, type: 3}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.data[1].prefab
       value: 
-      objectReference: {fileID: 7175595362256892805, guid: 7ddc72648193c994ea23cb26b2e25aee, type: 3}
+      objectReference: {fileID: 3426190122629028669, guid: 7ddc72648193c994ea23cb26b2e25aee, type: 3}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.data[2].prefab
       value: 
-      objectReference: {fileID: 6561322017526422458, guid: 6c571c1fc6137814eb55c870b8f4d300, type: 3}
+      objectReference: {fileID: 8093451908327842315, guid: ab252766f447b504d9f1777ec080b8d5, type: 3}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.data[3].prefab
       value: 
-      objectReference: {fileID: 5364606214285643002, guid: a9d63d53b488fa34686614b22e3da84f, type: 3}
+      objectReference: {fileID: 5776025072977112604, guid: a9d63d53b488fa34686614b22e3da84f, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}

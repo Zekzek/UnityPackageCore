@@ -8,8 +8,7 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        GenerationUtil.WorldGenerationType = GenerationUtil.WorldType.Standard;
-        GenerationUtil.Seed = 42;
+        GenerationUtil.InitRegions(42, 10, TerrainType.Hills);
         foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(new Vector2Int(0, 0), 100, true)) {
             GenerationUtil.InstantiateTile(index.x, index.y);
         }
