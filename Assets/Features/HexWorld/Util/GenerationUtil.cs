@@ -240,6 +240,9 @@ namespace Zekzek.HexWorld
 
         private class TileGenerationParams
         {
+            //TODO: Move moisture & temperature to weather object which changes over time
+            //TODO: weather can effect decorations, entities, etc
+
             public int GridHeight => (int)Height;
             
             public float Height { get; private set; }

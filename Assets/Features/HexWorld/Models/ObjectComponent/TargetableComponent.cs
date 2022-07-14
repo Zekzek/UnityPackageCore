@@ -14,7 +14,7 @@ namespace Zekzek.HexWorld
             set {
                 if (_highlight != value) {
                     _highlight = value;
-                    OnHighlightChanged();
+                    OnHighlightChanged?.Invoke();
                 }
             }
         }

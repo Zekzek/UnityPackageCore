@@ -47,18 +47,24 @@ namespace Zekzek.HexWorld
             return items;
         }
 
-        public ICollection<WorldObject> GetAt(Vector2Int gridIndex, WorldObjectType componentType, float worldTime = -1) { return GetAt(new[] { gridIndex }, componentType, worldTime); }
-        public ICollection<WorldObject> GetAt(IEnumerable<Vector2Int> gridIndices, WorldObjectType componentType, float worldTime = -1)
+        public ICollection<WorldObject> GetAt(Vector2Int gridIndex, WorldObjectType objectType, float worldTime = -1) { return GetAt(new[] { gridIndex }, objectType, worldTime); }
+        public ICollection<WorldObject> GetAt(IEnumerable<Vector2Int> gridIndices, WorldObjectType objectType, float worldTime = -1)
         {
             if (worldTime < 0) { worldTime = WorldScheduler.Instance.Time; }
             List<WorldObject> items = new List<WorldObject>();
             lock (WorldUtil.SYNC_TARGET) {
-                foreach (var gridIndex in gridIndices) {
+                foreach (Vector2Int gridIndex in gridIndices) {
+                    bool tileFound = false;
                     foreach (uint id in GetIdsAt(gridIndex)) {
                         WorldObject worldObject = Get(id);
-                        if (worldObject.Type == componentType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
+                        if (worldObject.Type == objectType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
                             items.Add(worldObject);
                         }
+                        if (worldObject.Type == WorldObjectType.Tile) { tileFound = true; }
+                    }
+                    // There must always be a tile
+                    if (!tileFound && objectType == WorldObjectType.Tile) {
+                        items.Add(GenerationUtil.InstantiateTile(gridIndex.x, gridIndex.y));
                     }
                 }
             }

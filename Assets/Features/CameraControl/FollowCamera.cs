@@ -9,6 +9,7 @@ namespace Zekzek.CameraControl
         public string Key => key;
 
         public int Priority { get; set; } = 1;
+        public Vector3 TargetPosition { get; private set; }
 
         [SerializeField] private List<T> targets = new List<T>();
         [SerializeField] private Vector3 targetOffset;
@@ -16,7 +17,6 @@ namespace Zekzek.CameraControl
 
         private new Rigidbody rigidbody;
         private Vector3 idealPosition;
-        private Vector3 targetPosition;
 
         public void AddTarget(T target)
         {
@@ -76,7 +76,7 @@ namespace Zekzek.CameraControl
             Vector3 deltaPosition = (idealPosition - transform.position) - 0.5f * rigidbody.velocity;
             rigidbody.AddForce(Time.deltaTime * 5000f * deltaPosition);
 
-            transform.LookAt(targetPosition);
+            transform.LookAt(TargetPosition);
         }
 
         private void UpdateTargetPosition()
@@ -90,12 +90,12 @@ namespace Zekzek.CameraControl
                 }
             }
 
-            targetPosition = count == 0 ? Vector3.zero : targetPositionSum / count;
+            TargetPosition = count == 0 ? Vector3.zero : targetPositionSum / count;
         }
 
         private void UpdateGoalPosition()
         {
-            idealPosition = targetPosition + targetOffset;
+            idealPosition = TargetPosition + targetOffset;
         }
 
         private Vector3 GetPosition(T target)

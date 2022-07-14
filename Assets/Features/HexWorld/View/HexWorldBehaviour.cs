@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Zekzek.CameraControl;
 
 namespace Zekzek.HexWorld
 {
     public class HexWorldBehaviour : MonoBehaviour
     {
-        [SerializeField] private float _playSpeed = 1f;
-        [SerializeField] private int _screenHeight = 15;
-        [SerializeField] private int _screenWidth = 15;
+        [SerializeField] private float _playSpeed;
+        [SerializeField] private int _screenHeight;
+        [SerializeField] private int _screenWidth;
         [SerializeField] private BehaviourModelMapping[] prefabList;
 
         private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
@@ -16,7 +17,7 @@ namespace Zekzek.HexWorld
         private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
         private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
 
-        private Camera _camera;
+        private TransformFollowCamera _camera;
 
         private List<TargetableComponent> highlighted = new List<TargetableComponent>();
 
@@ -26,7 +27,7 @@ namespace Zekzek.HexWorld
             set {
                 if (value != centerTile) {
                     centerTile = value;
-                    foreach (WorldObjectType key in _dirtyByType.Keys) {
+                    foreach (WorldObjectType key in _dirtyByType.Keys.ToList()) {
                         _dirtyByType[key] = true;
                     }
                 }
@@ -35,7 +36,7 @@ namespace Zekzek.HexWorld
 
         private void Awake()
         {
-            _camera = Camera.main;
+            _camera = Camera.main.GetComponent<TransformFollowCamera>();
             InitTypeCollections();
         }
 
@@ -67,12 +68,16 @@ namespace Zekzek.HexWorld
         {
             WorldObjectBehaviour behaviour = Instantiate(_prefabsByType[type], _containersByType[type]);
             _behavioursByType[type].Add(behaviour);
+
+            if (type == WorldObjectType.Entity) {
+                CameraController<Transform>.Priority.AddTarget(behaviour.transform);
+            }
         }
 
         private void UpdateAllVisible()
         {
-            var screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
-            //TODO: Can this be handled in a single loop?
+            CenterTile = WorldUtil.PositionToGridIndex(_camera.TargetPosition);
+            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
             foreach (WorldObjectType type in _behavioursByType.Keys) {
                 if (!_dirtyByType[type]) { continue; }
 
@@ -81,12 +86,11 @@ namespace Zekzek.HexWorld
 
                 // Build new behaviours from visible region
                 int index = 0;
-                foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices)) {
-                    if (worldObject.Type == type) {
-                        if (index >= _behavioursByType[type].Count) { AllocatePrefab(type); }
-                        _behavioursByType[type][index].Model = worldObject;
-                        index++;
-                    }
+                foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices, type)) {
+                    if (index >= _behavioursByType[type].Count) { AllocatePrefab(type); }
+                    _behavioursByType[type][index].Model = worldObject;
+                    _behavioursByType[type][index].gameObject.SetActive(true);
+                    index++;
                 }
                 _dirtyByType[type] = false;
             }
@@ -98,7 +102,7 @@ namespace Zekzek.HexWorld
             highlighted.Clear();
 
             RaycastHit hit;
-            Ray ray = _camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
+            Ray ray = _camera.Camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
             
             if (Physics.Raycast(ray, out hit)) {
                 Transform objectHit = hit.transform;
