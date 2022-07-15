@@ -17,7 +17,7 @@ namespace Zekzek.HexWorld
         private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
         private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
 
-        private TransformFollowCamera _camera;
+        private LocationFollowCamera _camera;
 
         private List<TargetableComponent> highlighted = new List<TargetableComponent>();
 
@@ -36,7 +36,7 @@ namespace Zekzek.HexWorld
 
         private void Awake()
         {
-            _camera = Camera.main.GetComponent<TransformFollowCamera>();
+            _camera = Camera.main.GetComponent<LocationFollowCamera>();
             InitTypeCollections();
         }
 
@@ -68,10 +68,6 @@ namespace Zekzek.HexWorld
         {
             WorldObjectBehaviour behaviour = Instantiate(_prefabsByType[type], _containersByType[type]);
             _behavioursByType[type].Add(behaviour);
-
-            if (type == WorldObjectType.Entity) {
-                CameraController<Transform>.Priority.AddTarget(behaviour.transform);
-            }
         }
 
         private void UpdateAllVisible()

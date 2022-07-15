@@ -98,7 +98,7 @@ namespace Zekzek.CameraControl
             idealPosition = TargetPosition + targetOffset;
         }
 
-        private Vector3 GetPosition(T target)
+        protected virtual Vector3 GetPosition(T target)
         {
             if (target is Component component) {
                 return component.transform.position;
