@@ -12,19 +12,20 @@ namespace Zekzek.HexWorld
         [SerializeField] private GameObject highlightObject;
 
         public override WorldObject Model { 
-            get => base.Model; 
+            get => base.Model;
             set {
-                if (Model != null) {
-                    if (_targetableComponent == null) {
-                        _targetableComponent = (TargetableComponent)Model.GetComponent(WorldComponentType.Targetable);
-                    }
+                if (_targetableComponent != null) {
+                    _targetableComponent.Highlight = false;
                     _targetableComponent.OnHighlightChanged -= HandleHighlightChanged;
                 }
 
                 base.Model = value;
                 InitTargetComponent();
-                _targetableComponent.OnHighlightChanged += HandleHighlightChanged;
-                HandleHighlightChanged();
+
+                if (value != null) {
+                    _targetableComponent.OnHighlightChanged += HandleHighlightChanged;
+                    HandleHighlightChanged();
+                }
             }
         }
 
@@ -32,7 +33,7 @@ namespace Zekzek.HexWorld
         {
             if (Model == null) {
                 _targetableComponent = null;
-            } else if (_targetableComponent == null) {
+            } else {
                 _targetableComponent = (TargetableComponent)Model.GetComponent(WorldComponentType.Targetable);
             }
         }
