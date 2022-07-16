@@ -56,7 +56,7 @@ namespace Zekzek.CameraControl
             }
         } 
 
-        private void Start()
+        private void Awake()
         {
             CameraController<T>.Register(Key, this);
             rigidbody = GetComponent<Rigidbody>();
