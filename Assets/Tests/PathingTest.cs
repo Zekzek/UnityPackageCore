@@ -10,6 +10,9 @@ public class PathingTest
         HexWorld.Instance.Clear();
         WorldScheduler.Instance.Clear();
         GenerationUtil.Init(0, 10, TerrainType.Flat);
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
+            GenerationUtil.InstantiateTile(index.x, index.y);
+        }
     }
 
     [Test]
@@ -165,10 +168,6 @@ public class PathingTest
     {
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
-        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 5, true)) {
-            GenerationUtil.InstantiateTile(index.x, index.y);
-        }
-
         WorldObject entity = GenerationUtil.InstantiateEntity(speed, Vector2Int.zero, FacingUtil.E);
         List<NavStep> neighbors = WorldUtil.FindNeighbors(new NavStep(MoveType.NONE, entity.Location.Current, startTime), speed, entity.Id);
         Assert.AreEqual(4, neighbors.Count);
@@ -195,14 +194,11 @@ public class PathingTest
     public void PathingStraightEastLine() {
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
-        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
-            GenerationUtil.InstantiateTile(index.x, index.y);
-        }
-
         Vector2Int position1 = new Vector2Int(0, 2);
         Vector2Int position2 = new Vector2Int(5, 2);
-
         WorldObject player = GenerationUtil.InstantiateEntity(speed, position1, FacingUtil.E);
+
+        Debug.Log($"Find path from {player.Location.GridPosition} to {position2}");
         List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(position2.x, player.Location.GridHeight, position2.y), out int loopCount);
 
         Assert.AreEqual(6, path.Count, "Path length");
@@ -224,14 +220,11 @@ public class PathingTest
     {
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
-        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
-            GenerationUtil.InstantiateTile(index.x, index.y);
-        }
-
         Vector2Int position1 = new Vector2Int(0, 2);
         Vector2Int position2 = new Vector2Int(5, 2);
-
         WorldObject player = GenerationUtil.InstantiateEntity(speed, position2, FacingUtil.W);
+
+        Debug.Log($"Find path from {player.Location.GridPosition} to {position1}");
         List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(position1.x, player.Location.GridHeight, position1.y), out int loopCount);
 
         Assert.AreEqual(6, path.Count, "Path length");
@@ -252,15 +245,14 @@ public class PathingTest
     public void PathingColliders() {
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
-        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
-            GenerationUtil.InstantiateTile(index.x, index.y);
-        }
+        
 
         WorldObject player = GenerationUtil.InstantiateEntity(speed, new Vector2Int(0, 2));
         WorldObject obstacle = GenerationUtil.InstantiateEntity(speed, new Vector2Int(3, 2));
-        NavStep playerStart = new NavStep(MoveType.NONE, new WorldLocation(player.Location.GridPosition, player.Location.Facing), WorldScheduler.Instance.Time);
+        Vector3Int goal = new Vector3Int(5, player.Location.GridHeight, 2);
 
-        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(5, 0, 2), out int loopCount);
+        Debug.Log($"Find path from {player.Location.GridPosition} to {goal} while avoiding {obstacle.Location.GridPosition}");
+        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, goal, out int loopCount);
 
         Assert.AreEqual(10, path.Count, "Path length");
         int walkCount = 0;

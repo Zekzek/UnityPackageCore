@@ -8,6 +8,6 @@ public class GameController : MonoBehaviour
     {
         GenerationUtil.Init(42, 5, TerrainType.Desert, TerrainType.Forest, TerrainType.Hills);
         WorldObject player = GenerationUtil.InstantiateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), Vector2Int.zero);
-        CameraController<LocationComponent>.Priority.AddTarget(player.Location);
+        CameraController<LocationComponent>.Main.AddTarget(player.Location);
     }
 }

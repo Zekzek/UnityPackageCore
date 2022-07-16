@@ -28,7 +28,7 @@ namespace Zekzek.CameraControl
             cameras.Clear();
         }
 
-        public static FollowCamera<T> Priority {
+        public static FollowCamera<T> Main {
             get {
                 int highestPriority = int.MaxValue;
                 FollowCamera<T> priorityCamera = null;
