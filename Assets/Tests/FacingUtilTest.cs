@@ -30,4 +30,15 @@ public class FacingUtilTest
         Assert.AreEqual(-175, FacingUtil.LerpRotationAroundUpAxis(-170, 170, 0.25f));
         Assert.AreEqual(175, FacingUtil.LerpRotationAroundUpAxis(-170, 170, 0.75f));
     }
+
+    [Test]
+    public void FacingAngleReversible()
+    {
+        Assert.AreEqual(FacingUtil.NE, FacingUtil.GetFacing(FacingUtil.GetRotationAroundUpAxis(FacingUtil.NE)));
+        Assert.AreEqual(FacingUtil.E, FacingUtil.GetFacing(FacingUtil.GetRotationAroundUpAxis(FacingUtil.E)));
+        Assert.AreEqual(FacingUtil.SE, FacingUtil.GetFacing(FacingUtil.GetRotationAroundUpAxis(FacingUtil.SE)));
+        Assert.AreEqual(FacingUtil.SW, FacingUtil.GetFacing(FacingUtil.GetRotationAroundUpAxis(FacingUtil.SW)));
+        Assert.AreEqual(FacingUtil.W, FacingUtil.GetFacing(FacingUtil.GetRotationAroundUpAxis(FacingUtil.W)));
+        Assert.AreEqual(FacingUtil.NW, FacingUtil.GetFacing(FacingUtil.GetRotationAroundUpAxis(FacingUtil.NW)));
+    }
 }

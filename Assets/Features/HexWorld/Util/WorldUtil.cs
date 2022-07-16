@@ -166,7 +166,7 @@ namespace Zekzek.HexWorld
             return BuildPath(cameFrom, start, lastStep);
         }
 
-        private static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
+        public static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
         {
             List<NavStep> neighbors = new List<NavStep>();
 
@@ -229,9 +229,12 @@ namespace Zekzek.HexWorld
         private static void TryAddStep(NavStep step, ref List<NavStep> neighbors, uint moverId)
         {
             ICollection<WorldObject> entities = HexWorld.Instance.GetAt(step.Location.GridIndex, WorldObjectType.Entity, step.WorldTime);
-            if (entities.Count == 0 || (entities.Count == 1 && entities.First().Id == moverId)) {
-                neighbors.Add(step);
+            foreach (WorldObject entity in entities) {
+                if (entity.Id != moverId) {
+                    return;
+                }
             }
+            neighbors.Add(step);
         }
 
         private static List<NavStep> BuildPath(Dictionary<NavStep, NavStep> cameFrom, NavStep start, NavStep end)

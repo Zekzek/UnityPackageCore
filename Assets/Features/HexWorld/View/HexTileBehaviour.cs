@@ -29,6 +29,13 @@ namespace Zekzek.HexWorld
             }
         }
 
+        protected override void Update()
+        {
+            // Tiles don't need to rotate, so override to only update position
+            if (Model == null) { return; }
+            transform.position = Model.Location.Position;
+        }
+
         private void InitTargetComponent()
         {
             if (Model == null) {

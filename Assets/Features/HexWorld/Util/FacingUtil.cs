@@ -65,12 +65,12 @@ namespace Zekzek.HexWorld
 
         public static float GetRotationAroundUpAxis(Vector2Int facing)
         {
-            if (facing.Equals(NE)) { return 60; }
-            if (facing.Equals(E)) { return 120; }
-            if (facing.Equals(SE)) { return 180; }
-            if (facing.Equals(SW)) { return -120; }
-            if (facing.Equals(W)) { return -60; }
-            if (facing.Equals(NW)) { return 0; }
+            if (facing.Equals(NE)) { return 30; }
+            if (facing.Equals(E)) { return 90; }
+            if (facing.Equals(SE)) { return 150; }
+            if (facing.Equals(SW)) { return -150; }
+            if (facing.Equals(W)) { return -90; }
+            if (facing.Equals(NW)) { return -30; }
             throw new MissingReferenceException();
         }
 

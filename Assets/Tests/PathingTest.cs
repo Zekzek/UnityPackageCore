@@ -9,6 +9,7 @@ public class PathingTest
     public void ClearWorld() {
         HexWorld.Instance.Clear();
         WorldScheduler.Instance.Clear();
+        GenerationUtil.Init(0, 10, TerrainType.Flat);
     }
 
     [Test]
@@ -48,6 +49,28 @@ public class PathingTest
         Assert.AreEqual(1, WorldUtil.FindDistance(Vector3Int.zero, new Vector3Int(0, -1, 0)));
         Assert.AreEqual(2, WorldUtil.FindDistance(Vector3Int.zero, new Vector3Int(1, 1, 0)));
         Assert.AreEqual(2, WorldUtil.FindDistance(Vector3Int.zero, new Vector3Int(1, -1, 0)));
+    }
+
+    [Test]
+    public void Move()
+    {
+        WorldLocation location = new WorldLocation(new Vector3Int(0, 5, 0), FacingUtil.E);
+
+        Assert.AreEqual(new Vector2Int(1, 0), location.MoveForward(1).GridIndex, "Move forward grid index");
+        Assert.AreEqual(new Vector3Int(1, 5, 0), location.MoveForward(1).GridPosition, "Move forward grid position");
+        Assert.AreEqual(FacingUtil.E, location.MoveForward(1).Facing, "Move forward facing");
+
+        Assert.AreEqual(new Vector2Int(-1, 0), location.MoveBack(1).GridIndex, "Move backward grid index");
+        Assert.AreEqual(new Vector3Int(-1, 5, 0), location.MoveBack(1).GridPosition, "Move backward grid position");
+        Assert.AreEqual(FacingUtil.E, location.MoveForward(1).Facing, "Move backward facing");
+
+        Assert.AreEqual(new Vector2Int(0, 0), location.MoveUp(1).GridIndex, "Move up grid index");
+        Assert.AreEqual(new Vector3Int(0, 6, 0), location.MoveUp(1).GridPosition, "Move up grid position");
+        Assert.AreEqual(FacingUtil.E, location.MoveUp(1).Facing, "Move up facing");
+
+        Assert.AreEqual(new Vector2Int(0, 0), location.MoveDown(1).GridIndex, "Move down grid index");
+        Assert.AreEqual(new Vector3Int(0, 4, 0), location.MoveDown(1).GridPosition, "Move down grid position");
+        Assert.AreEqual(FacingUtil.E, location.MoveDown(1).Facing, "Move down facing");
     }
 
     [Test]
@@ -138,26 +161,55 @@ public class PathingTest
     }
 
     [Test]
+    public void Neighbors()
+    {
+        float startTime = WorldScheduler.Instance.Time;
+        MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 5, true)) {
+            GenerationUtil.InstantiateTile(index.x, index.y);
+        }
+
+        WorldObject entity = GenerationUtil.InstantiateEntity(speed, Vector2Int.zero, FacingUtil.E);
+        List<NavStep> neighbors = WorldUtil.FindNeighbors(new NavStep(MoveType.NONE, entity.Location.Current, startTime), speed, entity.Id);
+        Assert.AreEqual(4, neighbors.Count);
+
+        foreach (NavStep neighbor in neighbors) {
+            if (neighbor.MoveType == MoveType.WALK_FORWARD) { 
+                Assert.AreEqual(FacingUtil.E, neighbor.Location.GridIndex);
+                Assert.AreEqual(FacingUtil.E, neighbor.Location.Facing); 
+            } else if (neighbor.MoveType == MoveType.WALK_BACKWARD) {
+                Assert.AreEqual(FacingUtil.W, neighbor.Location.GridIndex);
+                Assert.AreEqual(FacingUtil.E, neighbor.Location.Facing);
+            } else if (neighbor.MoveType == MoveType.TURN_LEFT) {
+                Assert.AreEqual(Vector2Int.zero, neighbor.Location.GridIndex);
+                Assert.AreEqual(FacingUtil.NE, neighbor.Location.Facing);
+            } else if (neighbor.MoveType == MoveType.TURN_RIGHT) {
+                Assert.AreEqual(Vector2Int.zero, neighbor.Location.GridIndex);
+                Assert.AreEqual(FacingUtil.SE, neighbor.Location.Facing);
+            }
+        }
+    }
+
+
+    [Test]
     public void PathingStraightEastLine() {
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
-        for (int x = 0; x <= 5; x++) {
-            for (int z = 0; z <= 5; z++) {
-                GenerationUtil.InstantiateTile(x, z);
-            }
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
+            GenerationUtil.InstantiateTile(index.x, index.y);
         }
 
         Vector2Int position1 = new Vector2Int(0, 2);
         Vector2Int position2 = new Vector2Int(5, 2);
 
-        WorldObject player = GenerationUtil.InstantiateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position1, FacingUtil.E);
-        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(5, 1, 2), out int loopCount);
+        WorldObject player = GenerationUtil.InstantiateEntity(speed, position1, FacingUtil.E);
+        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(position2.x, player.Location.GridHeight, position2.y), out int loopCount);
 
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
             Assert.AreEqual(FacingUtil.E, path[i].Location.Facing);
             Assert.AreEqual(i, path[i].Location.GridPosition.x);
-            Assert.AreEqual(0, path[i].Location.GridPosition.y);
+            Assert.AreEqual(player.Location.GridHeight, path[i].Location.GridPosition.y);
             Assert.AreEqual(2, path[i].Location.GridPosition.z);
             Assert.AreEqual(startTime + i, path[i].WorldTime);
             if (i > 0) {
@@ -172,27 +224,21 @@ public class PathingTest
     {
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
-        for (int x = 0; x <= 5; x++) {
-            for (int z = 0; z <= 5; z++) {
-                GenerationUtil.InstantiateTile(x, z);
-            }
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
+            GenerationUtil.InstantiateTile(index.x, index.y);
         }
 
         Vector2Int position1 = new Vector2Int(0, 2);
         Vector2Int position2 = new Vector2Int(5, 2);
 
-        WorldObject player = GenerationUtil.InstantiateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), position2, FacingUtil.W);
-        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(0, 1, 2), out int loopCount);
-
-        foreach (var step in path) {
-            Debug.Log(step.MoveType + " -> " + step.Location.GridPosition);
-        }
+        WorldObject player = GenerationUtil.InstantiateEntity(speed, position2, FacingUtil.W);
+        List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(position1.x, player.Location.GridHeight, position1.y), out int loopCount);
 
         Assert.AreEqual(6, path.Count, "Path length");
         for (int i = 0; i < path.Count; i++) {
             Assert.AreEqual(FacingUtil.W, path[i].Location.Facing);
             Assert.AreEqual(5 - i, path[i].Location.GridPosition.x);
-            Assert.AreEqual(0, path[i].Location.GridPosition.y);
+            Assert.AreEqual(player.Location.GridHeight, path[i].Location.GridPosition.y);
             Assert.AreEqual(2, path[i].Location.GridPosition.z);
             Assert.AreEqual(startTime + i, path[i].WorldTime);
             if (i > 0) {
@@ -205,13 +251,13 @@ public class PathingTest
     [Test]
     public void PathingColliders() {
         float startTime = WorldScheduler.Instance.Time;
-        for (int x = 0; x <= 5; x++) {
-            for (int z = 0; z <= 5; z++) {
-                GenerationUtil.InstantiateTile(x, z);
-            }
+        MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
+        foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
+            GenerationUtil.InstantiateTile(index.x, index.y);
         }
-        WorldObject player = GenerationUtil.InstantiateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector2Int(0, 2));
-        WorldObject obstacle = GenerationUtil.InstantiateEntity(new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1), new Vector2Int(3, 2));
+
+        WorldObject player = GenerationUtil.InstantiateEntity(speed, new Vector2Int(0, 2));
+        WorldObject obstacle = GenerationUtil.InstantiateEntity(speed, new Vector2Int(3, 2));
         NavStep playerStart = new NavStep(MoveType.NONE, new WorldLocation(player.Location.GridPosition, player.Location.Facing), WorldScheduler.Instance.Time);
 
         List<NavStep> path = WorldUtil.FindShortestPath(player.Id, player.Location, new Vector3Int(5, 0, 2), out int loopCount);
