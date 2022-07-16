@@ -246,7 +246,6 @@ public class PathingTest
         float startTime = WorldScheduler.Instance.Time;
         MovementSpeed speed = new MovementSpeed(1, 1, 1, 1, 1, 1, 1, 1, 1);
         
-
         WorldObject player = GenerationUtil.InstantiateEntity(speed, new Vector2Int(0, 2));
         WorldObject obstacle = GenerationUtil.InstantiateEntity(speed, new Vector2Int(3, 2));
         Vector3Int goal = new Vector3Int(5, player.Location.GridHeight, 2);
@@ -267,6 +266,6 @@ public class PathingTest
         }
         Assert.AreEqual(6, walkCount, "Walk steps");
         Assert.AreEqual(3, rotateCount, "Rotate steps");
-        Assert.Less(loopCount, 210, "Search steps");
+        Assert.Less(loopCount, 65, "Search steps");
     }
 }

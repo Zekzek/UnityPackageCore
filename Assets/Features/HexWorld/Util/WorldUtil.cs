@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -10,8 +9,9 @@ namespace Zekzek.HexWorld
     {
         private const float HORIZONTAL_DISTANCE = 1f;
         private const float VERTICAL_DISTANCE = 0.85f;
+        private const float PESSIMIST_PATHING_MULTIPLIER = 10f;
+
         public const float HEIGHT = 0.25f;
-        private const int UNKNOWN_PATH_SCORE_PENALTY = 10;
         public readonly static object SYNC_TARGET = new object();
 
         public static Vector3 GridPosToPosition(Vector3Int gridPos)
@@ -50,18 +50,33 @@ namespace Zekzek.HexWorld
             return new Vector3Int(gridIndex.x, gridHeight, gridIndex.y);
         }
 
+        public static float FindFastestTravelTime(Vector3Int start, Vector3Int end, MovementSpeed speed)
+        {
+            return FindDistance(start, end) / speed.FastestHorizontal + FindVerticalDistance(start.y, end.y) / speed.FastestVertical;
+        }
+
         public static int FindDistance(Vector3Int start, Vector3Int end)
         {
+            return FindHorizontalDistance(start, end) + FindVerticalDistance(start.y, end.y);
+        }
+
+        public static int FindHorizontalDistance(Vector3Int start, Vector3Int end)
+        {
             int deltaX = end.x - start.x;
-            int deltaY = end.y - start.y;
             int deltaZ = end.z - start.z;
 
             if ((deltaX > 0 && deltaZ > 0) || (deltaX < 0 && deltaZ < 0)) {
-                return Mathf.Abs(deltaX) + Mathf.Abs(deltaZ) + Mathf.Abs(deltaY);
+                return Mathf.Abs(deltaX) + Mathf.Abs(deltaZ);
             } else {
-                return Math.Max(Mathf.Abs(deltaX), Mathf.Abs(deltaZ)) + Mathf.Abs(deltaY);
+                return Math.Max(Mathf.Abs(deltaX), Mathf.Abs(deltaZ));
             }
         }
+
+        public static int FindVerticalDistance(int start, int end)
+        {
+            return Mathf.Abs(end - start);
+        }
+
 
         public static IEnumerable<Vector2Int> GetRectangleIndicesAround(Vector2Int center, int width, int height)
         {
@@ -113,14 +128,15 @@ namespace Zekzek.HexWorld
             DateTime startTime = DateTime.Now;
             DateTime endTime;
 
-            float knownBestScore = float.MaxValue;
+            float startBestCaseScore = FindFastestTravelTime(start.Location.GridPosition, end, movementSpeed);
             NavStep lastStep = null;
             OrderedList<NavStep> openSet = new OrderedList<NavStep>();
-            int shortestKnownDistanceToEnd = FindDistance(start.Location.GridPosition, end);
-            openSet.Add(shortestKnownDistanceToEnd, start);
+            openSet.Add(startBestCaseScore, start);
             Dictionary<NavStep, NavStep> cameFrom = new Dictionary<NavStep, NavStep>();
             Dictionary<NavStep, float> knownCostToStep = new Dictionary<NavStep, float>() { { start, 0 } };
-            Dictionary<NavStep, float> estimatedBestScore = new Dictionary<NavStep, float>() { { start, FindDistance(start.Location.GridPosition, end) } };
+            Dictionary<NavStep, float> bestCaseScore = new Dictionary<NavStep, float>() { { start, startBestCaseScore } };
+            float pessimisticBestScore = PESSIMIST_PATHING_MULTIPLIER * startBestCaseScore;
+
 
             while (openSet.Count > 0) {
                 // Timeout when we get stuck here too long 
@@ -130,16 +146,14 @@ namespace Zekzek.HexWorld
                 NavStep currentStep = openSet.First;
                 openSet.RemoveAt(0);
 
-                // If the most promising hex seems worse than known shortest path, stop looking
-                if (estimatedBestScore[currentStep] > knownBestScore) { break; }
+                // If the most promising hex seems significantly worse than known shortest path, stop looking
+                if (bestCaseScore[currentStep] > pessimisticBestScore) { break; }
 
                 // Mark progress if found, but finish processing candidates
-                int currentDistanceToEnd = FindDistance(currentStep.Location.GridPosition, end);
-                if (currentDistanceToEnd < shortestKnownDistanceToEnd) {
+                float pessimisticCurrentScore = knownCostToStep[currentStep] + PESSIMIST_PATHING_MULTIPLIER * FindFastestTravelTime(currentStep.Location.GridPosition, end, movementSpeed);
+                if (pessimisticCurrentScore < pessimisticBestScore) {
                     lastStep = currentStep;
-                    shortestKnownDistanceToEnd = currentDistanceToEnd;
-                    float currentScore = knownCostToStep[currentStep] + UNKNOWN_PATH_SCORE_PENALTY * shortestKnownDistanceToEnd;
-                    if (currentScore < knownBestScore) { knownBestScore = currentScore; }
+                    pessimisticBestScore = pessimisticCurrentScore;
                 }
 
                 // Process all neighbors of the most promising hex
@@ -149,8 +163,10 @@ namespace Zekzek.HexWorld
                     if (!knownCostToStep.ContainsKey(nextStep) || costToNeighbor < knownCostToStep[nextStep]) {
                         cameFrom[nextStep] = currentStep;
                         knownCostToStep[nextStep] = costToNeighbor;
-                        estimatedBestScore[nextStep] = costToNeighbor + FindDistance(nextStep.Location.GridPosition, end) / movementSpeed.FastestHorizontal;
-                        if (costToNeighbor < knownBestScore) { openSet.Add(estimatedBestScore[nextStep], nextStep); }
+                        bestCaseScore[nextStep] = costToNeighbor + FindFastestTravelTime(nextStep.Location.GridPosition, end, movementSpeed);
+                        if (costToNeighbor < pessimisticBestScore) {
+                            openSet.Add(pessimisticBestScore, nextStep);
+                        }
                     }
                 }
             }

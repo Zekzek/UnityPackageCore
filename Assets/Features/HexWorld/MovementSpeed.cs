@@ -12,6 +12,7 @@ namespace Zekzek.HexWorld
         public float Drop { get; private set; }
         public float Wait { get; private set; }
         public float FastestHorizontal { get; private set; }
+        public float FastestVertical { get; private set; }
 
         public int MaxJump { get; private set; }
         public int MaxDrop { get; private set; }
@@ -32,6 +33,7 @@ namespace Zekzek.HexWorld
             MaxDrop = maxDrop;
             Wait = wait;
             FastestHorizontal = Mathf.Max(walk, backstep);
+            FastestVertical = Mathf.Max(Climb, Jump, Drop);
         }
 
         public float Get(MoveType movementType)
