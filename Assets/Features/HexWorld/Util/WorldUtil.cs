@@ -198,18 +198,25 @@ namespace Zekzek.HexWorld
                 currentStep.Location.GridIndex - currentStep.Location.Facing, 
                 WorldObjectType.Tile, 
                 currentStep.WorldTime)?.GetComponent(WorldComponentType.Location);
-            bool onSolidGround = currentTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
+            int stepHeight = currentStep.Location.GridHeight;
+            int currentTileHeight = currentTileLocation?.GridHeight ?? 0;
+            int forwardTileHeight = forwardTileLocation?.GridHeight ?? 0;
+            int backwardTileHeight = backwardTileLocation?.GridHeight ?? 0;
+            bool onSolidGround = stepHeight == currentTileHeight;
+
+            bool forwardSolidGround = forwardTileLocation != null && forwardTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
+            bool backwardSolidGround = backwardTileLocation != null && backwardTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
 
             // waiting is always an option
             //TryAddStep(new NavStep(MoveType.NONE, currentStep.Location, currentStep.WorldTime + 1f / movementSpeed.Wait), ref neighbors);
 
             // walk if path forward is unobstructed
-            if (forwardTileLocation != null && currentStep.Location.GridPosition.y >= forwardTileLocation.GridPosition.y) {
+            if (forwardTileLocation != null && (stepHeight == forwardTileHeight || onSolidGround && stepHeight >= forwardTileHeight)) {
                 TryAddStep(new NavStep(MoveType.WALK_FORWARD, currentStep.Location.MoveForward(1), currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors, moverId);
             }
 
             // take a step back if path is unobstructed
-            if (backwardTileLocation != null && currentStep.Location.GridPosition.y >= backwardTileLocation.GridPosition.y) {
+            if (backwardTileLocation != null && (stepHeight == backwardTileHeight || onSolidGround && stepHeight >= backwardTileHeight)) {
                 TryAddStep(new NavStep(MoveType.WALK_BACKWARD, currentStep.Location.MoveBack(1), currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors, moverId);
             }
 
@@ -223,17 +230,17 @@ namespace Zekzek.HexWorld
             if (!onSolidGround) {
                 int dropHeight = currentStep.Location.GridHeight - currentTileLocation.GridHeight;
                 if (dropHeight <= movementSpeed.MaxDrop) { // drop
-                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.Location.MoveDown(dropHeight), currentStep.WorldTime + 1f / movementSpeed.Drop), ref neighbors, moverId);
+                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.Location.MoveDown(dropHeight), currentStep.WorldTime + dropHeight / movementSpeed.Drop), ref neighbors, moverId);
                 } else { // climb
                     TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.Location.MoveDown(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors, moverId);
                 }
             }
 
             // climb/jump up if path forward is higher
-            if (forwardTileLocation != null && currentStep.Location.GridHeight < forwardTileLocation.GridHeight) {
-                if (currentStep.Location.GridHeight == currentTileLocation.GridHeight && movementSpeed.MaxJump > 0) { // jump
-                    int jumpHeight = Mathf.Min(forwardTileLocation.GridHeight - currentStep.Location.GridHeight, movementSpeed.MaxJump);
-                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.Location.MoveUp(jumpHeight), currentStep.WorldTime + 1f / movementSpeed.Jump), ref neighbors, moverId);
+            if (forwardTileLocation != null && stepHeight < forwardTileHeight) {
+                if (onSolidGround && movementSpeed.MaxJump > 0) { // jump
+                    int jumpHeight = Mathf.Min(forwardTileHeight - stepHeight, movementSpeed.MaxJump);
+                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.Location.MoveUp(jumpHeight), currentStep.WorldTime + jumpHeight / movementSpeed.Jump), ref neighbors, moverId);
                 } else { // climb
                     TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.Location.MoveUp(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors, moverId);
                 }

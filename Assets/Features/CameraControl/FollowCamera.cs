@@ -14,6 +14,7 @@ namespace Zekzek.CameraControl
         [SerializeField] private List<T> targets = new List<T>();
         [SerializeField] private Vector3 targetOffset;
         [SerializeField] private string key = "default";
+        [SerializeField] private float followSpeed = 1;
 
         private new Rigidbody rigidbody;
         private Vector3 idealPosition;
@@ -75,10 +76,10 @@ namespace Zekzek.CameraControl
 
             Vector3 deltaPosition = idealPosition - (transform.position + 0.5f * rigidbody.velocity);
             if (deltaPosition.sqrMagnitude > 1) { deltaPosition.Normalize(); }
-            rigidbody.AddForce(Time.deltaTime * 1000f * deltaPosition);
+            rigidbody.AddForce(Time.deltaTime * 1000f * deltaPosition * followSpeed);
 
             var targetRotation = Quaternion.LookRotation(-targetOffset); 
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 1 * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * followSpeed);
 
             Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Rotate);
             RotateVertical(rotateAmount.y);

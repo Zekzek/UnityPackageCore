@@ -539,19 +539,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 7.5
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7880108
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: 0.61566144
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalRotation.y
@@ -563,7 +563,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: 76
       objectReference: {fileID: 0}
     - target: {fileID: 6970268943468779563, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -574,8 +574,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8053744268805574410, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
+      propertyPath: followSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8053744268805574410, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: targetOffset.y
-      value: 4
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 8053744268805574410, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: targetOffset.z
@@ -657,11 +661,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenWidth
-      value: 10
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenHeight
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.size
