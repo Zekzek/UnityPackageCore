@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using System.Collections.Generic;
 using UnityEngine;
 using Zekzek.Stats;
 
@@ -8,24 +7,26 @@ public class StatBlockTest : MonoBehaviour
     [Test]
     public void AmountMultiplier()
     {
-        IDictionary<StatType, float> amounts = new Dictionary<StatType, float>() { { StatType.Life, 100 } };
-        IDictionary<StatType, float> multipliers = new Dictionary<StatType, float>() { { StatType.Life, 0.2f } };
-        StatBlock statBlock = new StatBlock(amounts, multipliers, new HashSet<SlotType>());
+        StatBlock statBlock = new StatBlock();
+        statBlock.AddAmount(StatType.Health, 100);
+        statBlock.AddMultiplier(StatType.Health, 0.2f);
 
-        Assert.AreEqual(120, statBlock.GetTotalValue(StatType.Life), 0.01f);
+        Assert.AreEqual(120, statBlock.GetTotalValue(StatType.Health), 0.01f);
     }
 
     [Test]
     public void NestedAmountMultiplier()
     {
-        IDictionary<StatType, float> amounts = new Dictionary<StatType, float>() { { StatType.Life, 100 } };
-        IDictionary<StatType, float> multipliers = new Dictionary<StatType, float>() { { StatType.Life, 0.2f } };
-        StatBlock statBlock = new StatBlock(amounts, multipliers, new HashSet<SlotType>() { SlotType.Inherent });
+        StatBlock statBlock = new StatBlock();
+        statBlock.AddSlot(SlotType.Inherent);
+        statBlock.AddAmount(StatType.Health, 100);
+        statBlock.AddMultiplier(StatType.Health, 0.2f);
 
-        StatBlock innerStatBlock = new StatBlock(amounts, multipliers, new HashSet<SlotType>());
+        StatBlock innerStatBlock = new StatBlock();
+        innerStatBlock.AddAmount(StatType.Health, 100);
+        innerStatBlock.AddMultiplier(StatType.Health, 0.2f);
         statBlock.Equip(SlotType.Inherent, innerStatBlock);
 
-        Assert.AreEqual(280, statBlock.GetTotalValue(StatType.Life), 0.01f);
+        Assert.AreEqual(264, statBlock.GetTotalValue(StatType.Health), 0.01f);
     }
-
 }
