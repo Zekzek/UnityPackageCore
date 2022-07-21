@@ -56,7 +56,7 @@ namespace Zekzek.MusicMaker
                 PlayNote(circleOfFifths[note]);
 
                 //PlayNextNote();
-                if (++note >= circleOfFifths.Length) { note = 0; }
+                //if (++note >= circleOfFifths.Length) { note = 0; }
             }
             nextNoteTime -= Time.deltaTime * tempoModifier;
         }
@@ -64,10 +64,10 @@ namespace Zekzek.MusicMaker
         int key = 1;
         private void PlayNote(float key)
         {
-            float duration = 0.5f;
-            AudioClip noteClip = GenerateSinNote(NoteData.GetFrequency(key), duration, 0.4f);
+            float duration = 0.2f;
+            AudioClip noteClip = MusicUtil.Instance.GenerateSinNote(NoteData.GetFrequency(key), duration, 0.4f);
             source.PlayOneShot(noteClip, 1f);
-            nextNoteTime += duration;
+            nextNoteTime += duration * 4;
         }
 
         private void PlayNextNote()
@@ -80,30 +80,13 @@ namespace Zekzek.MusicMaker
             float duration = (60f / song.BeatsPerMinute) * chords.Current.Duration / tempoModifier;
 
             foreach (NoteData note in chords.Current.Notes) {
-                AudioClip noteClip = GenerateSinNote(note.Frequency, duration, song.NoteFade);
+                AudioClip noteClip = MusicUtil.Instance.GenerateSinNote(note.Frequency, duration, song.NoteFade);
                 source.PlayOneShot(noteClip, 1f / chords.Current.Notes.Length);
             }
 
             nextNoteTime += duration;
         }
 
-        private AudioClip GenerateSinNote(float frequency, float duration, float fade)
-        {
-            float[] samples = new float[Mathf.RoundToInt(SAMPLE_FREQUENCY * duration)];
-            for (int i = 0; i < samples.Length; i++) {
-                float fadeMult = 1;
-                if (i < samples.Length * fade)
-                    fadeMult = i / (samples.Length * fade);
-                else if (i > samples.Length * (1f - fade))
-                    fadeMult = (samples.Length - i) / (samples.Length * fade);
-
-                samples[i] = Mathf.Sin(Mathf.PI * 2 * i * frequency / SAMPLE_FREQUENCY) * fadeMult;
-            }
-            AudioClip clip = AudioClip.Create("Note", samples.Length, 1, SAMPLE_FREQUENCY, false);
-            clip.SetData(samples, 0);
-
-            return clip;
-        }
 #if UNITY_EDITOR
         private string songJson;
         public string SongJson {
