@@ -6,7 +6,7 @@ namespace Zekzek.Stats
     {
         private readonly IDictionary<StatType, float> _amounts = new Dictionary<StatType, float>();
         private readonly IDictionary<StatType, float> _multipliers = new Dictionary<StatType, float>();
-        private ISet<SlotType> _openSlots = new HashSet<SlotType>();
+        private readonly ISet<SlotType> _openSlots = new HashSet<SlotType>();
         private readonly Dictionary<SlotType, StatBlock> _equipment = new Dictionary<SlotType, StatBlock>();
         private readonly List<StatBlock> _buffs = new List<StatBlock>();
         private readonly List<StatBlock> _debuffs = new List<StatBlock>();

@@ -11,10 +11,12 @@ namespace Zekzek.HexWorld
         [SerializeField] private int _screenHeight;
         [SerializeField] private int _screenWidth;
         [SerializeField] private BehaviourModelMapping[] prefabList;
+        [SerializeField] private StatBlockBehaviour statBlockPrefab;
 
         private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
         private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType = new Dictionary<WorldObjectType, WorldObjectBehaviour>();
         private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
+        private readonly Dictionary<WorldObjectType, List<StatBlockBehaviour>> _statBlocksByType = new Dictionary<WorldObjectType, List<StatBlockBehaviour>>();
         private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
 
         private LocationFollowCamera _camera;
@@ -53,6 +55,7 @@ namespace Zekzek.HexWorld
             foreach (BehaviourModelMapping mapping in prefabList) {
                 var type = mapping.type;
                 _behavioursByType.Add(type, new List<WorldObjectBehaviour>());
+                _statBlocksByType.Add(type, new List<StatBlockBehaviour>());
                 _dirtyByType.Add(type, true);
                 if (!_prefabsByType.ContainsKey(type)) {
                     _prefabsByType[type] = mapping.prefab;
@@ -70,23 +73,40 @@ namespace Zekzek.HexWorld
             _behavioursByType[type].Add(behaviour);
         }
 
+        private void AllocateStatBlock(WorldObjectType type)
+        {
+            StatBlockBehaviour behaviour = Instantiate(statBlockPrefab);
+            _statBlocksByType[type].Add(behaviour);
+        }
+
+
         private void UpdateAllVisible()
         {
             CenterTile = WorldUtil.PositionToGridIndex(_camera.TargetPosition);
             IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
+            
             foreach (WorldObjectType type in _behavioursByType.Keys) {
                 if (!_dirtyByType[type]) { continue; }
 
                 // Clear all current
                 foreach (WorldObjectBehaviour behaviour in _behavioursByType[type]) { behaviour.gameObject.SetActive(false); }
+                foreach (StatBlockBehaviour behaviour in _statBlocksByType[type]) { behaviour.gameObject.SetActive(false); }
 
                 // Build new behaviours from visible region
-                int index = 0;
+                int behaviourIndex = 0;
+                int statBlockIndex = 0;
                 foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices, type)) {
-                    if (index >= _behavioursByType[type].Count) { AllocatePrefab(type); }
-                    _behavioursByType[type][index].Model = worldObject;
-                    _behavioursByType[type][index].gameObject.SetActive(true);
-                    index++;
+                    if (behaviourIndex >= _behavioursByType[type].Count) { AllocatePrefab(type); }
+                    _behavioursByType[type][behaviourIndex].Model = worldObject;
+                    _behavioursByType[type][behaviourIndex].gameObject.SetActive(true);
+                    if (worldObject.HasComponent(WorldComponentType.Stats)) {
+                        if (statBlockIndex >= _statBlocksByType[type].Count) { AllocateStatBlock(type); }
+                        _statBlocksByType[type][statBlockIndex].transform.parent = _behavioursByType[type][behaviourIndex].transform;
+                        _statBlocksByType[type][statBlockIndex].Model = worldObject.Stats;
+                        _statBlocksByType[type][statBlockIndex].gameObject.SetActive(true);
+                        statBlockIndex++;
+                    }
+                    behaviourIndex++;
                 }
                 _dirtyByType[type] = false;
             }

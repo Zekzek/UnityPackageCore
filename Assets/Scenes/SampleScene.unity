@@ -668,6 +668,10 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
+      propertyPath: statBlockPrefab
+      value: 
+      objectReference: {fileID: 6169858011584449182, guid: 8adeb5fb091aaa5478883cf6fee45236, type: 3}
+    - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: prefabList.Array.size
       value: 4
       objectReference: {fileID: 0}

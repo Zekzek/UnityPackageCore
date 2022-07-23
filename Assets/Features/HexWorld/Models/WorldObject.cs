@@ -8,6 +8,7 @@ namespace Zekzek.HexWorld
     {
         public readonly uint Id;
         public LocationComponent Location => (LocationComponent)GetComponent(WorldComponentType.Location);
+        public StatComponent Stats => (StatComponent)GetComponent(WorldComponentType.Stats);
         public WorldObjectType Type { get; private set; }
 
         private Dictionary<WorldComponentType, WorldObjectComponent> _components = new Dictionary<WorldComponentType, WorldObjectComponent>();
