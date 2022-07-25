@@ -13,14 +13,14 @@ namespace Zekzek.HexWorld
         {
             if (Model == null) { return; }
 
-            healthBar.SetFill(Model.StatBlock.GetTotalValue(Stats.StatType.Health) / Model.StatBlock.GetTotalValue(Stats.StatType.Health));
+            healthBar.SetFill(Model.StatBlock.GetPercent(Stats.StatType.Health));
             LookAtCamera();
         }
 
         private void LookAtCamera()
         {
             if (Camera.main == null) { return; }
-            transform.LookAt(Camera.main.transform.position);
+            transform.LookAt(new Vector3(Camera.main.transform.position.x, 0, Camera.main.transform.position.z));
         }
     }
 }

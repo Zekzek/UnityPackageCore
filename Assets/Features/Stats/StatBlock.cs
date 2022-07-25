@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Zekzek.Stats
 {
@@ -6,11 +7,13 @@ namespace Zekzek.Stats
     {
         private readonly IDictionary<StatType, float> _amounts = new Dictionary<StatType, float>();
         private readonly IDictionary<StatType, float> _multipliers = new Dictionary<StatType, float>();
+        private readonly IDictionary<StatType, float> _missing = new Dictionary<StatType, float>();
         private readonly ISet<SlotType> _openSlots = new HashSet<SlotType>();
         private readonly Dictionary<SlotType, StatBlock> _equipment = new Dictionary<SlotType, StatBlock>();
         private readonly List<StatBlock> _buffs = new List<StatBlock>();
         private readonly List<StatBlock> _debuffs = new List<StatBlock>();
 
+        //TODO: cache totals? seems like its being recalculated frequently
         public void AddAmount(StatType statType, float amount)
         {
             if (_amounts.ContainsKey(statType)) {
@@ -30,6 +33,14 @@ namespace Zekzek.Stats
         }
 
         public void AddSlot(SlotType slotType) { _openSlots.Add(slotType); }
+        
+        public void AddDelta(StatType statType, float amount)
+        {
+            if (_missing.ContainsKey(statType)) { _missing.Add(statType, 0); }
+            float total = GetTotalValue(statType);
+            _missing[statType] = Mathf.Clamp(GetMissing(statType) - amount, 0, total);
+        }
+        
         public void RemoveSlot(SlotType slotType) { _openSlots.Remove(slotType); }
 
         public bool Equip(SlotType slot, StatBlock statBlock)
@@ -76,6 +87,24 @@ namespace Zekzek.Stats
         public float GetMultiplier(StatType statType)
         {
             return _multipliers != null && _multipliers.ContainsKey(statType) ? _multipliers[statType] : 1;
+        }
+
+        public float GetCurrent(StatType statType)
+        {
+            return GetTotalValue(statType) - GetMissing(statType);
+        }
+
+        public float GetPercent(StatType statType)
+        {
+            float missing = GetMissing(statType);
+            if (missing == 0) { return 1; }
+            float total = GetTotalValue(statType);
+            return (total - missing) / total;
+        }
+
+        private float GetMissing(StatType statType)
+        {
+            return _missing != null && _missing.ContainsKey(statType) ? _missing[statType] : 0;
         }
     }
 }
