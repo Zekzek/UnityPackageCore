@@ -19,10 +19,6 @@ namespace Zekzek.HexWorld
         private readonly Dictionary<WorldObjectType, List<StatBlockBehaviour>> _statBlocksByType = new Dictionary<WorldObjectType, List<StatBlockBehaviour>>();
         private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
 
-        private LocationFollowCamera _camera;
-
-        private List<TargetableComponent> highlighted = new List<TargetableComponent>();
-
         private Vector2Int centerTile = new Vector2Int(0, 0);
         public Vector2Int CenterTile {
             get { return centerTile; }
@@ -38,14 +34,13 @@ namespace Zekzek.HexWorld
 
         private void Awake()
         {
-            _camera = Camera.main.GetComponent<LocationFollowCamera>();
             InitTypeCollections();
         }
 
         private void Update()
         {
             UpdateAllVisible();
-            UpdateTileHighlight();
+            PlayerController.Instance.HandleInput();
 
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
         }
@@ -82,7 +77,7 @@ namespace Zekzek.HexWorld
 
         private void UpdateAllVisible()
         {
-            CenterTile = WorldUtil.PositionToGridIndex(_camera.TargetPosition);
+            CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
             IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
             
             foreach (WorldObjectType type in _behavioursByType.Keys) {
@@ -109,42 +104,6 @@ namespace Zekzek.HexWorld
                     behaviourIndex++;
                 }
                 _dirtyByType[type] = false;
-            }
-        }
-
-        private void UpdateTileHighlight()
-        {
-            foreach (TargetableComponent targetable in highlighted) { targetable.Highlight = false; }
-            highlighted.Clear();
-
-            RaycastHit hit;
-            Ray ray = _camera.Camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
-            
-            if (Physics.Raycast(ray, out hit)) {
-                Transform objectHit = hit.transform;
-                HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
-                if (tile != null && tile.Model != null) {
-                    Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
-                    if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-                        WorldObject worldObject = HexWorld.Instance.GetAll(WorldObjectType.Entity).First();
-                        worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Location.Speed);
-                    }
-                }
-            }
-        }
-
-        private void Highlight(Vector2Int center, Vector2Int offset, float rotation)
-        {
-            Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
-
-            IEnumerable<WorldObject> targetableObjects = HexWorld.Instance.GetAt(new[] { rotated }, WorldComponentType.Targetable);
-
-            foreach (WorldObject targetableObject in targetableObjects) {
-                if (targetableObject != null) {
-                    TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
-                    targetable.Highlight = true;
-                    highlighted.Add(targetable);
-                }
             }
         }
     }
