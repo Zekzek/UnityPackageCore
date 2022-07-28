@@ -36,7 +36,7 @@ namespace Zekzek.Stats
         
         public void AddDelta(StatType statType, float amount)
         {
-            if (_missing.ContainsKey(statType)) { _missing.Add(statType, 0); }
+            if (!_missing.ContainsKey(statType)) { _missing.Add(statType, 0); }
             float total = GetTotalValue(statType);
             _missing[statType] = Mathf.Clamp(GetMissing(statType) - amount, 0, total);
         }

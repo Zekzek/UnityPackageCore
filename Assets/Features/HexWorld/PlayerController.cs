@@ -79,6 +79,10 @@ namespace Zekzek.HexWorld
                     worldObject.Location.NavigateTo(backwardTileLocation.GridPosition, worldObject.Location.Speed);
                 }
             }
+
+            if (InputManager.Instance.IsStarted(InputManager.PlayerAction.Action)) {
+                TestFrontalAttack();
+            }
         }
 
         private void Highlight(Vector2Int center, Vector2Int offset, float rotation)
@@ -92,6 +96,17 @@ namespace Zekzek.HexWorld
                     TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
                     targetable.Highlight = true;
                     _highlighted.Add(targetable);
+                }
+            }
+        }
+
+        private void TestFrontalAttack()
+        {
+            foreach (WorldObject selection in _selected) {
+                Vector2Int frontGridIndex = selection.Location.Current.GridIndex + selection.Location.Facing;
+                IEnumerable<WorldObject> opponents = HexWorld.Instance.GetAt(frontGridIndex, WorldComponentType.Stats);
+                foreach (WorldObject opponent in opponents) {
+                    opponent.Stats.StatBlock.AddDelta(Stats.StatType.Health, -10f);
                 }
             }
         }

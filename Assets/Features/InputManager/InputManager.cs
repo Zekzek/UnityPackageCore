@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.InputSystem.InputAction;
 
 public class InputManager : MonoBehaviour
 {
@@ -13,13 +14,16 @@ public class InputManager : MonoBehaviour
     {
         Move,
         Rotate,
-        Tap
+        Tap,
+        Action
     }
 
     private static InputManager _instance;
     public static InputManager Instance => _instance;
 
     private readonly IDictionary<PlayerAction, InputAction> _playerActionMap = new Dictionary<PlayerAction, InputAction>();
+    private readonly IList<PlayerAction> _playerActionStart = new List<PlayerAction>();
+    private readonly IList<PlayerAction> _playerActionFinish = new List<PlayerAction>();
 
     private void Awake()
     {
@@ -37,6 +41,21 @@ public class InputManager : MonoBehaviour
         if (_playerActionMap.ContainsKey(key)) { return _playerActionMap[key].ReadValue<T>(); }
         return default;
     }
+
+    public bool IsStarted(PlayerAction actiontype)
+    {
+        bool started = _playerActionStart.Contains(actiontype);
+        _playerActionStart.Remove(actiontype);
+        return started;
+    }
+
+    public bool IsFinished(PlayerAction actiontype)
+    {
+        bool finished = _playerActionFinish.Contains(actiontype);
+        _playerActionFinish.Remove(actiontype);
+        return finished;
+    }
+
 
     private void InitControls()
     {
@@ -62,5 +81,24 @@ public class InputManager : MonoBehaviour
         tapAction.AddBinding("<Mouse>/leftButton");
         _playerActionMap.Add(PlayerAction.Tap, tapAction);
         tapAction.Enable();
+
+        InputAction actionAction = new InputAction();
+        actionAction.AddBinding("<Keyboard>/space");
+        actionAction.started += (_) => Start(PlayerAction.Action);
+        actionAction.canceled += (_) => Finish(PlayerAction.Action);
+        _playerActionMap.Add(PlayerAction.Action, actionAction);
+        actionAction.Enable();
+    }
+
+    private void Start(PlayerAction actionType)
+    {
+        _playerActionStart.Add(actionType);
+        _playerActionFinish.Remove(actionType);
+    }
+
+    private void Finish(PlayerAction actionType)
+    {
+        _playerActionStart.Remove(actionType);
+        _playerActionFinish.Add(actionType);
     }
 }
