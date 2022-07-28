@@ -1,0 +1,16 @@
+{
+    "name": "RelationshipAssembly",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8962cc19a29cb3e499e7c2b1fd50f5d9"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

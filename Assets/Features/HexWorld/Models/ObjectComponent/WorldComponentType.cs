@@ -5,6 +5,7 @@ namespace Zekzek.HexWorld
         Location,
         Platform, 
         Targetable,
-        Stats
+        Stats,
+        Relationship
     }
 }
