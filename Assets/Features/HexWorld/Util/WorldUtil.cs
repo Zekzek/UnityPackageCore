@@ -182,82 +182,144 @@ namespace Zekzek.HexWorld
             return BuildPath(cameFrom, start, lastStep);
         }
 
-        public static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
+        public static NavStep GetNavDrop(WorldLocation unitLocation, WorldLocation tileLocation, WorldLocation forwardLocation, MovementSpeed speed, float time)
         {
-            List<NavStep> neighbors = new List<NavStep>();
+            int unitHeight = unitLocation.GridHeight;
+            int tileHeight = tileLocation.GridHeight;
+            int forwardHeight = forwardLocation.GridHeight;
 
-            LocationComponent currentTileLocation = (LocationComponent)(HexWorld.Instance.GetFirstAt(
-                currentStep.Location.GridIndex, 
-                WorldObjectType.Tile, 
-                currentStep.WorldTime)?.GetComponent(WorldComponentType.Location));
-            LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(
-                currentStep.Location.GridIndex + currentStep.Location.Facing, 
-                WorldObjectType.Tile, 
-                currentStep.WorldTime)?.GetComponent(WorldComponentType.Location);
-            LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(
-                currentStep.Location.GridIndex - currentStep.Location.Facing, 
-                WorldObjectType.Tile, 
-                currentStep.WorldTime)?.GetComponent(WorldComponentType.Location);
-            int stepHeight = currentStep.Location.GridHeight;
-            int currentTileHeight = currentTileLocation?.GridHeight ?? 0;
-            int forwardTileHeight = forwardTileLocation?.GridHeight ?? 0;
-            int backwardTileHeight = backwardTileLocation?.GridHeight ?? 0;
-            bool onSolidGround = stepHeight == currentTileHeight;
-
-            bool forwardSolidGround = forwardTileLocation != null && forwardTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
-            bool backwardSolidGround = backwardTileLocation != null && backwardTileLocation.GridPosition.y == currentStep.Location.GridPosition.y;
-
-            // waiting is always an option
-            //TryAddStep(new NavStep(MoveType.NONE, currentStep.Location, currentStep.WorldTime + 1f / movementSpeed.Wait), ref neighbors);
-
-            // walk if path forward is unobstructed
-            if (forwardTileLocation != null && (stepHeight == forwardTileHeight || onSolidGround && stepHeight >= forwardTileHeight)) {
-                TryAddStep(new NavStep(MoveType.WALK_FORWARD, currentStep.Location.MoveForward(1), currentStep.WorldTime + 1f / movementSpeed.Walk), ref neighbors, moverId);
+            if (unitHeight > tileHeight && unitHeight > forwardHeight) {
+                int dropHeight = unitHeight - tileHeight;
+                return new NavStep(MoveType.DROP_DOWN, unitLocation.MoveDown(dropHeight), time + dropHeight / speed.Drop);
             }
-
-            // take a step back if path is unobstructed
-            if (backwardTileLocation != null && (stepHeight == backwardTileHeight || onSolidGround && stepHeight >= backwardTileHeight)) {
-                TryAddStep(new NavStep(MoveType.WALK_BACKWARD, currentStep.Location.MoveBack(1), currentStep.WorldTime + 1f / movementSpeed.Backstep), ref neighbors, moverId);
-            }
-
-            // rotate if on solid ground
-            if (onSolidGround) {
-                TryAddStep(new NavStep(MoveType.TURN_LEFT, currentStep.Location.RotateLeft(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors, moverId);
-                TryAddStep(new NavStep(MoveType.TURN_RIGHT, currentStep.Location.RotateRight(), currentStep.WorldTime + 1f / movementSpeed.Rotate), ref neighbors, moverId);
-            }
-
-            // climb/drop down if not on solid ground
-            if (!onSolidGround) {
-                int dropHeight = currentStep.Location.GridHeight - currentTileLocation.GridHeight;
-                if (dropHeight <= movementSpeed.MaxDrop) { // drop
-                    TryAddStep(new NavStep(MoveType.DROP_DOWN, currentStep.Location.MoveDown(dropHeight), currentStep.WorldTime + dropHeight / movementSpeed.Drop), ref neighbors, moverId);
-                } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_DOWN, currentStep.Location.MoveDown(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors, moverId);
-                }
-            }
-
-            // climb/jump up if path forward is higher
-            if (forwardTileLocation != null && stepHeight < forwardTileHeight) {
-                if (onSolidGround && movementSpeed.MaxJump > 0) { // jump
-                    int jumpHeight = Mathf.Min(forwardTileHeight - stepHeight, movementSpeed.MaxJump);
-                    TryAddStep(new NavStep(MoveType.JUMP_UP, currentStep.Location.MoveUp(jumpHeight), currentStep.WorldTime + jumpHeight / movementSpeed.Jump), ref neighbors, moverId);
-                } else { // climb
-                    TryAddStep(new NavStep(MoveType.CLIMB_UP, currentStep.Location.MoveUp(1), currentStep.WorldTime + 1f / movementSpeed.Climb), ref neighbors, moverId);
-                }
-            }
-
-            return neighbors;
+            return null;
         }
 
-        private static void TryAddStep(NavStep step, ref List<NavStep> neighbors, uint moverId)
+        public static NavStep GetNavForward(WorldLocation unitLocation, WorldLocation tileLocation, WorldLocation forwardLocation, MovementSpeed speed, float time) 
         {
+            int unitHeight = unitLocation.GridHeight;
+            int tileHeight = tileLocation.GridHeight;
+            int forwardHeight = forwardLocation.GridHeight;
+
+            bool onSolidGround = unitHeight == tileHeight;
+
+            if (forwardLocation == null) { return null; }
+
+            // walk if able
+            if (unitHeight == forwardHeight || onSolidGround && unitHeight >= forwardHeight) {
+                return new NavStep(MoveType.WALK_FORWARD, forwardLocation, time + 1f / speed.Walk);
+            }
+
+            // climb if able
+            if (unitHeight < forwardHeight) {
+                if (onSolidGround && speed.MaxJump > 0) { // jump
+                    int jumpHeight = Mathf.Min(forwardHeight - unitHeight, speed.MaxJump);
+                    return new NavStep(MoveType.JUMP_UP, unitLocation.MoveUp(jumpHeight), time + jumpHeight / speed.Jump);
+                } else { // climb
+                    return new NavStep(MoveType.CLIMB_UP, unitLocation.MoveUp(1), time + 1f / speed.Climb);
+                }
+            }
+
+            return null;
+        }
+
+        public static NavStep GetNavBackward(WorldLocation unitLocation, WorldLocation tileLocation, WorldLocation forwardLocation, WorldLocation backwardLocation, MovementSpeed speed, float time)
+        {
+            int unitHeight = unitLocation.GridHeight;
+            int tileHeight = tileLocation.GridHeight;
+            int forwardHeight = forwardLocation.GridHeight;
+            int backwardHeight = backwardLocation.GridHeight;
+
+            bool onSolidGround = unitHeight == tileHeight;
+
+            // walk if able
+            if (onSolidGround && unitHeight >= backwardHeight) {
+                return new NavStep(MoveType.WALK_BACKWARD, backwardLocation, time + 1f / speed.Backstep);
+            }
+
+            // climb if able
+            if (!onSolidGround && unitHeight <= forwardHeight) {
+                int dropHeight = unitHeight - tileHeight;
+                if (dropHeight <= speed.MaxDrop) { // drop
+                    return new NavStep(MoveType.DROP_DOWN, unitLocation.MoveDown(dropHeight), time + dropHeight / speed.Drop);
+                } else { // climb
+                    return new NavStep(MoveType.CLIMB_DOWN, unitLocation.MoveDown(1), time + 1f / speed.Climb);
+                }
+            }
+
+            return null;
+        }
+
+        public static NavStep GetNavLeft(WorldLocation unitLocation, WorldLocation tileLocation, MovementSpeed speed, float time)
+        {
+            int unitHeight = unitLocation.GridHeight;
+            int tileHeight = tileLocation.GridHeight;
+
+            if (unitHeight == tileHeight) {
+                return new NavStep(MoveType.TURN_LEFT, unitLocation.RotateLeft(), time + 1 / speed.Drop);
+            }
+
+            return null;
+        }
+
+        public static NavStep GetNavRight(WorldLocation unitLocation, WorldLocation tileLocation, MovementSpeed speed, float time)
+        {
+            int unitHeight = unitLocation.GridHeight;
+            int tileHeight = tileLocation.GridHeight;
+
+            if (unitHeight == tileHeight) {
+                return new NavStep(MoveType.TURN_RIGHT, unitLocation.RotateRight(), time + 1 / speed.Drop);
+            }
+
+            return null;
+        }
+
+        public static void FindNeighbors(uint moverId, WorldLocation location, MovementSpeed speed, float time, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep)
+        {
+            Vector2Int facing = location.Facing;
+            Vector3Int? tilePosition = HexWorld.Instance.GetFirstAt(location.GridIndex, WorldObjectType.Tile, time)?.Location.GridPosition;
+            Vector3Int? forwardPosition = HexWorld.Instance.GetFirstAt(location.GridIndex + facing, WorldObjectType.Tile, time)?.Location.GridPosition;
+            Vector3Int? backwardPosition = HexWorld.Instance.GetFirstAt(location.GridIndex - facing, WorldObjectType.Tile, time)?.Location.GridPosition;
+
+            WorldLocation tileLocation = tilePosition.HasValue ? new WorldLocation(tilePosition.Value, facing) : null;
+            WorldLocation forwardLocation = forwardPosition.HasValue ? new WorldLocation(forwardPosition.Value, facing) : null;
+            WorldLocation backwardLocation = backwardPosition.HasValue ? new WorldLocation(backwardPosition.Value, facing) : null;
+
+            NavStep dropStep = GetNavDrop(location, tileLocation, forwardLocation, speed, time);
+            if (dropStep != null) {
+                forcedStep = dropStep;
+                forwardStep = backwardStep = leftStep = rightStep = null;
+            } else {
+                forcedStep = null;
+                forwardStep = NullIfObstructed(GetNavForward(location, tileLocation, forwardLocation, speed, time), moverId);
+                backwardStep = NullIfObstructed(GetNavBackward(location, tileLocation, forwardLocation, backwardLocation, speed, time), moverId);
+                leftStep = NullIfObstructed(GetNavLeft(location, tileLocation, speed, time), moverId);
+                rightStep = NullIfObstructed(GetNavRight(location, tileLocation, speed, time), moverId);
+            }
+        }
+
+        public static NavStep NullIfObstructed(NavStep step, uint moverId)
+        {
+            if (step == null) { return null; }
             ICollection<WorldObject> entities = HexWorld.Instance.GetAt(step.Location.GridIndex, WorldObjectType.Entity, step.WorldTime);
             foreach (WorldObject entity in entities) {
                 if (entity.Id != moverId) {
-                    return;
+                    return null;
                 }
             }
-            neighbors.Add(step);
+            return step;
+        }
+
+        public static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
+        {
+            List<NavStep> neighbors = new List<NavStep>();
+            FindNeighbors(moverId, currentStep.Location, movementSpeed, currentStep.WorldTime, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
+            if (forcedStep != null) { neighbors.Add(forcedStep); }
+            if (forwardStep != null) { neighbors.Add(forwardStep); }
+            if (backwardStep != null) { neighbors.Add(backwardStep); }
+            if (leftStep != null) { neighbors.Add(leftStep); }
+            if (rightStep != null) { neighbors.Add(rightStep); }
+            return neighbors;
         }
 
         private static List<NavStep> BuildPath(Dictionary<NavStep, NavStep> cameFrom, NavStep start, NavStep end)

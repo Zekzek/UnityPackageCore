@@ -53,30 +53,18 @@ namespace Zekzek.HexWorld
             }
 
             Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Move);
-
-            if (rotateAmount.x > 0) {
-                foreach (WorldObject worldObject in _selected) {
-                    worldObject.Location.Schedule(worldObject.Location.Current.RotateRight(), worldObject.Location.Speed.Rotate);
+            foreach (WorldObject worldObject in _selected) {
+                WorldUtil.FindNeighbors(worldObject.Id, worldObject.Location.Current, worldObject.Location.Speed, WorldScheduler.Instance.Time, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
+                if (forcedStep != null) { break; }
+                if (rotateAmount.x > 0 && rightStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { rightStep });
+                } else if (rotateAmount.x < 0 && leftStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { leftStep });
                 }
-            } else if (rotateAmount.x < 0) {
-                foreach (WorldObject worldObject in _selected) {
-                    worldObject.Location.Schedule(worldObject.Location.Current.RotateLeft(), worldObject.Location.Speed.Rotate);
-                }
-            }
-
-            if (rotateAmount.y > 0) {
-                foreach (WorldObject worldObject in _selected) {
-                    LocationComponent forwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(
-                        worldObject.Location.GridIndex + worldObject.Location.Facing,
-                        WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location);
-                    worldObject.Location.NavigateTo(forwardTileLocation.GridPosition, worldObject.Location.Speed);
-                }
-            } else if (rotateAmount.y < 0) {
-                foreach (WorldObject worldObject in _selected) {
-                    LocationComponent backwardTileLocation = (LocationComponent)HexWorld.Instance.GetFirstAt(
-                        worldObject.Location.GridIndex - worldObject.Location.Facing,
-                        WorldObjectType.Tile)?.GetComponent(WorldComponentType.Location);
-                    worldObject.Location.NavigateTo(backwardTileLocation.GridPosition, worldObject.Location.Speed);
+                if (rotateAmount.y > 0 && forwardStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { forwardStep });
+                } else if (rotateAmount.y < 0 && backwardStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { backwardStep });
                 }
             }
 
