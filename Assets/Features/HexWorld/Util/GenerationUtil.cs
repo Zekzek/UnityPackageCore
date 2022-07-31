@@ -28,7 +28,8 @@ namespace Zekzek.HexWorld
             TileGenerationParams tileParams = CalcTileGenerationParams(x, z);
             WorldObject tile = new WorldObject(WorldObjectType.Tile);
             tile.AddComponent(new LocationComponent(tile.Id, new Vector3Int(x, tileParams.GridHeight, z)));
-            tile.AddComponent(new PlatformComponent(tile.Id));
+            var heightRatio = tileParams.GridHeight / (float)WorldLocation.MAX_HEIGHT;
+            tile.AddComponent(new PlatformComponent(tile.Id, heightRatio * new Vector3(tileParams.Temperature, tileParams.Fertility, tileParams.Moisture).normalized));
             tile.AddComponent(new TargetableComponent(tile.Id));
             HexWorld.Instance.Add(tile);
 
@@ -129,10 +130,10 @@ namespace Zekzek.HexWorld
             int offset = 0;
             return new TileGenerationParams(
                 height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                rotation: CalcPercent(x, z, offset++, 0.8f),
-                moisture: DecreasePercent(CalcPercent(x, z, offset++, 0.2f)),
-                temperature: IncreasePercent(CalcPercent(x, z, offset++, 0.9f)),
-                fertility: DecreasePercent(CalcPercent(x, z, offset++, 0.5f))
+                rotation: CalcPercent(x, z, offset++, 0.95f),
+                moisture: DecreasePercent(CalcPercent(x, z, offset++, 0.96f)),
+                temperature: IncreasePercent(CalcPercent(x, z, offset++, 0.97f)),
+                fertility: DecreasePercent(CalcPercent(x, z, offset++, 0.98f))
             );
         }
 
@@ -148,10 +149,10 @@ namespace Zekzek.HexWorld
             int offset = 0;
             return new TileGenerationParams(
                 height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                rotation: CalcPercent(x, z, offset++, 0.8f),
-                moisture: IncreasePercent(CalcPercent(x, z, offset++, 0.2f)),
-                temperature: CalcPercent(x, z, offset++, 0.9f),
-                fertility: IncreasePercent(CalcPercent(x, z, offset++, 0.5f))
+                rotation: CalcPercent(x, z, offset++, 0.95f),
+                moisture: IncreasePercent(CalcPercent(x, z, offset++, 0.96f)),
+                temperature: CalcPercent(x, z, offset++, 0.97f),
+                fertility: IncreasePercent(CalcPercent(x, z, offset++, 0.98f))
             );
         }
 
@@ -164,10 +165,10 @@ namespace Zekzek.HexWorld
             int offset = 0;
             return new TileGenerationParams(
                 height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                rotation: CalcPercent(x, z, offset++, 0.2f),
-                moisture: CalcPercent(x, z, offset++, 0.5f),
-                temperature: CalcPercent(x, z, offset++, 0.9f),
-                fertility: CalcPercent(x, z, offset++, 0.5f)
+                rotation: CalcPercent(x, z, offset++, 0.95f),
+                moisture: CalcPercent(x, z, offset++, 0.96f),
+                temperature: CalcPercent(x, z, offset++, 0.97f),
+                fertility: CalcPercent(x, z, offset++, 0.98f)
             );
         }
 

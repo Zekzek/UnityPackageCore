@@ -28,7 +28,7 @@ namespace Zekzek.HexWorld
                     HandleHighlightChanged();
                 }
 
-                Material colorMaterial = MaterialMaker.Instance.Get(Vector3.Normalize(Model.Location.Position/20f));
+                Material colorMaterial = MaterialMaker.Instance.Get(Model.Platform.ColorCode);
                 foreach (Renderer renderer in colorRenderers) {
                     renderer.material = colorMaterial;
                 }

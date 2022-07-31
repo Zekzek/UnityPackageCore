@@ -6,7 +6,7 @@ namespace Zekzek.HexWorld
     {
         public override WorldComponentType ComponentType => WorldComponentType.Platform;
 
-        public PlatformComponent(uint worldObjectId) : base(worldObjectId) { }
+        public PlatformComponent(uint worldObjectId, Vector3 colorCode) : base(worldObjectId) { ColorCode = colorCode; }
 
         // Lazy load and cache neighbors. No need to update unless new tiles are created.
         private LocationComponent ne, e, se, sw, w, nw;
@@ -16,6 +16,7 @@ namespace Zekzek.HexWorld
         public LocationComponent SW => sw ??= GetNeighbor(FacingUtil.SW);
         public LocationComponent W => w ??= GetNeighbor(FacingUtil.W);
         public LocationComponent NW => nw ??= GetNeighbor(FacingUtil.NW);
+        public Vector3 ColorCode { get; private set; }
 
         private LocationComponent GetNeighbor(Vector2Int offset)
         {

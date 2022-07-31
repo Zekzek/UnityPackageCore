@@ -8,6 +8,7 @@ namespace Zekzek.HexWorld
     {
         public readonly uint Id;
         public LocationComponent Location => (LocationComponent)GetComponent(WorldComponentType.Location);
+        public PlatformComponent Platform => (PlatformComponent)GetComponent(WorldComponentType.Platform);
         public StatComponent Stats => (StatComponent)GetComponent(WorldComponentType.Stats);
         public WorldObjectType Type { get; private set; }
 
