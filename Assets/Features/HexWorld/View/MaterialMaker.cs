@@ -5,7 +5,7 @@ namespace Zekzek.HexWorld
 {
     public class MaterialMaker
     {
-        private const float COLOR_STEP_SIZE = 0.25f;
+        private const float COLOR_STEP_SIZE = 0.1f;
 
         private readonly IDictionary<Vector3Int, Material> _materials = new Dictionary<Vector3Int, Material>();
 
