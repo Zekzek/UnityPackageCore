@@ -10,6 +10,7 @@ namespace Zekzek.HexWorld
 
         [SerializeField] private GameObject tileObject;
         [SerializeField] private GameObject highlightObject;
+        [SerializeField] private MeshRenderer[] colorRenderers;
 
         public override WorldObject Model { 
             get => base.Model;
@@ -25,6 +26,11 @@ namespace Zekzek.HexWorld
                 if (value != null) {
                     _targetableComponent.OnHighlightChanged += HandleHighlightChanged;
                     HandleHighlightChanged();
+                }
+
+                Material colorMaterial = MaterialMaker.Instance.Get(Vector3.Normalize(Model.Location.Position/20f));
+                foreach (Renderer renderer in colorRenderers) {
+                    renderer.material = colorMaterial;
                 }
             }
         }

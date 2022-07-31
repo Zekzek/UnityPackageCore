@@ -274,6 +274,18 @@ namespace Zekzek.HexWorld
             return null;
         }
 
+        public static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
+        {
+            List<NavStep> neighbors = new List<NavStep>();
+            FindNeighbors(moverId, currentStep.Location, movementSpeed, currentStep.WorldTime, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
+            if (forcedStep != null) { neighbors.Add(forcedStep); }
+            if (forwardStep != null) { neighbors.Add(forwardStep); }
+            if (backwardStep != null) { neighbors.Add(backwardStep); }
+            if (leftStep != null) { neighbors.Add(leftStep); }
+            if (rightStep != null) { neighbors.Add(rightStep); }
+            return neighbors;
+        }
+
         public static void FindNeighbors(uint moverId, WorldLocation location, MovementSpeed speed, float time, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep)
         {
             Vector2Int facing = location.Facing;
@@ -308,18 +320,6 @@ namespace Zekzek.HexWorld
                 }
             }
             return step;
-        }
-
-        public static List<NavStep> FindNeighbors(NavStep currentStep, MovementSpeed movementSpeed, uint moverId)
-        {
-            List<NavStep> neighbors = new List<NavStep>();
-            FindNeighbors(moverId, currentStep.Location, movementSpeed, currentStep.WorldTime, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
-            if (forcedStep != null) { neighbors.Add(forcedStep); }
-            if (forwardStep != null) { neighbors.Add(forwardStep); }
-            if (backwardStep != null) { neighbors.Add(backwardStep); }
-            if (leftStep != null) { neighbors.Add(leftStep); }
-            if (rightStep != null) { neighbors.Add(rightStep); }
-            return neighbors;
         }
 
         private static List<NavStep> BuildPath(Dictionary<NavStep, NavStep> cameFrom, NavStep start, NavStep end)
