@@ -20,7 +20,7 @@ namespace Zekzek.HexWorld
         private void LookAtCamera()
         {
             if (Camera.main == null) { return; }
-            transform.LookAt(new Vector3(Camera.main.transform.position.x, 0, Camera.main.transform.position.z));
+            transform.rotation = Camera.main.transform.rotation * Quaternion.Euler(0, 180, 0);
         }
     }
 }

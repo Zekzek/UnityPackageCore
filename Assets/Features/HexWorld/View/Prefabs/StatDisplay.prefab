@@ -83,6 +83,30 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1275033451481972409}
     m_Modifications:
+    - target: {fileID: 4475345647600276402, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475345647600276402, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475345647600276402, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475345647600276402, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475345647600276402, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475345647600276402, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5003255050925162977, guid: e07b3249e60196049a7898444983fd99, type: 3}
       propertyPath: m_Name
       value: FillBar
@@ -129,6 +153,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6050811210253459535, guid: e07b3249e60196049a7898444983fd99, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7720537770898830008, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7720537770898830008, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7720537770898830008, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7720537770898830008, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_DynamicOccludee
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7720537770898830008, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7720537770898830008, guid: e07b3249e60196049a7898444983fd99, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
