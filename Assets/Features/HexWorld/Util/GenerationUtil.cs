@@ -42,11 +42,12 @@ namespace Zekzek.HexWorld
         {
             Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
 
-            if (generationParams.Fertility + generationParams.Moisture > 1.5f) {
+            float chaosFactor = CalcSimpleNoise(gridPosition.x, gridPosition.z) / (float)NOISE_SIZE;
+            if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) > 0.75f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Bush);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
                 HexWorld.Instance.Add(decoration);
-            } else if (generationParams.Fertility + generationParams.Moisture < 0.5f) {
+            } else if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) < 0.25f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Rock);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
                 HexWorld.Instance.Add(decoration);
