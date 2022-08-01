@@ -15,8 +15,11 @@ namespace Zekzek.HexWorld
 
         private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
         private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType = new Dictionary<WorldObjectType, WorldObjectBehaviour>();
-        private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
-        private readonly Dictionary<WorldObjectType, List<StatBlockBehaviour>> _statBlocksByType = new Dictionary<WorldObjectType, List<StatBlockBehaviour>>();
+        
+        private readonly Dictionary<WorldObjectType, Dictionary<uint, WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, Dictionary<uint, WorldObjectBehaviour>>();
+        private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _unusedBehavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
+        private readonly Dictionary<WorldObjectType, Dictionary<uint, StatBlockBehaviour>> _statBlocksByType = new Dictionary<WorldObjectType, Dictionary<uint, StatBlockBehaviour>>();
+        private readonly Dictionary<WorldObjectType, List<StatBlockBehaviour>> _unusedStatBlocksByType = new Dictionary<WorldObjectType, List<StatBlockBehaviour>>();
         private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
 
         private Vector2Int centerTile = new Vector2Int(0, 0);
@@ -49,8 +52,10 @@ namespace Zekzek.HexWorld
         {
             foreach (BehaviourModelMapping mapping in prefabList) {
                 var type = mapping.type;
-                _behavioursByType.Add(type, new List<WorldObjectBehaviour>());
-                _statBlocksByType.Add(type, new List<StatBlockBehaviour>());
+                _behavioursByType.Add(type, new Dictionary<uint, WorldObjectBehaviour>());
+                _unusedBehavioursByType.Add(type, new List<WorldObjectBehaviour>());
+                _statBlocksByType.Add(type, new Dictionary<uint, StatBlockBehaviour>());
+                _unusedStatBlocksByType.Add(type, new List<StatBlockBehaviour>());
                 _dirtyByType.Add(type, true);
                 if (!_prefabsByType.ContainsKey(type)) {
                     _prefabsByType[type] = mapping.prefab;
@@ -65,13 +70,13 @@ namespace Zekzek.HexWorld
         private void AllocatePrefab(WorldObjectType type)
         {
             WorldObjectBehaviour behaviour = Instantiate(_prefabsByType[type], _containersByType[type]);
-            _behavioursByType[type].Add(behaviour);
+            _unusedBehavioursByType[type].Add(behaviour);
         }
 
         private void AllocateStatBlock(WorldObjectType type)
         {
             StatBlockBehaviour behaviour = Instantiate(statBlockPrefab);
-            _statBlocksByType[type].Add(behaviour);
+            _unusedStatBlocksByType[type].Add(behaviour);
         }
 
 
@@ -79,29 +84,46 @@ namespace Zekzek.HexWorld
         {
             CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
             IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
-            
+            IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
+
             foreach (WorldObjectType type in _behavioursByType.Keys) {
                 if (!_dirtyByType[type]) { continue; }
 
-                // Clear all current
-                foreach (WorldObjectBehaviour behaviour in _behavioursByType[type]) { behaviour.gameObject.SetActive(false); }
-                foreach (StatBlockBehaviour behaviour in _statBlocksByType[type]) { behaviour.gameObject.SetActive(false); }
-
-                // Build new behaviours from visible region
-                int behaviourIndex = 0;
-                int statBlockIndex = 0;
-                foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices, type)) {
-                    if (behaviourIndex >= _behavioursByType[type].Count) { AllocatePrefab(type); }
-                    _behavioursByType[type][behaviourIndex].Model = worldObject;
-                    _behavioursByType[type][behaviourIndex].gameObject.SetActive(true);
-                    if (worldObject.HasComponent(WorldComponentType.Stats)) {
-                        if (statBlockIndex >= _statBlocksByType[type].Count) { AllocateStatBlock(type); }
-                        _statBlocksByType[type][statBlockIndex].transform.parent = _behavioursByType[type][behaviourIndex].transform;
-                        _statBlocksByType[type][statBlockIndex].Model = worldObject.Stats;
-                        _statBlocksByType[type][statBlockIndex].gameObject.SetActive(true);
-                        statBlockIndex++;
+                // Hide objects which are no longer visible
+                List<uint> previousActveBehaviourIds = _behavioursByType[type].Keys.ToList();
+                foreach (uint previousActiveId in previousActveBehaviourIds) {
+                    if (!currentActiveIds.Contains(previousActiveId)) {
+                        _behavioursByType[type][previousActiveId].gameObject.SetActive(false);
+                        _unusedBehavioursByType[type].Add(_behavioursByType[type][previousActiveId]);
+                        _behavioursByType[type].Remove(previousActiveId);
                     }
-                    behaviourIndex++;
+                }
+                List<uint> previousActveStatBlockIds = _statBlocksByType[type].Keys.ToList();
+                foreach (uint previousActiveId in previousActveStatBlockIds) {
+                    if (!currentActiveIds.Contains(previousActiveId)) {
+                        _statBlocksByType[type][previousActiveId].gameObject.SetActive(false);
+                        _unusedStatBlocksByType[type].Add(_statBlocksByType[type][previousActiveId]);
+                        _statBlocksByType[type].Remove(previousActiveId);
+                    }
+                }
+
+                // Set up objects which have become visible
+                foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices, type)) {
+                    if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
+                    if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
+                    _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
+                    _unusedBehavioursByType[type].RemoveAt(0);
+                    _behavioursByType[type][worldObject.Id].Model = worldObject;
+                    _behavioursByType[type][worldObject.Id].gameObject.SetActive(true);
+
+                    if (worldObject.Stats == null) { continue; }
+                    if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
+                    if (_unusedStatBlocksByType[type].Count == 0) { AllocateStatBlock(type); }
+                    _statBlocksByType[type].Add(worldObject.Id, _unusedStatBlocksByType[type][0]);
+                    _unusedStatBlocksByType[type].RemoveAt(0);
+                    _statBlocksByType[type][worldObject.Id].transform.parent = _behavioursByType[type][worldObject.Id].transform;
+                    _statBlocksByType[type][worldObject.Id].Model = worldObject.Stats;
+                    _statBlocksByType[type][worldObject.Id].gameObject.SetActive(true);
                 }
                 _dirtyByType[type] = false;
             }

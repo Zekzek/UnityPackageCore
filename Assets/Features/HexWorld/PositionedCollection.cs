@@ -114,11 +114,22 @@ namespace Zekzek.HexWorld
             }
         }
 
+        public IEnumerable<uint> GetIdsAt(IEnumerable<Vector2Int> gridIndices)
+        {
+            lock (WorldUtil.SYNC_TARGET) {
+                List<uint> items = new List<uint>();
+                foreach (Vector2Int gridIndex in gridIndices) {
+                    items.AddRange(GetIdsAt(gridIndex));
+                }
+                return items;
+            }
+        }
+
         public IEnumerable<T> GetAt(IEnumerable<Vector2Int> gridIndices)
         {
             lock (WorldUtil.SYNC_TARGET) {
                 List<T> items = new List<T>();
-                foreach (var gridIndex in gridIndices) {
+                foreach (Vector2Int gridIndex in gridIndices) {
                     foreach (uint id in GetIdsAt(gridIndex)) {
                         items.Add(Get(id));
                     }
