@@ -74,9 +74,12 @@ namespace Zekzek.CameraControl
             UpdateTargetPosition();
             UpdateGoalPosition();
 
-            Vector3 deltaPosition = idealPosition - (transform.position + 0.5f * rigidbody.velocity);
-            if (deltaPosition.sqrMagnitude > 1) { deltaPosition.Normalize(); }
-            rigidbody.AddForce(Time.deltaTime * 1000f * deltaPosition * followSpeed);
+            Vector3 deltaPosition = 0.2f * (idealPosition - transform.position);
+            Vector3 deltaSquared = new Vector3(
+                deltaPosition.x * deltaPosition.x * deltaPosition.x,
+                deltaPosition.y * deltaPosition.y * deltaPosition.y, 
+                deltaPosition.z * deltaPosition.z * deltaPosition.z);
+            rigidbody.AddForce(Time.deltaTime * 1000f * deltaSquared * followSpeed);
 
             var targetRotation = Quaternion.LookRotation(-targetOffset); 
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * followSpeed);

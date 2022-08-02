@@ -579,7 +579,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7158839334772101496, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: field of view
-      value: 90
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 7158839334772101496, guid: 31e4bfe267816aa46b4b9325acfa4b70, type: 3}
       propertyPath: m_BackGroundColor.b
@@ -677,6 +677,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3440199642746358728, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
+      propertyPath: _playSpeed
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
