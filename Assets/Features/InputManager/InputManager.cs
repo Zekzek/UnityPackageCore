@@ -83,13 +83,13 @@ public class InputManager : MonoBehaviour
 
         InputAction actionAction = new InputAction();
         actionAction.AddBinding("<Keyboard>/space");
-        actionAction.started += (_) => Start(PlayerAction.Action);
+        actionAction.started += (_) => Begin(PlayerAction.Action);
         actionAction.canceled += (_) => Finish(PlayerAction.Action);
         _playerActionMap.Add(PlayerAction.Action, actionAction);
         actionAction.Enable();
     }
 
-    private void Start(PlayerAction actionType)
+    private void Begin(PlayerAction actionType)
     {
         _playerActionStart.Add(actionType);
         _playerActionFinish.Remove(actionType);

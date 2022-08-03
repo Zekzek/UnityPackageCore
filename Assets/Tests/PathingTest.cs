@@ -11,7 +11,7 @@ public class PathingTest
         WorldScheduler.Instance.Clear();
         GenerationUtil.Init(0, 10, TerrainType.Flat);
         foreach (Vector2Int index in WorldUtil.GetBurstIndicesAround(Vector2Int.zero, 10, true)) {
-            GenerationUtil.InstantiateTile(index.x, index.y);
+            GenerationUtil.InstantiateAtGridIndex(index.x, index.y);
         }
     }
 

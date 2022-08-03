@@ -14,6 +14,15 @@ namespace Zekzek.HexWorld
         private static List<TerrainType> _terrainTypes = new List<TerrainType>();
         private static int _regionSize;
 
+        public static void Init(int seed, int regionSize, params TerrainType[] terrains)
+        {
+            if (seed >= 0) { Random.InitState(seed); }
+            if (regionSize >= 0) { _regionSize = regionSize; }
+            InitNoise();
+            _terrainTypes.Clear();
+            _terrainTypes.AddRange(terrains);
+        }
+
         public static WorldObject InstantiateEntity(MovementSpeed speed, Vector2Int gridIndex, Vector2Int? facing = null)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
@@ -23,22 +32,27 @@ namespace Zekzek.HexWorld
             return instance;
         }
 
-        public static WorldObject InstantiateTile(int x, int z)
+        public static void InstantiateAtGridIndex(int x, int z)
         {
             TileGenerationParams tileParams = CalcTileGenerationParams(x, z);
-            WorldObject tile = new WorldObject(WorldObjectType.Tile);
-            tile.AddComponent(new LocationComponent(tile.Id, new Vector3Int(x, tileParams.GridHeight, z)));
-            var heightRatio = tileParams.GridHeight / (float)WorldLocation.MAX_HEIGHT;
-            tile.AddComponent(new PlatformComponent(tile.Id, heightRatio * new Vector3(tileParams.Temperature, tileParams.Fertility, tileParams.Moisture).normalized));
-            tile.AddComponent(new TargetableComponent(tile.Id));
-            HexWorld.Instance.Add(tile);
+            Vector3Int gridPosition = new Vector3Int(x, tileParams.GridHeight, z);
 
-            InstantiateTileDecoration(tile.Location.GridPosition, tileParams);
-
-            return tile;
+            InstantiateTile(gridPosition, tileParams);
+            CheckInstantiateTileDecoration(gridPosition, tileParams);
+            CheckInstantiateTileEntity(gridPosition, tileParams);
         }
 
-        private static void InstantiateTileDecoration(Vector3Int gridPosition, TileGenerationParams generationParams)
+        private static void InstantiateTile(Vector3Int gridPosition, TileGenerationParams generationParams)
+        {
+            float heightRatio = generationParams.GridHeight / (float)WorldLocation.MAX_HEIGHT;
+            WorldObject tile = new WorldObject(WorldObjectType.Tile);
+            tile.AddComponent(new LocationComponent(tile.Id, gridPosition));
+            tile.AddComponent(new PlatformComponent(tile.Id, heightRatio * new Vector3(generationParams.Temperature, generationParams.Fertility, generationParams.Moisture).normalized));
+            tile.AddComponent(new TargetableComponent(tile.Id));
+            HexWorld.Instance.Add(tile);
+        }
+
+        private static void CheckInstantiateTileDecoration(Vector3Int gridPosition, TileGenerationParams generationParams)
         {
             Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
 
@@ -54,13 +68,13 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public static void Init(int seed, int regionSize, params TerrainType[] terrains)
+        private static void CheckInstantiateTileEntity(Vector3Int gridPosition, TileGenerationParams generationParams)
         {
-            if (seed >= 0) { Random.InitState(seed); }
-            if (regionSize >= 0) { _regionSize = regionSize; }
-            InitNoise();
-            _terrainTypes.Clear();
-            _terrainTypes.AddRange(terrains);
+            float chaosFactor = CalcSimpleNoise(gridPosition.x, gridPosition.z) / (float)NOISE_SIZE;
+            if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) > 1.5f) {
+                Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
+                InstantiateEntity(new MovementSpeed(1,1,1,1,1,1,1,1,1), new Vector2Int(gridPosition.x, gridPosition.z), facing);
+            }
         }
 
         private static TileGenerationParams CalcTileGenerationParams(TerrainType terrainType, int x, int z)

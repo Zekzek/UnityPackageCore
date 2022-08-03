@@ -64,7 +64,8 @@ namespace Zekzek.HexWorld
                     }
                     // There must always be a tile
                     if (!tileFound && objectType == WorldObjectType.Tile) {
-                        items.Add(GenerationUtil.InstantiateTile(gridIndex.x, gridIndex.y));
+                        GenerationUtil.InstantiateAtGridIndex(gridIndex.x, gridIndex.y);
+                        items.Add(GetFirstAt(gridIndex, WorldObjectType.Tile));
                     }
                 }
             }
