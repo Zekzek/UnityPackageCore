@@ -4,9 +4,7 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "HexWorldAssembly",
-        "StatsAssembly",
-        "RelationshipAssembly"
+        "FeaturesAssembly"
     ],
     "includePlatforms": [
         "Editor"
