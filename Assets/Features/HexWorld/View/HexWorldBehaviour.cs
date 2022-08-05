@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Zekzek.CameraControl;
 
 namespace Zekzek.HexWorld
 {

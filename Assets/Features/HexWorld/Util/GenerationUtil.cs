@@ -26,23 +26,32 @@ namespace Zekzek.HexWorld
         public static WorldObject InstantiateEntity(MovementSpeed speed, Vector2Int gridIndex, Vector2Int? facing = null)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
-            TileGenerationParams tileParams = CalcTileGenerationParams(gridIndex.x, gridIndex.y);
-            instance.AddComponent(new LocationComponent(instance.Id, new Vector3Int(gridIndex.x, tileParams.GridHeight, gridIndex.y), facing, speed));
+            GenerationParams generationParams = CalcGenerationParams(gridIndex.x, gridIndex.y);
+            instance.AddComponent(new LocationComponent(instance.Id, new Vector3Int(gridIndex.x, generationParams.GridHeight, gridIndex.y), facing, speed));
+            instance.AddComponent(InstantiateRelationship(generationParams));
             HexWorld.Instance.Add(instance);
             return instance;
         }
 
-        public static void InstantiateAtGridIndex(int x, int z)
+        private static RelationshipComponent InstantiateRelationship(GenerationParams generationParams)
         {
-            TileGenerationParams tileParams = CalcTileGenerationParams(x, z);
-            Vector3Int gridPosition = new Vector3Int(x, tileParams.GridHeight, z);
-
-            InstantiateTile(gridPosition, tileParams);
-            CheckInstantiateTileDecoration(gridPosition, tileParams);
-            CheckInstantiateTileEntity(gridPosition, tileParams);
+            RelationshipComponent relationship = new RelationshipComponent(0);
+            relationship.AddDefaultAffinity(RelationshipType.Trust, generationParams.Trust);
+            relationship.AddDefaultAffinity(RelationshipType.Affection, generationParams.Affection);
+            return relationship;
         }
 
-        private static void InstantiateTile(Vector3Int gridPosition, TileGenerationParams generationParams)
+        public static void InstantiateAtGridIndex(int x, int z)
+        {
+            GenerationParams generationParams = CalcGenerationParams(x, z);
+            Vector3Int gridPosition = new Vector3Int(x, generationParams.GridHeight, z);
+
+            InstantiateTile(gridPosition, generationParams);
+            CheckInstantiateTileDecoration(gridPosition, generationParams);
+            CheckInstantiateTileEntity(gridPosition, generationParams);
+        }
+
+        private static void InstantiateTile(Vector3Int gridPosition, GenerationParams generationParams)
         {
             float heightRatio = generationParams.GridHeight / (float)WorldLocation.MAX_HEIGHT;
             WorldObject tile = new WorldObject(WorldObjectType.Tile);
@@ -52,11 +61,11 @@ namespace Zekzek.HexWorld
             HexWorld.Instance.Add(tile);
         }
 
-        private static void CheckInstantiateTileDecoration(Vector3Int gridPosition, TileGenerationParams generationParams)
+        private static void CheckInstantiateTileDecoration(Vector3Int gridPosition, GenerationParams generationParams)
         {
             Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
 
-            float chaosFactor = CalcSimpleNoise(gridPosition.x, gridPosition.z) / (float)NOISE_SIZE;
+            float chaosFactor = CalcSimpleNoisePercent(gridPosition.x, gridPosition.z);
             if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) > 0.75f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Bush);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
@@ -68,20 +77,20 @@ namespace Zekzek.HexWorld
             }
         }
 
-        private static void CheckInstantiateTileEntity(Vector3Int gridPosition, TileGenerationParams generationParams)
+        private static void CheckInstantiateTileEntity(Vector3Int gridPosition, GenerationParams generationParams)
         {
-            float chaosFactor = CalcSimpleNoise(gridPosition.x, gridPosition.z) / (float)NOISE_SIZE;
+            float chaosFactor = CalcSimpleNoisePercent(gridPosition.x, gridPosition.z);
             if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) > 1.5f) {
                 Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
                 InstantiateEntity(new MovementSpeed(1,1,1,1,1,1,1,1,1), new Vector2Int(gridPosition.x, gridPosition.z), facing);
             }
         }
 
-        private static TileGenerationParams CalcTileGenerationParams(TerrainType terrainType, int x, int z)
+        private static GenerationParams CalcTileGenerationParams(TerrainType terrainType, int x, int z)
         {
             switch (terrainType) {
-                case TerrainType.Flat: return new TileGenerationParams(5);
-                case TerrainType.Chaos: return new TileGenerationParams(CalcSimpleNoise(x, z) * WorldLocation.MAX_HEIGHT / NOISE_SIZE);
+                case TerrainType.Flat: return new GenerationParams() { Height = 5 };
+                case TerrainType.Chaos: return new GenerationParams() { Height = CalcSimpleNoise(x, z) * WorldLocation.MAX_HEIGHT / NOISE_SIZE };
                 case TerrainType.Desert: return CalcDesertTerrain(x, z);
                 case TerrainType.Forest: return CalcForestTerrain(x, z);
                 case TerrainType.Hills: return CalcHillsTerrain(x, z);
@@ -89,7 +98,7 @@ namespace Zekzek.HexWorld
             throw new System.Exception("No tile generation logic found for " + terrainType);
         }
 
-        private static TileGenerationParams CalcTileGenerationParams(int x, int z)
+        private static GenerationParams CalcGenerationParams(int x, int z)
         {
             // Convert to region space
             float regionX = x / (float)_regionSize;
@@ -106,53 +115,56 @@ namespace Zekzek.HexWorld
             TerrainType highXHighZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXCeil, 0.3f * regionZCeil) * _terrainTypes.Count / NOISE_SIZE)];            
 
             // Lerp the lower X terrains, skip the lerp if terrain matches
-            TileGenerationParams lowX;
+            GenerationParams lowX;
             if (lowXLowZTerrain == lowXHighZTerrain) {
                 lowX = CalcTileGenerationParams(lowXLowZTerrain, x, z);
             } else {
-                lowX = TileGenerationParams.Lerp(
+                lowX = GenerationParams.Lerp(
                     CalcTileGenerationParams(lowXLowZTerrain, x, z),
                     CalcTileGenerationParams(lowXHighZTerrain, x, z),
                     CalculateSmoothLerpTime(regionZ - regionZFloor));
             }
 
             // Lerp the higher X terrains, skip the lerp if terrain matches
-            TileGenerationParams highX;
+            GenerationParams highX;
             if (highXLowZTerrain == highXHighZTerrain) {
                 highX = CalcTileGenerationParams(highXLowZTerrain, x, z);
             } else {
-                highX = TileGenerationParams.Lerp(
+                highX = GenerationParams.Lerp(
                     CalcTileGenerationParams(highXLowZTerrain, x, z),
                     CalcTileGenerationParams(highXHighZTerrain, x, z),
                     CalculateSmoothLerpTime(regionZ - regionZFloor));
             }
 
             // Lerp the final reult
-            return TileGenerationParams.Lerp(lowX, highX, CalculateSmoothLerpTime(regionX - regionXFloor));
+            return GenerationParams.Lerp(lowX, highX, CalculateSmoothLerpTime(regionX - regionXFloor));
         }
 
 
+        private static float CalcSimpleNoisePercent(int x, int z) { return CalcSimpleNoise(x, z) / (float)NOISE_SIZE; }
         private static int CalcSimpleNoise(int x, int z, int modulo) { return CalcSimpleNoise(x, z) * modulo / NOISE_SIZE; }
         private static int CalcSimpleNoise(int x, int z) { return (_noiseBase[Mathf.Abs(x) % NOISE_SIZE] + _noiseBase[Mathf.Abs(z) % NOISE_SIZE]) % NOISE_SIZE; }
         
 
-        private static TileGenerationParams CalcDesertTerrain(int x, int z)
+        private static GenerationParams CalcDesertTerrain(int x, int z)
         {
             float heightNoise = Combine(0f,
                         CalcLerpNoise(0.06f * x, 0.03f * z),
                         CalcLerpNoise(0.03f * x, 0.06f * z));
 
             int offset = 0;
-            return new TileGenerationParams(
-                height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                rotation: CalcPercent(x, z, offset++, 0.95f),
-                moisture: DecreasePercent(CalcPercent(x, z, offset++, 0.96f)),
-                temperature: IncreasePercent(CalcPercent(x, z, offset++, 0.97f)),
-                fertility: DecreasePercent(CalcPercent(x, z, offset++, 0.98f))
-            );
+            return new GenerationParams() {
+                Height = heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
+                Rotation = CalcPercent(x, z, offset++, 0.95f),
+                Moisture = DecreasePercent(CalcPercent(x, z, offset++, 0.96f)),
+                Temperature = IncreasePercent(CalcPercent(x, z, offset++, 0.97f)),
+                Fertility = DecreasePercent(CalcPercent(x, z, offset++, 0.98f)),
+                Trust = CalcPercent(x, z, offset++, 0.5f),
+                Affection = CalcPercent(x, z, offset++, 0.6f)
+            };
         }
 
-        private static TileGenerationParams CalcForestTerrain(int x, int z)
+        private static GenerationParams CalcForestTerrain(int x, int z)
         {
             float heightNoise = Combine(0.8f,
                         CalcLerpNoise(0.2f * x, 0.1f * z),
@@ -162,29 +174,33 @@ namespace Zekzek.HexWorld
                             CalcLerpNoise(0.03f * x, 0.01f * z)));
 
             int offset = 0;
-            return new TileGenerationParams(
-                height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                rotation: CalcPercent(x, z, offset++, 0.95f),
-                moisture: IncreasePercent(CalcPercent(x, z, offset++, 0.96f)),
-                temperature: CalcPercent(x, z, offset++, 0.97f),
-                fertility: IncreasePercent(CalcPercent(x, z, offset++, 0.98f))
-            );
+            return new GenerationParams() {
+                Height = heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
+                Rotation = CalcPercent(x, z, offset++, 0.95f),
+                Moisture = IncreasePercent(CalcPercent(x, z, offset++, 0.96f)),
+                Temperature = CalcPercent(x, z, offset++, 0.97f),
+                Fertility = IncreasePercent(CalcPercent(x, z, offset++, 0.98f)),
+                Trust = CalcPercent(x, z, offset++, 0.5f),
+                Affection = CalcPercent(x, z, offset++, 0.6f)
+            };
         }
 
-        private static TileGenerationParams CalcHillsTerrain(int x, int z)
+        private static GenerationParams CalcHillsTerrain(int x, int z)
         {
             float heightNoise = Combine(0f,
                         CalcLerpNoise(0.04f * x, 0.08f * z),
                         CalcLerpNoise(0.08f * x, 0.04f * z));
 
             int offset = 0;
-            return new TileGenerationParams(
-                height: heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                rotation: CalcPercent(x, z, offset++, 0.95f),
-                moisture: CalcPercent(x, z, offset++, 0.96f),
-                temperature: CalcPercent(x, z, offset++, 0.97f),
-                fertility: CalcPercent(x, z, offset++, 0.98f)
-            );
+            return new GenerationParams() {
+                Height = heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
+                Rotation = CalcPercent(x, z, offset++, 0.95f),
+                Moisture = CalcPercent(x, z, offset++, 0.96f),
+                Temperature = CalcPercent(x, z, offset++, 0.97f),
+                Fertility = CalcPercent(x, z, offset++, 0.98f),
+                Trust = CalcPercent(x, z, offset++, 0.5f),
+                Affection = CalcPercent(x, z, offset++, 0.6f)
+            };
         }
 
         private static float IncreasePercent(float value) { return 1f - (value * value); }
@@ -254,35 +270,31 @@ namespace Zekzek.HexWorld
             }
         }
 
-        private class TileGenerationParams
+        private class GenerationParams
         {
             //TODO: Move moisture & temperature to weather object which changes over time
             //TODO: weather can effect decorations, entities, etc
 
             public int GridHeight => (int)Height;
             
-            public float Height { get; private set; }
-            public float Rotation { get; private set; }
-            public float Moisture { get; private set; }
-            public float Temperature { get; private set; }
-            public float Fertility { get; private set; }
+            public float Height { get; set; }
+            public float Rotation { get; set; }
+            public float Moisture { get; set; }
+            public float Temperature { get; set; }
+            public float Fertility { get; set; }
+            public float Trust { get; set; }
+            public float Affection { get; set; }
 
-            public TileGenerationParams(float height = 0, float rotation = 0, float moisture = 0, float temperature = 0, float fertility = 0) {
-                Height = height;
-                Rotation = rotation;
-                Moisture = moisture;
-                Temperature = temperature;
-                Fertility = fertility;
-            }
-
-            public static TileGenerationParams Lerp(TileGenerationParams a, TileGenerationParams b, float ratio) {
-                return new TileGenerationParams(
-                    height: Mathf.Lerp(a.Height, b.Height, ratio),
-                    rotation: Mathf.Lerp(a.Rotation, b.Rotation, ratio),
-                    moisture: Mathf.Lerp(a.Moisture, b.Moisture, ratio),
-                    temperature: Mathf.Lerp(a.Temperature, b.Temperature, ratio),
-                    fertility: Mathf.Lerp(a.Fertility, b.Fertility, ratio)
-                );
+            public static GenerationParams Lerp(GenerationParams a, GenerationParams b, float ratio) {
+                return new GenerationParams() {
+                    Height = Mathf.Lerp(a.Height, b.Height, ratio),
+                    Rotation = Mathf.Lerp(a.Rotation, b.Rotation, ratio),
+                    Moisture = Mathf.Lerp(a.Moisture, b.Moisture, ratio),
+                    Temperature = Mathf.Lerp(a.Temperature, b.Temperature, ratio),
+                    Fertility = Mathf.Lerp(a.Fertility, b.Fertility, ratio),
+                    Trust = Mathf.Lerp(a.Trust, b.Trust, ratio),
+                    Affection = Mathf.Lerp(a.Affection, b.Affection, ratio)
+                };
             }
         }
     }

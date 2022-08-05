@@ -13,11 +13,6 @@ public class GameController : MonoBehaviour
         playerStats.StatBlock.AddAmount(Zekzek.Stats.StatType.Health, 100);
         player.AddComponent(playerStats);
 
-        WorldObject enemy = GenerationUtil.InstantiateEntity(new MovementSpeed(2, 1, 1, 0.5f, 2, 2, 2, 2, 1), Vector2Int.one);
-        StatComponent enemyStats = new StatComponent(enemy.Id);
-        enemyStats.StatBlock.AddAmount(Zekzek.Stats.StatType.Health, 100);
-        enemy.AddComponent(enemyStats);
-
         CameraController<LocationComponent>.Main.AddTarget(player.Location);
     }
 }
