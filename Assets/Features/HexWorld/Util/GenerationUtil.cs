@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ namespace Zekzek.HexWorld
 
         public static void Init(int seed, int regionSize, params TerrainType[] terrains)
         {
-            if (seed >= 0) { Random.InitState(seed); }
+            if (seed >= 0) { UnityEngine.Random.InitState(seed); }
             if (regionSize >= 0) { _regionSize = regionSize; }
             InitNoise();
             _terrainTypes.Clear();
@@ -36,8 +37,8 @@ namespace Zekzek.HexWorld
         private static RelationshipComponent InstantiateRelationship(GenerationParams generationParams)
         {
             RelationshipComponent relationship = new RelationshipComponent(0);
-            relationship.AddDefaultAffinity(RelationshipType.Trust, generationParams.Trust);
-            relationship.AddDefaultAffinity(RelationshipType.Affection, generationParams.Affection);
+            relationship.AddDefaultAffinity(RelationshipType.Trust, generationParams[GenerationParamType.Trust]);
+            relationship.AddDefaultAffinity(RelationshipType.Affection, generationParams[GenerationParamType.Affection]);
             return relationship;
         }
 
@@ -56,21 +57,21 @@ namespace Zekzek.HexWorld
             float heightRatio = generationParams.GridHeight / (float)WorldLocation.MAX_HEIGHT;
             WorldObject tile = new WorldObject(WorldObjectType.Tile);
             tile.AddComponent(new LocationComponent(tile.Id, gridPosition));
-            tile.AddComponent(new PlatformComponent(tile.Id, heightRatio * new Vector3(generationParams.Temperature, generationParams.Fertility, generationParams.Moisture).normalized));
+            tile.AddComponent(new PlatformComponent(tile.Id, heightRatio * new Vector3(generationParams[GenerationParamType.Temperature], generationParams[GenerationParamType.Fertility], generationParams[GenerationParamType.Moisture]).normalized));
             tile.AddComponent(new TargetableComponent(tile.Id));
             HexWorld.Instance.Add(tile);
         }
 
         private static void CheckInstantiateTileDecoration(Vector3Int gridPosition, GenerationParams generationParams)
         {
-            Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
+            Vector2Int facing = FacingUtil.GetFacing(generationParams[GenerationParamType.Rotation] * 360);
 
             float chaosFactor = CalcSimpleNoisePercent(gridPosition.x, gridPosition.z);
-            if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) > 0.75f) {
+            if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) > 0.75f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Bush);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
                 HexWorld.Instance.Add(decoration);
-            } else if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) < 0.25f) {
+            } else if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) < 0.25f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Rock);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
                 HexWorld.Instance.Add(decoration);
@@ -80,8 +81,8 @@ namespace Zekzek.HexWorld
         private static void CheckInstantiateTileEntity(Vector3Int gridPosition, GenerationParams generationParams)
         {
             float chaosFactor = CalcSimpleNoisePercent(gridPosition.x, gridPosition.z);
-            if (chaosFactor * (generationParams.Fertility + generationParams.Moisture) > 1.5f) {
-                Vector2Int facing = FacingUtil.GetFacing(generationParams.Rotation * 360);
+            if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) > 1.5f) {
+                Vector2Int facing = FacingUtil.GetFacing(generationParams[GenerationParamType.Rotation] * 360);
                 InstantiateEntity(new MovementSpeed(1,1,1,1,1,1,1,1,1), new Vector2Int(gridPosition.x, gridPosition.z), facing);
             }
         }
@@ -89,8 +90,8 @@ namespace Zekzek.HexWorld
         private static GenerationParams CalcTileGenerationParams(TerrainType terrainType, int x, int z)
         {
             switch (terrainType) {
-                case TerrainType.Flat: return new GenerationParams() { Height = 5 };
-                case TerrainType.Chaos: return new GenerationParams() { Height = CalcSimpleNoise(x, z) * WorldLocation.MAX_HEIGHT / NOISE_SIZE };
+                case TerrainType.Flat: return new GenerationParams(5, x, z);
+                case TerrainType.Chaos: return new GenerationParams(CalcSimpleNoise(x, z) * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
                 case TerrainType.Desert: return CalcDesertTerrain(x, z);
                 case TerrainType.Forest: return CalcForestTerrain(x, z);
                 case TerrainType.Hills: return CalcHillsTerrain(x, z);
@@ -152,16 +153,10 @@ namespace Zekzek.HexWorld
                         CalcLerpNoise(0.06f * x, 0.03f * z),
                         CalcLerpNoise(0.03f * x, 0.06f * z));
 
-            int offset = 0;
-            return new GenerationParams() {
-                Height = heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                Rotation = CalcPercent(x, z, offset++, 0.95f),
-                Moisture = DecreasePercent(CalcPercent(x, z, offset++, 0.96f)),
-                Temperature = IncreasePercent(CalcPercent(x, z, offset++, 0.97f)),
-                Fertility = DecreasePercent(CalcPercent(x, z, offset++, 0.98f)),
-                Trust = CalcPercent(x, z, offset++, 0.5f),
-                Affection = CalcPercent(x, z, offset++, 0.6f)
-            };
+            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+            parameters.Increase(GenerationParamType.Temperature);
+            parameters.Decrease(GenerationParamType.Moisture, GenerationParamType.Fertility);
+            return parameters;
         }
 
         private static GenerationParams CalcForestTerrain(int x, int z)
@@ -173,16 +168,9 @@ namespace Zekzek.HexWorld
                             CalcLerpNoise(0.01f * x, 0.03f * z),
                             CalcLerpNoise(0.03f * x, 0.01f * z)));
 
-            int offset = 0;
-            return new GenerationParams() {
-                Height = heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                Rotation = CalcPercent(x, z, offset++, 0.95f),
-                Moisture = IncreasePercent(CalcPercent(x, z, offset++, 0.96f)),
-                Temperature = CalcPercent(x, z, offset++, 0.97f),
-                Fertility = IncreasePercent(CalcPercent(x, z, offset++, 0.98f)),
-                Trust = CalcPercent(x, z, offset++, 0.5f),
-                Affection = CalcPercent(x, z, offset++, 0.6f)
-            };
+            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+            parameters.Increase(GenerationParamType.Moisture, GenerationParamType.Fertility);
+            return parameters;
         }
 
         private static GenerationParams CalcHillsTerrain(int x, int z)
@@ -191,16 +179,8 @@ namespace Zekzek.HexWorld
                         CalcLerpNoise(0.04f * x, 0.08f * z),
                         CalcLerpNoise(0.08f * x, 0.04f * z));
 
-            int offset = 0;
-            return new GenerationParams() {
-                Height = heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE,
-                Rotation = CalcPercent(x, z, offset++, 0.95f),
-                Moisture = CalcPercent(x, z, offset++, 0.96f),
-                Temperature = CalcPercent(x, z, offset++, 0.97f),
-                Fertility = CalcPercent(x, z, offset++, 0.98f),
-                Trust = CalcPercent(x, z, offset++, 0.5f),
-                Affection = CalcPercent(x, z, offset++, 0.6f)
-            };
+            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+            return parameters;
         }
 
         private static float IncreasePercent(float value) { return 1f - (value * value); }
@@ -264,37 +244,77 @@ namespace Zekzek.HexWorld
             for (int i = 0; i < NOISE_SIZE; i++) { values.Add(i); }
 
             while (values.Count > 0) {
-                int index = Random.Range(0, values.Count - 1);
+                int index = UnityEngine.Random.Range(0, values.Count - 1);
                 _noiseBase[values.Count - 1] = values[index];
                 values.RemoveAt(index);
             }
         }
 
+        // Seasons: modify temperature and moisture based on time of year
+        // Weather: precipitation, wind, etc with frequency based on local moisture values (windiness?)
+        private enum GenerationParamType
+        {
+            Rotation,
+            Temperature,
+            Moisture,
+            Fertility,
+            Trust,
+            Affection
+        }
+
         private class GenerationParams
         {
-            //TODO: Move moisture & temperature to weather object which changes over time
-            //TODO: weather can effect decorations, entities, etc
-
-            public int GridHeight => (int)Height;
-            
             public float Height { get; set; }
-            public float Rotation { get; set; }
-            public float Moisture { get; set; }
-            public float Temperature { get; set; }
-            public float Fertility { get; set; }
-            public float Trust { get; set; }
-            public float Affection { get; set; }
+            public int GridHeight => (int)Height;
+
+            private static int parameterCount = Enum.GetNames(typeof(GenerationParamType)).Length;
+            private float[] parameters = new float[parameterCount];
+            
+            private Dictionary<int, float> clusterMap = new Dictionary<int, float>() {
+                { (int)GenerationParamType.Rotation, 0.95f },
+                { (int)GenerationParamType.Moisture, 0.96f },
+                { (int)GenerationParamType.Temperature, 0.97f },
+                { (int)GenerationParamType.Fertility, 0.98f },
+                { (int)GenerationParamType.Trust, 0.5f },
+                { (int)GenerationParamType.Affection, 0.6f }
+            };
+            
+            public float this[GenerationParamType index] { get => parameters[(int)index]; set => parameters[(int)index] = value; }
+            
+            private GenerationParams() { }
+
+            public GenerationParams(float height, int x, int z)
+            {
+                Height = height;
+
+                int offset = 0;
+                for(int i = 0; i < parameterCount; i++) {
+                    parameters[i] = CalcPercent(x, z, offset++, clusterMap.ContainsKey(i) ? clusterMap[i] : 0.5f);
+                }
+            }
+
+            public void Increase(params GenerationParamType[] types)
+            {
+                foreach (GenerationParamType type in types) {
+                    this[type] = IncreasePercent(this[type]); 
+                }
+            }
+
+            public void Decrease(params GenerationParamType[] types)
+            {
+                foreach (GenerationParamType type in types) {
+                    this[type] = DecreasePercent(this[type]);
+                }
+            }
 
             public static GenerationParams Lerp(GenerationParams a, GenerationParams b, float ratio) {
-                return new GenerationParams() {
-                    Height = Mathf.Lerp(a.Height, b.Height, ratio),
-                    Rotation = Mathf.Lerp(a.Rotation, b.Rotation, ratio),
-                    Moisture = Mathf.Lerp(a.Moisture, b.Moisture, ratio),
-                    Temperature = Mathf.Lerp(a.Temperature, b.Temperature, ratio),
-                    Fertility = Mathf.Lerp(a.Fertility, b.Fertility, ratio),
-                    Trust = Mathf.Lerp(a.Trust, b.Trust, ratio),
-                    Affection = Mathf.Lerp(a.Affection, b.Affection, ratio)
-                };
+                GenerationParams combined = new GenerationParams() { Height = Mathf.Lerp(a.Height, b.Height, ratio) };
+
+                for (int i = 0; i < parameterCount; i++) {
+                    combined.parameters[i] = Mathf.Lerp(a.parameters[i], b.parameters[i], ratio);
+                }
+
+                return combined;
             }
         }
     }
