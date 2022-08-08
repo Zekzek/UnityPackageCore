@@ -36,12 +36,7 @@ namespace Zekzek.UnityModelMaker
 
         public Mesh Get(Vector3 color)
         {
-            return GetRock(new Vector3(0.2f, 0.5f, 0.9f));
-        }
-
-        private Vector3 CalcHexPoint(Vector2 hex, Vector2 corner, float height, Vector3 scale)
-        {
-            return new Vector3(scale.x * (hex.x + corner.x), scale.y * height, scale.z * (hex.y + corner.y));
+            return GetRock(new Vector3(0.1f, 0.1f, 0.1f));
         }
 
         private Mesh GetRock(Vector3 scale)
@@ -103,7 +98,39 @@ namespace Zekzek.UnityModelMaker
                     1, 18, 7
                 }
             };
+
             return mesh;
+            return ConvertToHardEdged(mesh);
+        }
+
+        private Vector3 CalcHexPoint(Vector2 hex, Vector2 corner, float height, Vector3 scale)
+        {
+            return new Vector3(scale.x * (hex.x + corner.x), scale.y * height, scale.z * (hex.y + corner.y));
+        }
+
+        private Mesh ConvertToHardEdged(Mesh mesh)
+        {
+            Vector3[] vertices = new Vector3[mesh.triangles.Length];
+            for(int i = 0; i < mesh.triangles.Length; i++) {
+                vertices[i] = mesh.vertices[mesh.triangles[i]];
+            }
+
+            Vector3[] normals = new Vector3[vertices.Length];
+            for (int i = 0; i < vertices.Length; i += 3) {
+                Vector3 normal = (vertices[i] + vertices[i + 1] + vertices[i + 2]) / 3f;
+                normals[i] = normals[i + 1] = normals[i + 2] = normal;
+            }
+
+            int[] triangles = new int[3 * vertices.Length];
+            for (int i = 0; i < vertices.Length; i++) {
+                triangles[i] = i;
+            }
+
+            return new Mesh {
+                vertices = vertices,
+                normals = normals,
+                triangles = triangles
+            };
         }
     }
 }
