@@ -36,71 +36,131 @@ namespace Zekzek.UnityModelMaker
 
         public Mesh Get(Vector3 color)
         {
-            return GetRock(new Vector3(0.1f, 0.1f, 0.1f));
+            Mesh rock1 = GetRock(new Vector3(0.1f, 0.1f, 0.1f), Vector3.zero);
+            Mesh rock2 = GetRock(new Vector3(0.05f, 0.05f, 0.05f), new Vector3(0.15f, 0, 0));
+            Mesh rock3 = GetRock(new Vector3(0.04f, 0.04f, 0.04f), new Vector3(0.13f, 0, 0.15f));
+
+            return Combine(rock1, rock2, rock3);
         }
 
-        private Mesh GetRock(Vector3 scale)
+        private Mesh GetRock(Vector3 scale, Vector3 offset)
         {
+            Vector3[] vertices = new Vector3[] {
+                CalcHexPoint(Vector2.zero, Vector2.zero, 1, scale),
+
+                CalcHexPoint(Vector2.zero, nPoint, 0.8f, scale),
+                CalcHexPoint(Vector2.zero, nePoint, 0.8f, scale),
+                CalcHexPoint(Vector2.zero, sePoint, 0.8f, scale),
+                CalcHexPoint(Vector2.zero, sPoint, 0.8f, scale),
+                CalcHexPoint(Vector2.zero, swPoint, 0.8f, scale),
+                CalcHexPoint(Vector2.zero, nwPoint, 0.8f, scale),
+
+                CalcHexPoint(neHex, nwPoint, 0.4f, scale),
+                CalcHexPoint(neHex, Vector2.zero, 0.5f, scale),
+                CalcHexPoint(eHex, nPoint, 0.4f, scale),
+                CalcHexPoint(eHex, Vector2.zero, 0.5f, scale),
+                CalcHexPoint(seHex, nePoint, 0.4f, scale),
+                CalcHexPoint(seHex, Vector2.zero, 0.5f, scale),
+                CalcHexPoint(swHex, sePoint, 0.4f, scale),
+                CalcHexPoint(swHex, Vector2.zero, 0.5f, scale),
+                CalcHexPoint(wHex, sPoint, 0.4f, scale),
+                CalcHexPoint(wHex, Vector2.zero, 0.5f, scale),
+                CalcHexPoint(nwHex, swPoint, 0.4f, scale),
+                CalcHexPoint(nwHex, Vector2.zero, 0.5f, scale),
+
+                CalcHexPoint(Vector2.zero, nPoint, 0.1f, scale),
+                CalcHexPoint(Vector2.zero, nePoint, 0.1f, scale),
+                CalcHexPoint(Vector2.zero, sePoint, 0.1f, scale),
+                CalcHexPoint(Vector2.zero, sPoint, 0.1f, scale),
+                CalcHexPoint(Vector2.zero, swPoint, 0.1f, scale),
+                CalcHexPoint(Vector2.zero, nwPoint, 0.1f, scale),
+
+                CalcHexPoint(Vector2.zero, Vector2.zero, 0, scale),
+            };
+
+            int[] triangles = new int[] {
+                0, 1, 2,
+                0, 2, 3,
+                0, 3, 4,
+                0, 4, 5,
+                0, 5, 6,
+                0, 6, 1,
+
+                1, 7, 8,
+                1, 8, 2,
+                2, 8, 9,
+                2, 9, 10,
+                2, 10, 3,
+                3, 10, 11,
+                3, 11, 12,
+                3, 12, 4,
+                4, 12, 13,
+                4, 13, 14,
+                4, 14, 5,
+                5, 14, 15,
+                5, 15, 16,
+                5, 16, 6,
+                6, 16, 17,
+                6, 17, 18,
+                6, 18, 1,
+                1, 18, 7,
+
+                8,7,19,
+                20,8,19,
+                9,8,20,
+                10,9,20,
+                21,10,20,
+                11,10,21,
+                12,11,21,
+                22,12,21,
+                13,12,22,
+                14,13,22,
+                23,14,22,
+                15,14,23,
+                16,15,23,
+                24,16,23,
+                17,16,24,
+                18,17,24,
+                19,18,24,
+                7,18,19,
+
+                20,19,25,
+                21,20,25,
+                22,21,25,
+                23,22,25,
+                24,23,25,
+                19,24,25
+            };
+
+            Vector3[] normals = new Vector3[vertices.Length];
+            for (int i = 0; i < vertices.Length; i++) {
+                normals[i] = vertices[i] - scale.y * Vector3.up / 2;
+            }
+
+            for (int i = 0; i < vertices.Length; i++) {
+                vertices[i] += offset;
+            }
+
             Mesh mesh = new Mesh {
-                vertices = new Vector3[] {
-                    CalcHexPoint(Vector2.zero, Vector2.zero, 1, scale),
-
-                    CalcHexPoint(Vector2.zero, nPoint, 0.7f, scale),
-                    CalcHexPoint(Vector2.zero, nePoint, 0.7f, scale),
-                    CalcHexPoint(Vector2.zero, sePoint, 0.7f, scale),
-                    CalcHexPoint(Vector2.zero, sPoint, 0.7f, scale),
-                    CalcHexPoint(Vector2.zero, swPoint, 0.7f, scale),
-                    CalcHexPoint(Vector2.zero, nwPoint, 0.7f, scale),
-                    
-                    CalcHexPoint(neHex, nwPoint, 0f, scale),
-                    CalcHexPoint(neHex, Vector2.zero, 0.1f, scale),
-                    CalcHexPoint(eHex, nPoint, 0f, scale),
-                    CalcHexPoint(eHex, Vector2.zero, 0.1f, scale),
-                    CalcHexPoint(seHex, nePoint, 0f, scale),
-                    CalcHexPoint(seHex, Vector2.zero, 0.1f, scale),
-                    CalcHexPoint(swHex, sePoint, 0f, scale),
-                    CalcHexPoint(swHex, Vector2.zero, 0.1f, scale),
-                    CalcHexPoint(wHex, sPoint, 0f, scale),
-                    CalcHexPoint(wHex, Vector2.zero, 0.1f, scale),
-                    CalcHexPoint(nwHex, swPoint, 0f, scale),
-                    CalcHexPoint(nwHex, Vector2.zero, 0.1f, scale),
-                },
-                triangles = new int[] {
-                    0, 1, 2,
-                    0, 2, 3,
-                    0, 3, 4,
-                    0, 4, 5,
-                    0, 5, 6,
-                    0, 6, 1,
-
-                    1, 7, 8,
-                    1, 8, 2,
-                    2, 8, 9,
-                    
-                    2, 9, 10,
-                    2, 10, 3,
-                    3, 10, 11,
-
-                    3, 11, 12,
-                    3, 12, 4,
-                    4, 12, 13,
-
-                    4, 13, 14,
-                    4, 14, 5,
-                    5, 14, 15,
-
-                    5, 15, 16,
-                    5, 16, 6,
-                    6, 16, 17,
-
-                    6, 17, 18,
-                    6, 18, 1,
-                    1, 18, 7
-                }
+                vertices = vertices,
+                normals = normals,
+                triangles = triangles
             };
 
             return mesh;
             return ConvertToHardEdged(mesh);
+        }
+
+        private static Mesh Combine(params Mesh[] meshes)
+        {
+            CombineInstance[] combiners = new CombineInstance[meshes.Length];
+            for(int i = 0; i < combiners.Length; i++) {
+                combiners[i] = new CombineInstance() { mesh = meshes[i], transform = Matrix4x4.identity };
+            };
+
+            Mesh combined = new Mesh();
+            combined.CombineMeshes(combiners);
+            return combined;
         }
 
         private Vector3 CalcHexPoint(Vector2 hex, Vector2 corner, float height, Vector3 scale)
