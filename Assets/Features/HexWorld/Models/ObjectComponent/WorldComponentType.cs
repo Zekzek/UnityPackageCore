@@ -2,10 +2,11 @@ namespace Zekzek.HexWorld
 {
     public enum WorldComponentType
     {
+        Display,
         Location,
         Platform, 
-        Targetable,
+        Relationship,
         Stats,
-        Relationship
+        Targetable,
     }
 }

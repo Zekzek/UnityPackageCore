@@ -20,13 +20,13 @@ namespace Zekzek.HexWorld
 
         private LocationComponent GetNeighbor(Vector2Int offset)
         {
-            LocationComponent locationComponent = (LocationComponent)GetSibling(WorldComponentType.Location);
-            return (LocationComponent)(HexWorld.Instance.GetFirstAt(locationComponent.GridIndex + offset, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location));
+            LocationComponent locationComponent = GetSibling(WorldComponentType.Location) as LocationComponent;
+            return HexWorld.Instance.GetFirstAt(locationComponent.GridIndex + offset, WorldComponentType.Platform)?.GetComponent(WorldComponentType.Location) as LocationComponent;
         }
 
         public bool Raise()
         {
-            LocationComponent locationComponent = (LocationComponent)GetSibling(WorldComponentType.Location);
+            LocationComponent locationComponent = GetSibling(WorldComponentType.Location) as LocationComponent;
             if (locationComponent != null && locationComponent.GridPosition.y < WorldLocation.MAX_HEIGHT) {
                 locationComponent.ScheduleGridShift(Vector3Int.up, 0.2f);
                 MoveOthers();
@@ -37,7 +37,7 @@ namespace Zekzek.HexWorld
 
         public bool Lower()
         {
-            LocationComponent locationComponent = (LocationComponent)GetSibling(WorldComponentType.Location);
+            LocationComponent locationComponent = GetSibling(WorldComponentType.Location) as LocationComponent;
             if (locationComponent != null && locationComponent.GridPosition.y > 0) {
                 locationComponent.ScheduleGridShift(Vector3Int.down, 0.2f); ;
                 MoveOthers();

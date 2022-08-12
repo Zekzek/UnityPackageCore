@@ -70,10 +70,12 @@ namespace Zekzek.HexWorld
             if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) > 0.75f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Bush);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
+                decoration.AddComponent(new DisplayComponent(decoration.Id, generationParams[GenerationParamType.Quantity], generationParams[GenerationParamType.Color]));
                 HexWorld.Instance.Add(decoration);
             } else if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) < 0.25f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Rock);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
+                decoration.AddComponent(new DisplayComponent(decoration.Id, generationParams[GenerationParamType.Quantity], generationParams[GenerationParamType.Color]));
                 HexWorld.Instance.Add(decoration);
             }
         }
@@ -259,7 +261,9 @@ namespace Zekzek.HexWorld
             Moisture,
             Fertility,
             Trust,
-            Affection
+            Affection,
+            Quantity,
+            Color
         }
 
         private class GenerationParams
@@ -276,7 +280,9 @@ namespace Zekzek.HexWorld
                 { (int)GenerationParamType.Temperature, 0.97f },
                 { (int)GenerationParamType.Fertility, 0.98f },
                 { (int)GenerationParamType.Trust, 0.5f },
-                { (int)GenerationParamType.Affection, 0.6f }
+                { (int)GenerationParamType.Affection, 0.6f },
+                { (int)GenerationParamType.Quantity, 0.95f },
+                { (int)GenerationParamType.Color, 0.9f },
             };
             
             public float this[GenerationParamType index] { get => parameters[(int)index]; set => parameters[(int)index] = value; }

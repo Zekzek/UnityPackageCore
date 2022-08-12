@@ -1,13 +1,12 @@
 using UnityEngine;
 
-namespace Zekzek.HexWorld
+namespace Zekzek.Stats
 {
     public class StatBlockBehaviour : MonoBehaviour
     {
         [SerializeField] FillBar healthBar;
 
         public virtual StatComponent Model { get; set; }
-
 
         private void Update()
         {

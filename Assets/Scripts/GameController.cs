@@ -1,6 +1,7 @@
 using UnityEngine;
 using Zekzek.CameraControl;
 using Zekzek.HexWorld;
+using Zekzek.Stats;
 
 public class GameController : MonoBehaviour
 {

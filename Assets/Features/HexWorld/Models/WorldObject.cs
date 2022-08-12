@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using System.Text;
-using UnityEngine;
+using Zekzek.Stats;
 
 namespace Zekzek.HexWorld
 {
     public class WorldObject
     {
         public readonly uint Id;
-        public LocationComponent Location => (LocationComponent)GetComponent(WorldComponentType.Location);
-        public PlatformComponent Platform => (PlatformComponent)GetComponent(WorldComponentType.Platform);
-        public StatComponent Stats => (StatComponent)GetComponent(WorldComponentType.Stats);
+        public DisplayComponent Display => GetComponent(WorldComponentType.Display) as DisplayComponent;
+        public LocationComponent Location => GetComponent(WorldComponentType.Location) as LocationComponent;
+        public PlatformComponent Platform => GetComponent(WorldComponentType.Platform) as PlatformComponent;
+        public StatComponent Stats => GetComponent(WorldComponentType.Stats) as StatComponent;
+        
         public WorldObjectType Type { get; private set; }
 
         private Dictionary<WorldComponentType, WorldObjectComponent> _components = new Dictionary<WorldComponentType, WorldObjectComponent>();

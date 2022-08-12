@@ -1,6 +1,6 @@
-using Zekzek.Stats;
+using Zekzek.HexWorld;
 
-namespace Zekzek.HexWorld
+namespace Zekzek.Stats
 {
     public class StatComponent : WorldObjectComponent
     {

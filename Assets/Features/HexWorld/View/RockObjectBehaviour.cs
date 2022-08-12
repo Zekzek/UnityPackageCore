@@ -23,9 +23,10 @@ namespace Zekzek.HexWorld
         {
             if (_meshRenderer == null) { _meshRenderer = GetComponent<MeshRenderer>(); }
             if (_meshFilter == null) { _meshFilter = GetComponent<MeshFilter>(); }
-            
-            _meshRenderer.material = MaterialMaker.Instance.Get(0.3f * Vector3.one);
-            _meshFilter.mesh = MeshMaker.Instance.Get(Vector3.zero);
+
+            DisplayComponent display = _model.Display;
+            _meshRenderer.material = MaterialMaker.Instance.Get((0.1f + 0.4f * display.Color) * Vector3.one);
+            _meshFilter.mesh = MeshMaker.Instance.GetRocks(display.Color, display.Quantity);
         }
     }
 }

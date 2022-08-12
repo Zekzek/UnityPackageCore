@@ -34,13 +34,13 @@ namespace Zekzek.UnityModelMaker
         public static MeshMaker Instance { get { if (_instance == null) { _instance = new MeshMaker(); } return _instance; } }
         private MeshMaker() { }
 
-        public Mesh Get(Vector3 color)
+        public Mesh GetRocks(float size, float quantity)
         {
-            Mesh rock1 = GetRock(new Vector3(0.1f, 0.1f, 0.1f), Vector3.zero);
-            Mesh rock2 = GetRock(new Vector3(0.05f, 0.05f, 0.05f), new Vector3(0.15f, 0, 0));
-            Mesh rock3 = GetRock(new Vector3(0.04f, 0.04f, 0.04f), new Vector3(0.13f, 0, 0.15f));
+            int count = (int)(1 + 3 * quantity);
+            float biggest = 0.07f + 0.02f * (int)(5 * size);
 
-            return Combine(rock1, rock2, rock3);
+            Mesh rock = GetRock(biggest * Vector3.one, Vector3.zero);
+            return AddBarnacles(rock, (0.5f + biggest % 0.4f) * Vector3.one, count);
         }
 
         private Mesh GetRock(Vector3 scale, Vector3 offset)
@@ -148,7 +148,6 @@ namespace Zekzek.UnityModelMaker
             };
 
             return mesh;
-            return ConvertToHardEdged(mesh);
         }
 
         private static Mesh Combine(params Mesh[] meshes)
@@ -161,6 +160,32 @@ namespace Zekzek.UnityModelMaker
             Mesh combined = new Mesh();
             combined.CombineMeshes(combiners);
             return combined;
+        }
+
+        private static Mesh ScaleAndTranslate(Mesh source, Vector3 scale, Vector3 offset)
+        {
+            Vector3[] vertices = new Vector3[source.vertexCount];
+            for (int i = 0; i < source.vertexCount; i++) {
+                vertices[i] = Vector3.Scale(source.vertices[i], scale) + offset;
+            }
+
+            return new Mesh() { vertices = vertices, normals = source.normals, triangles = source.triangles };
+        }
+
+        private static Mesh AddBarnacles(Mesh source, Vector3 scale, int count)
+        {
+            Mesh[] meshes = new Mesh[count + 1];
+            meshes[0] = source;
+
+            Vector3 extent = source.bounds.extents;
+            Vector3 barnacleExtent = Vector3.Scale(extent, scale);
+
+            if (count > 0) { meshes[1] = ScaleAndTranslate(source, scale, new Vector3(extent.x + barnacleExtent.x, 0, extent.z + barnacleExtent.z)); }
+            if (count > 1) { meshes[2] = ScaleAndTranslate(source, scale, new Vector3(extent.x + barnacleExtent.x, 0, -extent.z - barnacleExtent.z)); }
+            if (count > 2) { meshes[3] = ScaleAndTranslate(source, scale, new Vector3(-extent.x - barnacleExtent.x, 0, -extent.z - barnacleExtent.z)); }
+            if (count > 3) { meshes[4] = ScaleAndTranslate(source, scale, new Vector3(-extent.x - barnacleExtent.x, 0, extent.z + barnacleExtent.z)); }
+
+            return Combine(meshes);
         }
 
         private Vector3 CalcHexPoint(Vector2 hex, Vector2 corner, float height, Vector3 scale)
