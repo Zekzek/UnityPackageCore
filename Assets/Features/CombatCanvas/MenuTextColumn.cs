@@ -14,15 +14,14 @@ public class MenuTextColumn : MonoBehaviour
     private MenuTextColumn _child;
     private int _selected;
 
-    private void Start()
-    {
-        Set(0);
-        Select(0);
-    }
-
-    public static void Init(MenuTextColumn columnPrefab)
+    public static void InitPrefab(MenuTextColumn columnPrefab)
     {
         _textColumnPrefab = columnPrefab;
+    }
+
+    private void OnEnable()
+    {
+        Select(0);
     }
 
     public void Set(int id)
@@ -32,6 +31,7 @@ public class MenuTextColumn : MonoBehaviour
         Id = id;
         Collapse();
         FillById(id);
+        Select(0);
     }
 
     private void FillById(int id)
@@ -88,7 +88,7 @@ public class MenuTextColumn : MonoBehaviour
 
     public void HandleCollapse()
     {
-        if (IsChildActive()) {
+        if (IsChildActive() && _child.IsChildActive()) {
             _child.HandleCollapse();
         } else {
             Collapse();
@@ -116,10 +116,14 @@ public class MenuTextColumn : MonoBehaviour
 
         _child.Set(id);
         _child.gameObject.SetActive(true);
+        _child.Select(0);
     }
 
     public void Collapse() {
-        if (_child != null) { _child.gameObject.SetActive(false); } 
+        if (_child != null) {
+            _child.Collapse();
+            _child.gameObject.SetActive(false); 
+        }
     }
 
     private bool IsChildActive()

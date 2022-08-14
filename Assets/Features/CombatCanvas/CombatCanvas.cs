@@ -8,11 +8,11 @@ public class CombatCanvas : MonoBehaviour
 
     private void Start()
     {
-        MenuTextColumn.Init(_textColumnPrefab);
+        MenuTextColumn.InitPrefab(_textColumnPrefab);
         _textColumn = Instantiate(_textColumnPrefab, transform);
+        _textColumn.Set(0);
     }
 
-    private bool action = true;
     private float timer = 0;
     private void Update()
     {
@@ -20,12 +20,16 @@ public class CombatCanvas : MonoBehaviour
         if (timer > 0.5f) {
             timer -= 0.5f;
 
-            if (action) {
+            int choice = Random.Range(0, 5);
+            if (choice == 0) {
                 _textColumn.HandleDown();
-            } else {
+            } else if (choice == 1) {
+                _textColumn.HandleUp();
+            } else if (choice == 2) {
                 _textColumn.HandleExpand();
+            } else if (choice == 3 || choice == 4) {
+                _textColumn.HandleCollapse();
             }
-            action = !action;
         }
     }
 }
