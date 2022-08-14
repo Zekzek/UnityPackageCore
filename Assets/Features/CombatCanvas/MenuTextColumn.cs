@@ -3,36 +3,47 @@ using UnityEngine;
 
 public class MenuTextColumn : MonoBehaviour
 {
-    private MenuTextColumn _textColumnPrefab;
+    private static MenuTextColumn _textColumnPrefab;
     [SerializeField] private MenuTextEntry _textEntryPrefab;
     [SerializeField] private Transform _childContainer;
     [SerializeField] private Transform _contentContainer;
 
-    public uint Id { get; private set; }
+    public int Id { get; private set; }
 
     private readonly List<MenuTextEntry> _containedEntries = new List<MenuTextEntry>();
     private MenuTextColumn _child;
+    private int _selected;
 
-    public void Set(uint id, MenuTextColumn columnPrefab = null)
+    private void Start()
     {
-        if (columnPrefab != null) { _textColumnPrefab = columnPrefab; }
-        if (id == Id) { return; }
+        Set(0);
+        Select(0);
+    }
+
+    public static void Init(MenuTextColumn columnPrefab)
+    {
+        _textColumnPrefab = columnPrefab;
+    }
+
+    public void Set(int id)
+    {
+        //if (id == Id) { return; }
 
         Id = id;
         Collapse();
         FillById(id);
     }
 
-    private void FillById(uint id)
+    private void FillById(int id)
     {
         //TODO: fill this for real
-        Dictionary<uint, string> entries = new Dictionary<uint, string> {
+        Dictionary<int, string> entries = new Dictionary<int, string> {
             { 1, "waffle" },
             { 2, "burrito" },
             { 3, "taco" }
         };
 
-        while(entries.Count > _containedEntries.Count) {
+        while (entries.Count > _containedEntries.Count) {
             _containedEntries.Add(Instantiate(_textEntryPrefab, _contentContainer));
         }
 
@@ -41,14 +52,61 @@ public class MenuTextColumn : MonoBehaviour
         }
 
         int count = 0;
-        foreach (KeyValuePair<uint, string> pair in entries) {
+        foreach (KeyValuePair<int, string> pair in entries) {
             _containedEntries[count].Set(pair.Key, pair.Value, this);
             _containedEntries[count].gameObject.SetActive(true);
             count++;
         }
     }
 
-    public void Expand(uint id)
+    public void HandleUp()
+    {
+        if (IsChildActive()) { 
+            _child.HandleUp(); 
+        } else if (_containedEntries.Count > 0) {
+            Select((_containedEntries.Count + _selected - 1) % _containedEntries.Count);
+        }
+    }
+
+    public void HandleDown()
+    {
+        if (IsChildActive()) {
+            _child.HandleDown();
+        } else if (_containedEntries.Count > 0) {
+            Select((_selected + 1) % _containedEntries.Count);
+        }
+    }
+
+    public void HandleExpand()
+    {
+        if (IsChildActive()) {
+            _child.HandleExpand();
+        } else {
+            Expand(_selected);
+        }
+    }
+
+    public void HandleCollapse()
+    {
+        if (IsChildActive()) {
+            _child.HandleCollapse();
+        } else {
+            Collapse();
+        }
+    }
+
+    private void Select(int index)
+    {
+        if (_selected < _containedEntries.Count) {
+            _containedEntries[_selected].Select(false);
+        }
+        if (index < _containedEntries.Count) {
+            _containedEntries[index].Select(true);
+            _selected = index;
+        }
+    }
+
+    private void Expand(int id)
     {
         if (_child == null) { 
             _child = Instantiate(_textColumnPrefab, _childContainer);
@@ -60,5 +118,12 @@ public class MenuTextColumn : MonoBehaviour
         _child.gameObject.SetActive(true);
     }
 
-    public void Collapse() { if (_child != null) { _child?.gameObject.SetActive(false); } }
+    public void Collapse() {
+        if (_child != null) { _child.gameObject.SetActive(false); } 
+    }
+
+    private bool IsChildActive()
+    {
+        return _child != null && _child.gameObject.activeSelf;
+    }
 }

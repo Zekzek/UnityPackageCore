@@ -126,6 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cab9e39df36f584a9dab92218bb64b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _textColumnPrefab: {fileID: 5703460607851923609}
   _textEntryPrefab: {fileID: 138407938446962931, guid: 34f80f1d00ac9b14dab849b5066ba5a5, type: 3}
   _childContainer: {fileID: 5703460607851923608}
   _contentContainer: {fileID: 7456219144204763119}

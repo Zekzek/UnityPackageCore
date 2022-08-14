@@ -5,10 +5,14 @@ using UnityEngine.UI;
 public class MenuTextEntry : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _textField;
+    [SerializeField] private GameObject _highlight;
+
+
     public int PreferredWidth;
     public int PreferredHeight;
+    private bool _selected;
 
-    public uint Id { get; private set; }
+    public int Id { get; private set; }
 
     private MenuTextColumn _column;
 
@@ -19,13 +23,19 @@ public class MenuTextEntry : MonoBehaviour
         layout.preferredHeight = PreferredHeight;
     }
 
-    public void Set(uint id, string entry, MenuTextColumn column)
+    public void Set(int id, string entry, MenuTextColumn column)
     {
         Id = id;
         _textField.text = entry;
         _column = column;
+        Select(false);
     }
 
-    public void Expand() { if (_column != null) { _column.Expand(Id); } }
-    public void Collapse() { if (_column != null) { _column.Collapse(); } }
+    public void Select(bool value)
+    {
+        _selected = value;
+
+        _textField.color = _selected ? new Color(0.7f, 1, 1) : Color.white;
+        _highlight.SetActive(_selected);
+    }
 }

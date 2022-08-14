@@ -8,9 +8,24 @@ public class CombatCanvas : MonoBehaviour
 
     private void Start()
     {
+        MenuTextColumn.Init(_textColumnPrefab);
         _textColumn = Instantiate(_textColumnPrefab, transform);
+    }
 
-        _textColumn.Set(1, _textColumnPrefab);
-        _textColumn.Expand(2);
+    private bool action = true;
+    private float timer = 0;
+    private void Update()
+    {
+        timer += Time.deltaTime;
+        if (timer > 0.5f) {
+            timer -= 0.5f;
+
+            if (action) {
+                _textColumn.HandleDown();
+            } else {
+                _textColumn.HandleExpand();
+            }
+            action = !action;
+        }
     }
 }
