@@ -1,16 +1,23 @@
 using UnityEngine;
+using Zekzek.Ability;
 
 public class CombatCanvas : MonoBehaviour
 {
     [SerializeField] private MenuTextColumn _textColumnPrefab;
 
     private MenuTextColumn _textColumn;
+    private static CombatCanvas _instance;
 
-    private void Start()
+    public static void Set(AbilityComponent component)
+    {
+        _instance._textColumn.Set(component, null);
+    }
+
+    private void Awake()
     {
         MenuTextColumn.InitPrefab(_textColumnPrefab);
         _textColumn = Instantiate(_textColumnPrefab, transform);
-        _textColumn.Set(0);
+        _instance = this;
     }
 
     private float timer = 0;
@@ -20,7 +27,7 @@ public class CombatCanvas : MonoBehaviour
         if (timer > 0.5f) {
             timer -= 0.5f;
 
-            int choice = Random.Range(0, 5);
+            int choice = Random.Range(0, 4);
             if (choice == 0) {
                 _textColumn.HandleDown();
             } else if (choice == 1) {

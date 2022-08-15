@@ -12,10 +12,6 @@ public class MenuTextEntry : MonoBehaviour
     public int PreferredHeight;
     private bool _selected;
 
-    public int Id { get; private set; }
-
-    private MenuTextColumn _column;
-
     private void Start()
     {
         LayoutElement layout = GetComponent<LayoutElement>();
@@ -23,11 +19,9 @@ public class MenuTextEntry : MonoBehaviour
         layout.preferredHeight = PreferredHeight;
     }
 
-    public void Set(int id, string entry, MenuTextColumn column)
+    public void Set(string entry)
     {
-        Id = id;
         _textField.text = entry;
-        _column = column;
         Select(false);
     }
 

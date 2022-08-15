@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zekzek.Ability;
 
 public class MenuTextColumn : MonoBehaviour
 {
@@ -8,8 +10,9 @@ public class MenuTextColumn : MonoBehaviour
     [SerializeField] private Transform _childContainer;
     [SerializeField] private Transform _contentContainer;
 
-    public int Id { get; private set; }
-
+    private AbilityComponent _abilityComponent;
+    private string[] _location;
+    private List<string> _options;
     private readonly List<MenuTextEntry> _containedEntries = new List<MenuTextEntry>();
     private MenuTextColumn _child;
     private int _selected;
@@ -24,26 +27,24 @@ public class MenuTextColumn : MonoBehaviour
         Select(0);
     }
 
-    public void Set(int id)
+    public void Set(AbilityComponent component, string[] location)
     {
-        //if (id == Id) { return; }
-
-        Id = id;
-        Collapse();
-        FillById(id);
-        Select(0);
+        _abilityComponent = component;
+        _location = location ?? new string[0];
+        _options = component.GetOptions(location);
+        if (_options == null) {
+            Collapse();
+            gameObject.SetActive(false);
+        } else {
+            Collapse();
+            Fill(_options);
+            Select(0);
+        }
     }
 
-    private void FillById(int id)
+    private void Fill(List<string> options)
     {
-        //TODO: fill this for real
-        Dictionary<int, string> entries = new Dictionary<int, string> {
-            { 1, "waffle" },
-            { 2, "burrito" },
-            { 3, "taco" }
-        };
-
-        while (entries.Count > _containedEntries.Count) {
+        while (options.Count > _containedEntries.Count) {
             _containedEntries.Add(Instantiate(_textEntryPrefab, _contentContainer));
         }
 
@@ -52,8 +53,8 @@ public class MenuTextColumn : MonoBehaviour
         }
 
         int count = 0;
-        foreach (KeyValuePair<int, string> pair in entries) {
-            _containedEntries[count].Set(pair.Key, pair.Value, this);
+        foreach (string option in options) {
+            _containedEntries[count].Set(option);
             _containedEntries[count].gameObject.SetActive(true);
             count++;
         }
@@ -81,8 +82,8 @@ public class MenuTextColumn : MonoBehaviour
     {
         if (IsChildActive()) {
             _child.HandleExpand();
-        } else {
-            Expand(_selected);
+        } else if (_options != null && _selected < _options.Count) {
+            Expand(_options[_selected]);
         }
     }
 
@@ -106,7 +107,7 @@ public class MenuTextColumn : MonoBehaviour
         }
     }
 
-    private void Expand(int id)
+    private void Expand(string option)
     {
         if (_child == null) { 
             _child = Instantiate(_textColumnPrefab, _childContainer);
@@ -114,7 +115,11 @@ public class MenuTextColumn : MonoBehaviour
             childTransform.offsetMin = new Vector2(_textEntryPrefab.PreferredWidth, childTransform.offsetMin.y);
         }
 
-        _child.Set(id);
+        string[] childLocation = new string[_location.Length + 1];
+        Array.Copy(_location, childLocation, _location.Length);
+        childLocation[_location.Length] = option;
+
+        _child.Set(_abilityComponent, childLocation);
         _child.gameObject.SetActive(true);
         _child.Select(0);
     }

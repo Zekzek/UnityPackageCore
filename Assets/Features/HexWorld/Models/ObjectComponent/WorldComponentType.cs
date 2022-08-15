@@ -8,5 +8,6 @@ namespace Zekzek.HexWorld
         Relationship,
         Stats,
         Targetable,
+        Ability,
     }
 }
