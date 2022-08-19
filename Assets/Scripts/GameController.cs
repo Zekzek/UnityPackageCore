@@ -25,6 +25,7 @@ public class GameController : MonoBehaviour
         playerAbilities.Add("jab");
         playerAbilities.Add("lunge");
         playerAbilities.Add("gore");
+        playerAbilities.Add("staff");
         player.AddComponent(playerAbilities);
         CombatCanvas.Set(playerAbilities);
 

@@ -1,0 +1,10 @@
+{
+  "id": "maul",
+  "name": "Maul",
+
+  "redAffinity": 5,
+  "speed": 0.5,
+  "power": 2,
+  "damageTypes": [ "Crush" ],
+  "tags": [ "weapon" ]
+}

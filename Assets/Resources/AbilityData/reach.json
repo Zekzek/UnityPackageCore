@@ -1,0 +1,8 @@
+{
+  "id": "reach",
+  "name": "Reach",
+
+  "greenAffinity": 5,
+  "reach": 1,
+  "tags": ["location"]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "range",
+  "name":  "Range",
+
+  "blueAffinity": 5,
+  "range": 2,
+  "tags": ["location"]
+}

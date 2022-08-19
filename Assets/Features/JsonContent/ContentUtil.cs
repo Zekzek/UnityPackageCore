@@ -29,7 +29,7 @@ namespace Zekzek.JsonContent
                 TYPE data = JsonUtility.FromJson<TYPE>(json.text);
                 Resources.UnloadAsset(json);
                 cachedData[type].Add(id, data);
-                Debug.Log(string.Format("Loaded {0} from Resources: {1}", fullPath, data));
+                Debug.Log(string.Format("Loaded {0} from Resources: {1}", fullPath, JsonUtility.ToJson(data, true)));
                 return data;
             }
 

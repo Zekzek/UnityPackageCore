@@ -1,0 +1,12 @@
+{
+  "id": "wand",
+  "name": "Wand",
+
+  "greenAffinity": 2,
+  "blueAffinity": 2,
+  "range": 3,
+  "reach": 1,
+  "potency": 1.5,
+  "damageTypes": [ "Slash" ],
+  "tags": [ "weapon" ]
+}

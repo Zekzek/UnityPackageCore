@@ -1,0 +1,9 @@
+{
+  "id": "greataxe",
+  "name": "Great Axe",
+
+  "redAffinity": 5,
+  "spread": 4,
+  "damageTypes": [ "Crush", "Slash" ],
+  "tags": [ "weapon" ]
+}

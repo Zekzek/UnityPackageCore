@@ -1,0 +1,8 @@
+{
+  "id": "spread",
+  "name":  "Spread",
+
+  "redAffinity": 5,
+  "spread": 2,
+  "tags": ["location"]
+}
