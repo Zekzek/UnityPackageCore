@@ -24,7 +24,7 @@ public class GameController : MonoBehaviour
         AbilityComponent playerAbilities = new AbilityComponent(player.Id);
         playerAbilities.Add("jab");
         playerAbilities.Add("lunge");
-        playerAbilities.Add("fireball");
+        playerAbilities.Add("fire");
         player.AddComponent(playerAbilities);
         CombatCanvas.Set(playerAbilities);
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,8 +20,8 @@ namespace Zekzek.HexWorld
             //TODO: remove workaround to force a selected object
             AddSelection(HexWorld.Instance.GetAll(WorldObjectType.Entity).First());
 
+            InputManager.Instance.AddConstantListener(InputManager.PlayerAction.Move, OnMove);
         }
-
 
         public void AddSelection(params WorldObject[] targets) { _selected.AddRange(targets); }
         public void RemoveSelection(params WorldObject[] targets) { foreach (WorldObject target in targets) _selected.Remove(target); }
@@ -52,24 +53,26 @@ namespace Zekzek.HexWorld
                 }
             }
 
-            Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Move);
-            foreach (WorldObject worldObject in _selected) {
-                WorldUtil.FindNeighbors(worldObject.Id, worldObject.Location.Current, worldObject.Location.Speed, WorldScheduler.Instance.Time, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
-                if (forcedStep != null) { break; }
-                if (rotateAmount.x > 0 && rightStep != null) {
-                    worldObject.Location.Schedule(new List<NavStep> { rightStep });
-                } else if (rotateAmount.x < 0 && leftStep != null) {
-                    worldObject.Location.Schedule(new List<NavStep> { leftStep });
-                }
-                if (rotateAmount.y > 0 && forwardStep != null) {
-                    worldObject.Location.Schedule(new List<NavStep> { forwardStep });
-                } else if (rotateAmount.y < 0 && backwardStep != null) {
-                    worldObject.Location.Schedule(new List<NavStep> { backwardStep });
-                }
-            }
-
             if (InputManager.Instance.IsStarted(InputManager.PlayerAction.Action)) {
                 TestFrontalAttack();
+            }
+        }
+
+        private void OnMove(Vector2 moveInput)
+        {
+            foreach (WorldObject worldObject in _selected) {
+                WorldUtil.FindNeighbors(worldObject.Id, worldObject.Location.Current, worldObject.Location.Speed, WorldScheduler.Instance.Time, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
+                if (forcedStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { forcedStep });
+                } else if (moveInput.x > 0 && rightStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { rightStep });
+                } else if (moveInput.x < 0 && leftStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { leftStep });
+                } else if (moveInput.y > 0 && forwardStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { forwardStep });
+                } else if (moveInput.y < 0 && backwardStep != null) {
+                    worldObject.Location.Schedule(new List<NavStep> { backwardStep });
+                }
             }
         }
 

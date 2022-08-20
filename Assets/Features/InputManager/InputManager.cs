@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -20,14 +21,29 @@ public class InputManager : MonoBehaviour
     private static InputManager _instance;
     public static InputManager Instance => _instance;
 
-    private readonly IDictionary<PlayerAction, InputAction> _playerActionMap = new Dictionary<PlayerAction, InputAction>();
+    private readonly IDictionary<Enum, InputAction> _actionMap = new Dictionary<Enum, InputAction>();
     private readonly IList<PlayerAction> _playerActionStart = new List<PlayerAction>();
     private readonly IList<PlayerAction> _playerActionFinish = new List<PlayerAction>();
+
+    private readonly IDictionary<Enum, Action<Vector2>> _axisCallbacks = new Dictionary<Enum, Action<Vector2>>();
+    private readonly IDictionary<Enum, Action<float>> _buttonCallbacks = new Dictionary<Enum, Action<float>>();
 
     private void Awake()
     {
         _instance = this;
         InitControls();
+    }
+
+    private void FixedUpdate()
+    {
+        foreach(KeyValuePair<Enum, Action<Vector2>> callbackPair in _axisCallbacks) {
+            Vector2 input = _actionMap[callbackPair.Key].ReadValue<Vector2>();
+            _axisCallbacks[callbackPair.Key].Invoke(input);
+        }
+        foreach (KeyValuePair<Enum, Action<float>> callbackPair in _buttonCallbacks) {
+            float input = _actionMap[callbackPair.Key].ReadValue<float>();
+            _buttonCallbacks[callbackPair.Key].Invoke(input);
+        }
     }
 
     public Vector2 GetCursorPosition()
@@ -37,7 +53,7 @@ public class InputManager : MonoBehaviour
 
     public T Get<T>(PlayerAction key) where T : struct
     {
-        if (_playerActionMap.ContainsKey(key)) { return _playerActionMap[key].ReadValue<T>(); }
+        if (_actionMap.ContainsKey(key)) { return _actionMap[key].ReadValue<T>(); }
         return default;
     }
 
@@ -55,6 +71,15 @@ public class InputManager : MonoBehaviour
         return finished;
     }
 
+    public void AddConstantListener(Enum action, Action<Vector2> callback)
+    {
+        if (!_actionMap.ContainsKey(action)) {
+            Debug.LogError("No action defined for: " + action);
+            return;
+        }
+
+        _axisCallbacks.Add(action, callback);
+    }
 
     private void InitControls()
     {
@@ -64,7 +89,7 @@ public class InputManager : MonoBehaviour
             .With(DOWN, "<Keyboard>/s")
             .With(LEFT, "<Keyboard>/a")
             .With(RIGHT, "<Keyboard>/d");
-        _playerActionMap.Add(PlayerAction.Move, moveAction);
+        _actionMap.Add(PlayerAction.Move, moveAction);
         moveAction.Enable();
 
         InputAction rotateAction = new InputAction();
@@ -73,19 +98,19 @@ public class InputManager : MonoBehaviour
             .With(DOWN, "<Keyboard>/downArrow")
             .With(LEFT, "<Keyboard>/leftArrow")
             .With(RIGHT, "<Keyboard>/rightArrow");
-        _playerActionMap.Add(PlayerAction.Rotate, rotateAction);
+        _actionMap.Add(PlayerAction.Rotate, rotateAction);
         rotateAction.Enable();
 
         InputAction tapAction = new InputAction();
         tapAction.AddBinding("<Mouse>/leftButton");
-        _playerActionMap.Add(PlayerAction.Tap, tapAction);
+        _actionMap.Add(PlayerAction.Tap, tapAction);
         tapAction.Enable();
 
         InputAction actionAction = new InputAction();
         actionAction.AddBinding("<Keyboard>/space");
         actionAction.started += (_) => Begin(PlayerAction.Action);
         actionAction.canceled += (_) => Finish(PlayerAction.Action);
-        _playerActionMap.Add(PlayerAction.Action, actionAction);
+        _actionMap.Add(PlayerAction.Action, actionAction);
         actionAction.Enable();
     }
 
