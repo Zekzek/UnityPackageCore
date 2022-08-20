@@ -24,10 +24,13 @@ public class GameController : MonoBehaviour
         AbilityComponent playerAbilities = new AbilityComponent(player.Id);
         playerAbilities.Add("jab");
         playerAbilities.Add("lunge");
-        playerAbilities.Add("gore");
-        playerAbilities.Add("staff");
+        playerAbilities.Add("fireball");
         player.AddComponent(playerAbilities);
         CombatCanvas.Set(playerAbilities);
+
+        WeaponComponent playerWeapon = new WeaponComponent(player.Id);
+        playerWeapon.Add("dagger");
+        player.AddComponent(playerWeapon);
 
         return player;
     }

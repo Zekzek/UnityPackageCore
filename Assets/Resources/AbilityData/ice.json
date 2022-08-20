@@ -1,0 +1,10 @@
+{
+  "id": "ice",
+  "name": "Ice",
+
+  "greenAffinity": 5,
+  "reach": 4,
+  "damageTypes": [ "Ice" ],
+
+  "location": "Magic"
+}

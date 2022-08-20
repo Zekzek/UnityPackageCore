@@ -1,0 +1,12 @@
+{
+  "id": "earth",
+  "name": "Earth",
+
+  "blueAffinity": 3,
+  "greenAffinity": 3,
+  "reach": 2,
+  "range": 2,
+  "damageTypes": [ "Earth" ],
+
+  "location":  "Magic"
+}

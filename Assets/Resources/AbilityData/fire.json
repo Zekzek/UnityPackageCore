@@ -1,0 +1,10 @@
+{
+  "id": "fire",
+  "name": "Fire",
+
+  "redAffinity": 5,
+  "spread": 4,
+  "damageTypes": [ "Fire" ],
+
+  "location": "Magic"
+}

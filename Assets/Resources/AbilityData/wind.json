@@ -1,0 +1,12 @@
+{
+  "id": "wind",
+  "name": "Wind",
+
+  "blueAffinity": 3,
+  "redAffinity": 3,
+  "range": 3,
+  "spread": 2,
+  "damageTypes": [ "Wind" ],
+
+  "location":  "Magic"
+}

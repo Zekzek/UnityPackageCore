@@ -11,9 +11,7 @@ namespace Zekzek.Ability
         private List<AbilityData> _knownAbilities = new List<AbilityData>();
         private readonly Dictionary<string, object> _abilityGroups = new Dictionary<string, object>();
 
-        public AbilityComponent(uint worldObjectId) : base(worldObjectId)
-        {
-        }
+        public AbilityComponent(uint worldObjectId) : base(worldObjectId) { }
 
         public void Add(string abilityId)
         {
