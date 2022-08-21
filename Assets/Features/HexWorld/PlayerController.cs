@@ -21,6 +21,7 @@ namespace Zekzek.HexWorld
             AddSelection(HexWorld.Instance.GetAll(WorldObjectType.Entity).First());
 
             InputManager.Instance.AddConstantListener(InputManager.PlayerAction.Move, OnMove);
+            InputManager.Instance.AddConstantListener(InputManager.PlayerAction.Action, OnAction);
         }
 
         public void AddSelection(params WorldObject[] targets) { _selected.AddRange(targets); }
@@ -34,24 +35,24 @@ namespace Zekzek.HexWorld
 
         public void HandleInput()
         {
-            foreach (TargetableComponent targetable in _highlighted) { targetable.Highlight = false; }
-            _highlighted.Clear();
+//            foreach (TargetableComponent targetable in _highlighted) { targetable.Highlight = false; }
+//            _highlighted.Clear();
 
-            RaycastHit hit;
-            Ray ray = _camera.Camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
-
-            if (Physics.Raycast(ray, out hit)) {
-                Transform objectHit = hit.transform;
-                HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
-                if (tile != null && tile.Model != null) {
-                    Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
-                    if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-                        foreach (WorldObject worldObject in _selected) {
-                            worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Location.Speed);
-                        }
-                    }
-                }
-            }
+//            RaycastHit hit;
+//            Ray ray = _camera.Camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
+//
+//            if (Physics.Raycast(ray, out hit)) {
+//                Transform objectHit = hit.transform;
+//                HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
+//                if (tile != null && tile.Model != null) {
+//                    Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
+//                    if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
+//                        foreach (WorldObject worldObject in _selected) {
+//                            worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Location.Speed);
+//                        }
+//                    }
+//                }
+//            }
 
             if (InputManager.Instance.IsStarted(InputManager.PlayerAction.Action)) {
                 TestFrontalAttack();
@@ -73,6 +74,23 @@ namespace Zekzek.HexWorld
                 } else if (moveInput.y < 0 && backwardStep != null) {
                     worldObject.Location.Schedule(new List<NavStep> { backwardStep });
                 }
+            }
+        }
+
+        private void OnAction(float value)
+        {
+            foreach (TargetableComponent targetable in _highlighted) { targetable.Highlight = false; }
+            _highlighted.Clear();
+
+            if (value > 0) {
+                UpdateHighlight();
+            }
+        }
+
+        private void UpdateHighlight()
+        {
+            foreach (Vector2Int gridIndex in WorldUtil.GetIndicesAround(Vector2Int.zero, 2, 4 )) {
+                Highlight(gridIndex, Vector2Int.zero, 0);
             }
         }
 

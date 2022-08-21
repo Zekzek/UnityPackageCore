@@ -81,6 +81,16 @@ public class InputManager : MonoBehaviour
         _axisCallbacks.Add(action, callback);
     }
 
+    public void AddConstantListener(Enum action, Action<float> callback)
+    {
+        if (!_actionMap.ContainsKey(action)) {
+            Debug.LogError("No action defined for: " + action);
+            return;
+        }
+
+        _buttonCallbacks.Add(action, callback);
+    }
+
     private void InitControls()
     {
         InputAction moveAction = new InputAction();

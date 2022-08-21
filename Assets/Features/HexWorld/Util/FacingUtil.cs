@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Zekzek.HexWorld
 {
@@ -46,9 +47,20 @@ namespace Zekzek.HexWorld
             throw new MissingReferenceException();
         }
 
-        public static Vector2Int GetFacing(Vector2Int fromGridPos, Vector2Int toGridPos)
+        public static float GetOffsetAngle(Vector2Int fromGridIndex, Vector2Int toGridIndex)
         {
-            float offsetAngle = -Vector2.SignedAngle(Vector2.up, (toGridPos - fromGridPos));
+            Vector3 fromPosition = WorldUtil.GridIndexToPosition(fromGridIndex, 0);
+            Vector3 toPosition = WorldUtil.GridIndexToPosition(toGridIndex, 0);
+            float xDiff = toPosition.x - fromPosition.x;
+            float zDiff = toPosition.z - fromPosition.z;
+            return (float)(Mathf.Atan2(zDiff, xDiff) * 180.0 / Mathf.PI);
+            //Vector3 offsetPosition = WorldUtil.GridIndexToPosition(toGridIndex, 0) - WorldUtil.GridIndexToPosition(fromGridIndex, 0);
+            //return -Vector2.SignedAngle(Vector2.up, new Vector2(offsetPosition.x, offsetPosition.z));
+        }
+
+        public static Vector2Int GetFacing(Vector2Int fromGridIndex, Vector2Int toGridIndex)
+        {
+            float offsetAngle = -Vector2.SignedAngle(Vector2.up, (toGridIndex - fromGridIndex));
             if (offsetAngle >= -22.5 && offsetAngle < 45) { return NE; }
             if (offsetAngle >= 45 && offsetAngle < 112.5) { return E; }
             if (offsetAngle >= 112.5 && offsetAngle < 157.5) { return SE; }
@@ -88,17 +100,6 @@ namespace Zekzek.HexWorld
             return result;
         }
 
-        public static float GetFacingRotationAroundUpAxis(Vector2Int fromGridIndex, Vector2Int toGridIndex)
-        {
-            float offsetAngle = -Vector2.SignedAngle(Vector2.up, (toGridIndex - fromGridIndex));
-            if (offsetAngle >= -22.5 && offsetAngle < 45) { return 30; }
-            if (offsetAngle >= 45 && offsetAngle < 112.5) { return 90; }
-            if (offsetAngle >= 112.5 && offsetAngle < 157.5) { return 150; }
-            if (offsetAngle >= 157.5 || offsetAngle < -135) { return -150; }
-            if (offsetAngle >= -135 && offsetAngle < -67.5) { return -90; }
-            if (offsetAngle >= -67.5 && offsetAngle < -22.5) { return -30; }
-            throw new MissingReferenceException();
-        }
 
         public static Vector2Int RotateAround(Vector2Int toRotate, Vector2Int center, float degree)
         {
