@@ -1,5 +1,6 @@
 using UnityEngine;
 using Zekzek.Ability;
+using static InputManager;
 
 public class CombatCanvas : MonoBehaviour
 {
@@ -20,23 +21,36 @@ public class CombatCanvas : MonoBehaviour
         _instance = this;
     }
 
-    private float timer = 0;
-    private void Update()
+    private void Start()
     {
-        timer += Time.deltaTime;
-        if (timer > 0.5f) {
-            timer -= 0.5f;
+        InputManager.Instance.AddListener<Vector2>(PlayerAction.Move, InputWatchType.OnStart, OnMove);
+        InputManager.Instance.AddListener<float>(PlayerAction.Action, InputWatchType.OnStart, OnAction);
+    }
 
-            int choice = Random.Range(0, 4);
-            if (choice == 0) {
-                _textColumn.HandleDown();
-            } else if (choice == 1) {
-                _textColumn.HandleUp();
-            } else if (choice == 2) {
-                _textColumn.HandleExpand();
-            } else if (choice == 3 || choice == 4) {
+    private void OnMove(Vector2 input)
+    {
+        // Deadzone, should this be handled in InputManager?
+        if (input.sqrMagnitude<0.1f) { return; }
+
+        if (input.x * input.x > input.y * input.y) {
+            if (input.x > 0) { 
+                _textColumn.HandleExpand(); 
+            } else {
                 _textColumn.HandleCollapse();
             }
+        } else {
+            if (input.y > 0) {
+                _textColumn.HandleUp();
+            } else {
+                _textColumn.HandleDown();
+            }
+        }
+    }
+
+    private void OnAction(float value)
+    {
+        if (value > 0.5f) {
+            //_textColumn.Activate()
         }
     }
 }

@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Zekzek.CameraControl;
+using static InputManager;
 
 namespace Zekzek.HexWorld
 {
@@ -20,8 +20,8 @@ namespace Zekzek.HexWorld
             //TODO: remove workaround to force a selected object
             AddSelection(HexWorld.Instance.GetAll(WorldObjectType.Entity).First());
 
-            InputManager.Instance.AddConstantListener(InputManager.PlayerAction.Move, OnMove);
-            InputManager.Instance.AddConstantListener(InputManager.PlayerAction.Action, OnAction);
+            InputManager.Instance.AddListener<Vector2>(PlayerAction.Move, InputWatchType.Constant, OnMove);
+            InputManager.Instance.AddListener<float>(PlayerAction.Action, InputWatchType.Constant, OnAction);
         }
 
         public void AddSelection(params WorldObject[] targets) { _selected.AddRange(targets); }

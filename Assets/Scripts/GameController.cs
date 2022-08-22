@@ -25,6 +25,11 @@ public class GameController : MonoBehaviour
         playerAbilities.Add("jab");
         playerAbilities.Add("lunge");
         playerAbilities.Add("fire");
+        playerAbilities.Add("ice");
+        playerAbilities.Add("water");
+        playerAbilities.Add("lightning");
+        playerAbilities.Add("earth");
+        playerAbilities.Add("wind");
         player.AddComponent(playerAbilities);
         CombatCanvas.Set(playerAbilities);
 

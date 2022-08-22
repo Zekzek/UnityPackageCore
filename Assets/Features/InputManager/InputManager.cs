@@ -10,6 +10,12 @@ public class InputManager : MonoBehaviour
     private const string LEFT = "Left";
     private const string RIGHT = "Right";
 
+    public enum InputWatchType
+    {
+        Constant,
+        OnStart,
+        OnFinish
+    }
     public enum PlayerAction
     {
         Move,
@@ -22,11 +28,10 @@ public class InputManager : MonoBehaviour
     public static InputManager Instance => _instance;
 
     private readonly IDictionary<Enum, InputAction> _actionMap = new Dictionary<Enum, InputAction>();
-    private readonly IList<PlayerAction> _playerActionStart = new List<PlayerAction>();
-    private readonly IList<PlayerAction> _playerActionFinish = new List<PlayerAction>();
+    private readonly IList<Enum> _playerActionStart = new List<Enum>();
+    private readonly IList<Enum> _playerActionFinish = new List<Enum>();
 
-    private readonly IDictionary<Enum, Action<Vector2>> _axisCallbacks = new Dictionary<Enum, Action<Vector2>>();
-    private readonly IDictionary<Enum, Action<float>> _buttonCallbacks = new Dictionary<Enum, Action<float>>();
+    private readonly IDictionary<Enum, List<object>> _callbacks = new Dictionary<Enum, List<object>>();
 
     private void Awake()
     {
@@ -36,14 +41,26 @@ public class InputManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        foreach(KeyValuePair<Enum, Action<Vector2>> callbackPair in _axisCallbacks) {
-            Vector2 input = _actionMap[callbackPair.Key].ReadValue<Vector2>();
-            _axisCallbacks[callbackPair.Key].Invoke(input);
+        foreach (KeyValuePair<Enum, List<object>> callbackPair in _callbacks) {
+            foreach (object callbackObject in callbackPair.Value) {
+                if (callbackObject is InputCallback<Vector2> vector2Callback) {
+                    ProcessCallback(callbackPair.Key, vector2Callback);
+                } else if (callbackObject is InputCallback<float> floatCallback) {
+                    ProcessCallback(callbackPair.Key, floatCallback);
+                } else {
+                    Debug.LogWarning($"Unable to fire callback for {callbackObject.GetType()}. Does InputManager need another handler?");
+                }
+            }
         }
-        foreach (KeyValuePair<Enum, Action<float>> callbackPair in _buttonCallbacks) {
-            float input = _actionMap[callbackPair.Key].ReadValue<float>();
-            _buttonCallbacks[callbackPair.Key].Invoke(input);
-        }
+    }
+
+    private void ProcessCallback<T>(Enum key, InputCallback<T> callback) where T : struct
+    {
+        if (callback.WatchType == InputWatchType.OnStart && !IsStarted(key)) { return; }
+        if (callback.WatchType == InputWatchType.OnFinish && !IsFinished(key)) { return; }
+
+        T input = _actionMap[key].ReadValue<T>();
+        callback.Callback.Invoke(input);
     }
 
     public Vector2 GetCursorPosition()
@@ -57,38 +74,29 @@ public class InputManager : MonoBehaviour
         return default;
     }
 
-    public bool IsStarted(PlayerAction actiontype)
+    public bool IsStarted(Enum actiontype)
     {
         bool started = _playerActionStart.Contains(actiontype);
         _playerActionStart.Remove(actiontype);
         return started;
     }
 
-    public bool IsFinished(PlayerAction actiontype)
+    public bool IsFinished(Enum actiontype)
     {
         bool finished = _playerActionFinish.Contains(actiontype);
         _playerActionFinish.Remove(actiontype);
         return finished;
     }
 
-    public void AddConstantListener(Enum action, Action<Vector2> callback)
+    public void AddListener<T>(Enum action, InputWatchType watchType, Action<T> callback) where T : struct
     {
         if (!_actionMap.ContainsKey(action)) {
             Debug.LogError("No action defined for: " + action);
             return;
         }
 
-        _axisCallbacks.Add(action, callback);
-    }
-
-    public void AddConstantListener(Enum action, Action<float> callback)
-    {
-        if (!_actionMap.ContainsKey(action)) {
-            Debug.LogError("No action defined for: " + action);
-            return;
-        }
-
-        _buttonCallbacks.Add(action, callback);
+        if (!_callbacks.ContainsKey(action)) { _callbacks.Add(action, new List<object>()); }
+        _callbacks[action].Add(new InputCallback<T> { WatchType = watchType, Callback = callback });
     }
 
     private void InitControls()
@@ -99,8 +107,7 @@ public class InputManager : MonoBehaviour
             .With(DOWN, "<Keyboard>/s")
             .With(LEFT, "<Keyboard>/a")
             .With(RIGHT, "<Keyboard>/d");
-        _actionMap.Add(PlayerAction.Move, moveAction);
-        moveAction.Enable();
+        Init(PlayerAction.Move, moveAction);
 
         InputAction rotateAction = new InputAction();
         rotateAction.AddCompositeBinding("2DVector")
@@ -108,31 +115,40 @@ public class InputManager : MonoBehaviour
             .With(DOWN, "<Keyboard>/downArrow")
             .With(LEFT, "<Keyboard>/leftArrow")
             .With(RIGHT, "<Keyboard>/rightArrow");
-        _actionMap.Add(PlayerAction.Rotate, rotateAction);
-        rotateAction.Enable();
+        Init(PlayerAction.Rotate, rotateAction);
 
         InputAction tapAction = new InputAction();
         tapAction.AddBinding("<Mouse>/leftButton");
-        _actionMap.Add(PlayerAction.Tap, tapAction);
-        tapAction.Enable();
+        Init(PlayerAction.Tap, tapAction);
 
         InputAction actionAction = new InputAction();
         actionAction.AddBinding("<Keyboard>/space");
-        actionAction.started += (_) => Begin(PlayerAction.Action);
-        actionAction.canceled += (_) => Finish(PlayerAction.Action);
-        _actionMap.Add(PlayerAction.Action, actionAction);
-        actionAction.Enable();
+        Init(PlayerAction.Action, actionAction);
     }
 
-    private void Begin(PlayerAction actionType)
+    private void Init(Enum key, InputAction action)
+    {
+        action.started += (_) => Begin(key);
+        action.canceled += (_) => Finish(key);
+        _actionMap.Add(key, action);
+        action.Enable();
+    }
+
+    private void Begin(Enum actionType)
     {
         _playerActionStart.Add(actionType);
         _playerActionFinish.Remove(actionType);
     }
 
-    private void Finish(PlayerAction actionType)
+    private void Finish(Enum actionType)
     {
         _playerActionStart.Remove(actionType);
         _playerActionFinish.Add(actionType);
+    }
+
+    private class InputCallback<T> where T : struct
+    {
+        public InputWatchType WatchType { get; set; }
+        public Action<T> Callback { get; set; }
     }
 }
