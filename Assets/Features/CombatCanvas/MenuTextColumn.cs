@@ -87,12 +87,33 @@ public class MenuTextColumn : MonoBehaviour
         }
     }
 
+    public bool CanExpand()
+    {
+        if (IsChildActive()) {
+            return _child.CanExpand();
+        } else {
+            return _abilityComponent.GetOptions(_location, _options[_selected]) != null;
+        }
+    }
+
     public void HandleCollapse()
     {
         if (IsChildActive() && _child.IsChildActive()) {
             _child.HandleCollapse();
         } else {
             Collapse();
+        }
+    }
+
+    public string[] GetSelectedLocation()
+    {
+        if (IsChildActive()) {
+            return _child.GetSelectedLocation();
+        } else {
+            string[] selection = new string[_location.Length];
+            Array.Copy(_location, selection, _location.Length);
+            selection[selection.Length - 1] = _options[_selected];
+            return selection;
         }
     }
 

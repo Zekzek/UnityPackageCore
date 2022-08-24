@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Zekzek.Ability;
 using Zekzek.Stats;
 
 namespace Zekzek.HexWorld
@@ -7,6 +8,7 @@ namespace Zekzek.HexWorld
     public class WorldObject
     {
         public readonly uint Id;
+        public AbilityComponent Ability => GetComponent(WorldComponentType.Ability) as AbilityComponent;
         public DisplayComponent Display => GetComponent(WorldComponentType.Display) as DisplayComponent;
         public LocationComponent Location => GetComponent(WorldComponentType.Location) as LocationComponent;
         public PlatformComponent Platform => GetComponent(WorldComponentType.Platform) as PlatformComponent;

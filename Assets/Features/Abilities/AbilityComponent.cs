@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Zekzek.HexWorld;
 
 namespace Zekzek.Ability
@@ -16,14 +17,14 @@ namespace Zekzek.Ability
         public void Add(string abilityId)
         {
             AbilityData abilityData = JsonContent.ContentUtil.LoadData<AbilityData>(abilityId);
-            Add(abilityData.Name, _abilityGroups, abilityData.Location.Split('/'));
+            Add(abilityData.Id, _abilityGroups, abilityData.Location.Split('/'));
             _knownAbilities.Add(abilityData);
         }
 
-        private void Add(string abilityName, Dictionary<string, object> group, params string[] location)
+        private void Add(string abilityId, Dictionary<string, object> group, params string[] location)
         {
             if (location == null || location.Length == 0) {
-                group.Add(abilityName, null);
+                group.Add(abilityId, null);
                 return;
             }
 
@@ -34,7 +35,15 @@ namespace Zekzek.Ability
 
             string[] remainingLocation = new string[location.Length - 1];
             Array.Copy(location, 1, remainingLocation, 0, remainingLocation.Length);
-            Add(abilityName, group[key] as Dictionary<string, object>, remainingLocation);
+            Add(abilityId, group[key] as Dictionary<string, object>, remainingLocation);
+        }
+
+        public List<string> GetOptions(string[] parentLocation, string childLocation)
+        {
+            string[] location = new string[parentLocation.Length + 1];
+            Array.Copy(parentLocation, location, parentLocation.Length);
+            location[location.Length - 1] = childLocation;
+            return GetOptions(location);
         }
 
         public List<string> GetOptions(params string[] location)
@@ -55,6 +64,29 @@ namespace Zekzek.Ability
                 string[] remainingLocation = new string[location.Length - 1];
                 Array.Copy(location, 1, remainingLocation, 0, remainingLocation.Length);
                 return GetOptions(groups[key] as Dictionary<string, object>, remainingLocation);
+            }
+
+            return null;
+        }
+
+        public AbilityData GetAt(params string[] location)
+        {
+            return GetAt(_abilityGroups, location);
+        }
+
+        private AbilityData GetAt(Dictionary<string, object> groups, params string[] location)
+        {
+            if (groups == null || location == null || location.Length == 0) { return null; }
+
+            if (location.Length == 1) {
+                return JsonContent.ContentUtil.LoadData<AbilityData>(location[0]);
+            }
+
+            string key = location[0];
+            if (groups.ContainsKey(key)) {
+                string[] remainingLocation = new string[location.Length - 1];
+                Array.Copy(location, 1, remainingLocation, 0, remainingLocation.Length);
+                return GetAt(groups[key] as Dictionary<string, object>, remainingLocation);
             }
 
             return null;

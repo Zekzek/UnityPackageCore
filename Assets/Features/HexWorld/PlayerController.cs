@@ -10,7 +10,6 @@ namespace Zekzek.HexWorld
     {
         private LocationFollowCamera _camera;
         private List<WorldObject> _selected = new List<WorldObject>();
-        private List<TargetableComponent> _highlighted = new List<TargetableComponent>();
 
         // Singleton
         private static PlayerController _instance;
@@ -21,7 +20,6 @@ namespace Zekzek.HexWorld
             AddSelection(HexWorld.Instance.GetAll(WorldObjectType.Entity).First());
 
             InputManager.Instance.AddListener<Vector2>(PlayerAction.Move, InputWatchType.Constant, OnMove);
-            InputManager.Instance.AddListener<float>(PlayerAction.Action, InputWatchType.Constant, OnAction);
         }
 
         public void AddSelection(params WorldObject[] targets) { _selected.AddRange(targets); }
@@ -73,38 +71,6 @@ namespace Zekzek.HexWorld
                     worldObject.Location.Schedule(new List<NavStep> { forwardStep });
                 } else if (moveInput.y < 0 && backwardStep != null) {
                     worldObject.Location.Schedule(new List<NavStep> { backwardStep });
-                }
-            }
-        }
-
-        private void OnAction(float value)
-        {
-            foreach (TargetableComponent targetable in _highlighted) { targetable.Highlight = false; }
-            _highlighted.Clear();
-
-            if (value > 0) {
-                UpdateHighlight();
-            }
-        }
-
-        private void UpdateHighlight()
-        {
-            foreach (Vector2Int gridIndex in WorldUtil.GetIndicesAround(Vector2Int.zero, 2, 4 )) {
-                Highlight(gridIndex, Vector2Int.zero, 0);
-            }
-        }
-
-        private void Highlight(Vector2Int center, Vector2Int offset, float rotation)
-        {
-            Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
-
-            IEnumerable<WorldObject> targetableObjects = HexWorld.Instance.GetAt(new[] { rotated }, WorldComponentType.Targetable);
-
-            foreach (WorldObject targetableObject in targetableObjects) {
-                if (targetableObject != null) {
-                    TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
-                    targetable.Highlight = true;
-                    _highlighted.Add(targetable);
                 }
             }
         }

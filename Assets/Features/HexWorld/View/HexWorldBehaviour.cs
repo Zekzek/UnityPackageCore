@@ -13,6 +13,9 @@ namespace Zekzek.HexWorld
         [SerializeField] private BehaviourModelMapping[] prefabList;
         [SerializeField] private StatBlockBehaviour statBlockPrefab;
 
+        private static HexWorldBehaviour _instance;
+        public static HexWorldBehaviour Instance => _instance;
+
         private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
         private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType = new Dictionary<WorldObjectType, WorldObjectBehaviour>();
         
@@ -21,6 +24,8 @@ namespace Zekzek.HexWorld
         private readonly Dictionary<WorldObjectType, Dictionary<uint, StatBlockBehaviour>> _statBlocksByType = new Dictionary<WorldObjectType, Dictionary<uint, StatBlockBehaviour>>();
         private readonly Dictionary<WorldObjectType, List<StatBlockBehaviour>> _unusedStatBlocksByType = new Dictionary<WorldObjectType, List<StatBlockBehaviour>>();
         private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
+        
+        private List<TargetableComponent> _highlighted = new List<TargetableComponent>();
 
         private Vector2Int centerTile = new Vector2Int(0, 0);
         public Vector2Int CenterTile {
@@ -37,6 +42,7 @@ namespace Zekzek.HexWorld
 
         private void Awake()
         {
+            _instance = this;
             InitTypeCollections();
         }
 
@@ -78,7 +84,6 @@ namespace Zekzek.HexWorld
             StatBlockBehaviour behaviour = Instantiate(statBlockPrefab);
             _unusedStatBlocksByType[type].Add(behaviour);
         }
-
 
         private void UpdateAllVisible()
         {
@@ -126,6 +131,35 @@ namespace Zekzek.HexWorld
                     _statBlocksByType[type][worldObject.Id].gameObject.SetActive(true);
                 }
                 _dirtyByType[type] = false;
+            }
+        }
+
+        public void UpdateHighlight(Vector2Int center, float rotation, int spread, int reach)
+        {
+            ClearHighlight();
+            foreach (Vector2Int offset in WorldUtil.GetIndicesAround(Vector2Int.zero, spread, reach)) {
+                Highlight(center, offset, rotation);
+            }
+        }
+
+        public void ClearHighlight()
+        {
+            foreach (TargetableComponent targetable in _highlighted) { targetable.Highlight = false; }
+            _highlighted.Clear();
+        }
+
+        private void Highlight(Vector2Int center, Vector2Int offset, float rotation)
+        {
+            Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
+
+            IEnumerable<WorldObject> targetableObjects = HexWorld.Instance.GetAt(new[] { rotated }, WorldComponentType.Targetable);
+
+            foreach (WorldObject targetableObject in targetableObjects) {
+                if (targetableObject != null) {
+                    TargetableComponent targetable = (TargetableComponent)targetableObject.GetComponent(WorldComponentType.Targetable);
+                    targetable.Highlight = true;
+                    _highlighted.Add(targetable);
+                }
             }
         }
     }

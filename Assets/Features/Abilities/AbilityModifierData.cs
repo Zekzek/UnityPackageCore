@@ -70,7 +70,11 @@ namespace Zekzek.Ability
         [SerializeField] private float retaliate; // chance to retaliate when struck (spiked shield, hand-to-hand)
         [SerializeField] private int summonDuration; // when greater than 0, ability instead summons an entity to perform the action
 
+        public string Id => id;
         public string Name => name;
+        public int Spread => spread;
+        public int Reach => reach;
+        public int Range => range;
 
         private Elements DamageType {
             get {

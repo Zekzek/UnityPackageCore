@@ -31,11 +31,12 @@ public class GameController : MonoBehaviour
         playerAbilities.Add("earth");
         playerAbilities.Add("wind");
         player.AddComponent(playerAbilities);
-        CombatCanvas.Set(playerAbilities);
 
         WeaponComponent playerWeapon = new WeaponComponent(player.Id);
         playerWeapon.Add("dagger");
         player.AddComponent(playerWeapon);
+
+        CombatCanvas.Set(player);
 
         return player;
     }
