@@ -138,7 +138,7 @@ namespace Zekzek.HexWorld
         {
             ClearHighlight();
             foreach (Vector2Int offset in WorldUtil.GetIndicesAround(Vector2Int.zero, spread, reach)) {
-                Highlight(center, offset, rotation);
+                Highlight(center, offset, rotation - 90);
             }
         }
 
