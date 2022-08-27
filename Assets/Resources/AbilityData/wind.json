@@ -6,6 +6,7 @@
   "redAffinity": 3,
   "range": 3,
   "spread": 2,
+  "reach": 1,
   "damageTypes": [ "Wind" ],
 
   "location":  "Magic"

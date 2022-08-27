@@ -4,6 +4,7 @@
 
   "redAffinity": 5,
   "spread": 4,
+  "reach":  1,
   "damageTypes": [ "Fire" ],
 
   "location": "Magic"

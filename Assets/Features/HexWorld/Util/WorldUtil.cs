@@ -115,40 +115,16 @@ namespace Zekzek.HexWorld
         {
             List<Vector2Int> indices = new List<Vector2Int>();
 
-            //indices.Add(center);
+            foreach (Vector2Int gridIndex in GetBurstIndicesAround(center, reach, true)) {
+                float angle = FacingUtil.GetOffsetAngle(center, gridIndex);
+                if (angle > 0 && angle <= 60 && spread < 1) { continue; }
+                if (angle > -60 && angle < 0 && spread < 2) { continue; }
+                if (angle > 60 && angle <= 121 && spread < 3) { continue; }
+                if (angle > -121 && angle <= -60 && spread < 4) { continue; }
+                if ((angle > 121 || angle <= -121) && spread < 5) { continue; }
 
-            for (int y = -reach; y <= reach; y++) {
-                for (int x = -reach; x <= reach; x++) {
-                    int absoluteSum = Mathf.Abs(y + x);
-                    if (absoluteSum > reach) { continue; } // Skip the corners to leave just a hex burst
-                    Vector2Int gridIndex = new Vector2Int(center.x + x, center.y + y);
-                    float angle = FacingUtil.GetOffsetAngle(center, gridIndex);
-                    if ((angle == 0) ||
-                        (angle < 60 && angle > 0 && spread > 1) ||
-                        (angle > -60 && angle < 0 && spread > 2) ||
-                        (angle < 121 && angle > 60 && spread > 3) ||
-                        (angle > -121 && angle < -60 && spread > 4) ||
-                        (spread > 5))
-                        {
-
-
-
-                    //if(spread >= 6 || FacingUtil.IsFacingBetween(center, gridIndex, FacingUtil.NE, FacingUtil.SE)) {
-                        indices.Add(new Vector2Int(center.x + x, center.y + y));
-                    }
-
-                    /*
-                    if ((spread >= 6 && facing == FacingUtil.W) || 
-                            (spread >= 5 && facing == FacingUtil.SW) ||
-                            (spread >= 4 && facing == FacingUtil.SE) ||
-                            (spread >= 3 && facing == FacingUtil.NE) ||
-                            (spread >= 2 && facing == FacingUtil.SE) ||
-                            (spread >= 1 && facing == FacingUtil.E))
-                    */
-
-                }
+                indices.Add(gridIndex);
             }
-
             return indices;
         }
 

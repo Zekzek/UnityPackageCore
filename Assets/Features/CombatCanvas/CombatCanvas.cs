@@ -27,7 +27,7 @@ public class CombatCanvas : MonoBehaviour
     private void Start()
     {
         InputManager.Instance.AddListener<Vector2>(PlayerAction.Rotate, InputWatchType.OnStart, OnMove);
-        InputManager.Instance.AddListener<float>(PlayerAction.Action, InputWatchType.OnStart, OnAction);
+        InputManager.Instance.AddListener<bool>(PlayerAction.Action, InputWatchType.OnStart, OnAction);
     }
 
     private void OnMove(Vector2 input)
@@ -51,6 +51,8 @@ public class CombatCanvas : MonoBehaviour
         }
     }
 
+    private void OnAction(bool value) => OnAction(value ? 1 : 0); 
+
     private void OnAction(float value)
     {
         if (value > 0.5f) {
@@ -58,7 +60,8 @@ public class CombatCanvas : MonoBehaviour
                 _textColumn.HandleExpand();
             } else {
                 AbilityData abilityData = _user.Ability.GetAt(_textColumn.GetSelectedLocation());
-                HexWorldBehaviour.Instance.UpdateHighlight(_user.Location.Current.GridIndex, _user.Location.Current.RotationAngle, abilityData.Spread, abilityData.Reach);
+                var targetIndex = _user.Location.Current.GridIndex + _user.Location.Facing * abilityData.Range;
+                HexWorldBehaviour.Instance.UpdateHighlight(targetIndex, _user.Location.Current.RotationAngle, abilityData.Spread, abilityData.Reach);
                 // TODO: on subsequent use, activate ability
             }
         }
