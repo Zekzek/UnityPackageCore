@@ -6,12 +6,6 @@ namespace Zekzek.HexWorld
 {
     public static class GenerationUtil
     {
-        // Should be a power of 2?
-        private const int NOISE_SIZE = 512;
-
-        private static bool _noiseInitialized;
-        private static int[] _noiseBase = new int[NOISE_SIZE];
-
         private static List<TerrainType> _terrainTypes = new List<TerrainType>();
         private static int _regionSize;
 
@@ -19,7 +13,6 @@ namespace Zekzek.HexWorld
         {
             if (seed >= 0) { UnityEngine.Random.InitState(seed); }
             if (regionSize >= 0) { _regionSize = regionSize; }
-            InitNoise();
             _terrainTypes.Clear();
             _terrainTypes.AddRange(terrains);
         }
@@ -66,7 +59,7 @@ namespace Zekzek.HexWorld
         {
             Vector2Int facing = FacingUtil.GetFacing(generationParams[GenerationParamType.Rotation] * 360);
 
-            float chaosFactor = CalcSimpleNoisePercent(gridPosition.x, gridPosition.z);
+            float chaosFactor = Noise.Noise.GetPercent(gridPosition.x, gridPosition.z);
             if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) > 0.75f) {
                 WorldObject decoration = new WorldObject(WorldObjectType.Bush);
                 decoration.AddComponent(new LocationComponent(decoration.Id, gridPosition, facing));
@@ -82,7 +75,7 @@ namespace Zekzek.HexWorld
 
         private static void CheckInstantiateTileEntity(Vector3Int gridPosition, GenerationParams generationParams)
         {
-            float chaosFactor = CalcSimpleNoisePercent(gridPosition.x, gridPosition.z);
+            float chaosFactor = Noise.Noise.GetPercent(gridPosition.x, gridPosition.z);
             if (chaosFactor * (generationParams[GenerationParamType.Fertility] + generationParams[GenerationParamType.Moisture]) > 1.5f) {
                 Vector2Int facing = FacingUtil.GetFacing(generationParams[GenerationParamType.Rotation] * 360);
                 InstantiateEntity(new MovementSpeed(1,1,1,1,1,1,1,1,1), new Vector2Int(gridPosition.x, gridPosition.z), facing);
@@ -93,7 +86,7 @@ namespace Zekzek.HexWorld
         {
             switch (terrainType) {
                 case TerrainType.Flat: return new GenerationParams(5, x, z);
-                case TerrainType.Chaos: return new GenerationParams(CalcSimpleNoise(x, z) * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+                case TerrainType.Chaos: return new GenerationParams(Noise.Noise.GetPercent(x, z) * WorldLocation.MAX_HEIGHT, x, z);
                 case TerrainType.Desert: return CalcDesertTerrain(x, z);
                 case TerrainType.Forest: return CalcForestTerrain(x, z);
                 case TerrainType.Hills: return CalcHillsTerrain(x, z);
@@ -112,10 +105,10 @@ namespace Zekzek.HexWorld
             int regionZCeil = Mathf.CeilToInt(regionZ);
 
             // Capture regions around the point
-            TerrainType lowXLowZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXFloor, 0.3f * regionZFloor) * _terrainTypes.Count / NOISE_SIZE)];
-            TerrainType lowXHighZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXFloor, 0.3f * regionZCeil) * _terrainTypes.Count / NOISE_SIZE)];
-            TerrainType highXLowZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXCeil, 0.3f * regionZFloor) * _terrainTypes.Count / NOISE_SIZE)];
-            TerrainType highXHighZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXCeil, 0.3f * regionZCeil) * _terrainTypes.Count / NOISE_SIZE)];            
+            TerrainType lowXLowZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXFloor, 0.3f * regionZFloor) * _terrainTypes.Count)];
+            TerrainType lowXHighZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXFloor, 0.3f * regionZCeil) * _terrainTypes.Count)];
+            TerrainType highXLowZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXCeil, 0.3f * regionZFloor) * _terrainTypes.Count)];
+            TerrainType highXHighZTerrain = _terrainTypes[(int)(CalcLerpNoise(0.3f * regionXCeil, 0.3f * regionZCeil) * _terrainTypes.Count)];            
 
             // Lerp the lower X terrains, skip the lerp if terrain matches
             GenerationParams lowX;
@@ -141,13 +134,7 @@ namespace Zekzek.HexWorld
 
             // Lerp the final reult
             return GenerationParams.Lerp(lowX, highX, CalculateSmoothLerpTime(regionX - regionXFloor));
-        }
-
-
-        private static float CalcSimpleNoisePercent(int x, int z) { return CalcSimpleNoise(x, z) / (float)NOISE_SIZE; }
-        private static int CalcSimpleNoise(int x, int z, int modulo) { return CalcSimpleNoise(x, z) * modulo / NOISE_SIZE; }
-        private static int CalcSimpleNoise(int x, int z) { return (_noiseBase[Mathf.Abs(x) % NOISE_SIZE] + _noiseBase[Mathf.Abs(z) % NOISE_SIZE]) % NOISE_SIZE; }
-        
+        }        
 
         private static GenerationParams CalcDesertTerrain(int x, int z)
         {
@@ -155,7 +142,7 @@ namespace Zekzek.HexWorld
                         CalcLerpNoise(0.06f * x, 0.03f * z),
                         CalcLerpNoise(0.03f * x, 0.06f * z));
 
-            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT, x, z);
             parameters.Increase(GenerationParamType.Temperature);
             parameters.Decrease(GenerationParamType.Moisture, GenerationParamType.Fertility);
             return parameters;
@@ -170,7 +157,7 @@ namespace Zekzek.HexWorld
                             CalcLerpNoise(0.01f * x, 0.03f * z),
                             CalcLerpNoise(0.03f * x, 0.01f * z)));
 
-            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT, x, z);
             parameters.Increase(GenerationParamType.Moisture, GenerationParamType.Fertility);
             return parameters;
         }
@@ -181,7 +168,7 @@ namespace Zekzek.HexWorld
                         CalcLerpNoise(0.04f * x, 0.08f * z),
                         CalcLerpNoise(0.08f * x, 0.04f * z));
 
-            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT / NOISE_SIZE, x, z);
+            GenerationParams parameters = new GenerationParams(heightNoise * WorldLocation.MAX_HEIGHT, x, z);
             return parameters;
         }
 
@@ -190,7 +177,7 @@ namespace Zekzek.HexWorld
 
         private static float CalcPercent(int x, int z, int offset, float clusterRatio) {
             float isolateRatio = 1.0001f - (clusterRatio * clusterRatio * clusterRatio);
-            return CalcLerpNoise(offset + isolateRatio * x, offset + isolateRatio * z) / NOISE_SIZE;
+            return CalcLerpNoise(offset + isolateRatio * x, offset + isolateRatio * z);
         }
 
         private static float CalcLerpNoise(float x, float z)
@@ -198,10 +185,10 @@ namespace Zekzek.HexWorld
             int floorX = Mathf.FloorToInt(x);
             int floorZ = Mathf.FloorToInt(z);
 
-            int lowXLowZ = CalcSimpleNoise(floorX, floorZ);
-            int lowXHighZ = CalcSimpleNoise(floorX, floorZ + 1);
-            int highXLowZ = CalcSimpleNoise(floorX + 1, floorZ);
-            int highXHighZ = CalcSimpleNoise(floorX + 1, floorZ + 1);
+            float lowXLowZ = Noise.Noise.GetPercent(floorX, floorZ);
+            float lowXHighZ = Noise.Noise.GetPercent(floorX, floorZ + 1);
+            float highXLowZ = Noise.Noise.GetPercent(floorX + 1, floorZ);
+            float highXHighZ = Noise.Noise.GetPercent(floorX + 1, floorZ + 1);
 
             float lowX = Mathf.Lerp(lowXLowZ, lowXHighZ, CalculateSmoothLerpTime(z - floorZ));
             float highX = Mathf.Lerp(highXLowZ, highXHighZ, CalculateSmoothLerpTime(z - floorZ));
@@ -214,17 +201,12 @@ namespace Zekzek.HexWorld
             return 6 * time * time * time * time * time - 15 * time * time * time * time + 10 * time * time * time;
         }
 
-        private static float Scale(float value, float minPercent, float maxPercent)
-        {
-            return NOISE_SIZE * (minPercent + (maxPercent - minPercent) * (value / NOISE_SIZE));
-        }
-
         // Combine values while working to avoid loosing peaks and valleys
         private static float Combine(float favorExtremes, params float[] values)
         {
             float total = 0;
-            float min = float.MaxValue;
-            float max = float.MinValue;
+            float min = 0;
+            float max = 1;
 
             foreach (float value in values) {
                 total += value;
@@ -232,24 +214,9 @@ namespace Zekzek.HexWorld
                 if (value > max) { max = value; }
             }
 
-            float extreme = min > NOISE_SIZE - max ? max : min;
+            float extreme = min > 1 - max ? max : min;
 
             return Mathf.Lerp(total / values.Length, extreme, favorExtremes);
-        }
-
-        private static void InitNoise()
-        {
-            if (_noiseInitialized) { return; }
-            _noiseInitialized = true;
-
-            List<int> values = new List<int>(NOISE_SIZE);
-            for (int i = 0; i < NOISE_SIZE; i++) { values.Add(i); }
-
-            while (values.Count > 0) {
-                int index = UnityEngine.Random.Range(0, values.Count - 1);
-                _noiseBase[values.Count - 1] = values[index];
-                values.RemoveAt(index);
-            }
         }
 
         // Seasons: modify temperature and moisture based on time of year

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Zekzek.HexWorld;
 
 namespace Zekzek.UnityModelMaker
 {
@@ -28,6 +29,15 @@ namespace Zekzek.UnityModelMaker
         private static readonly Vector2 swHex = new Vector2(-0.5f, -0.85f);
         private static readonly Vector2 wHex =  new Vector2(  -1f,  0);
         private static readonly Vector2 nwHex = new Vector2(-0.5f,  0.85f);
+
+        private static readonly Vector2Int[] neighbors = new Vector2Int[] {
+            FacingUtil.E,
+            FacingUtil.SE,
+            FacingUtil.SW,
+            FacingUtil.W,
+            FacingUtil.NW,
+            FacingUtil.NE
+        };
 
         // Singleton
         private static MeshMaker _instance;
@@ -150,6 +160,143 @@ namespace Zekzek.UnityModelMaker
             return mesh;
         }
 
+        public Mesh UpdateTerrain(Mesh source, Vector2Int centerTile, int screenWidth, int screenHeight)
+        {
+            Dictionary<Vector2Int, int> indexMap = new Dictionary<Vector2Int, int>();
+            Dictionary<Vector2Int, int> heights = new Dictionary<Vector2Int, int>();
+            Vector3[] vertices = new Vector3[source.vertexCount];
+
+            List<Vector2Int> screenIndices = new List<Vector2Int>(WorldUtil.GetRectangleIndicesAround(centerTile, screenWidth, screenHeight));
+            
+            int vertexCount = 0;
+            foreach (Vector2Int screenIndex in screenIndices) {
+                // Ensure the center point has a recorded height
+                if (!heights.ContainsKey(screenIndex)) {
+                    heights.Add(screenIndex, HexWorld.HexWorld.Instance.GetFirstAt(screenIndex, WorldObjectType.Tile)?.Location.GridHeight ?? 0);
+                }
+
+                // Ensure every neighbor has a recorded height
+                foreach (Vector2Int neighbor in neighbors) {
+                    if (!heights.ContainsKey(screenIndex + neighbor)) {
+                        heights.Add(screenIndex + neighbor, HexWorld.HexWorld.Instance.GetFirstAt(screenIndex + neighbor, WorldObjectType.Tile)?.Location.GridHeight ?? 0);
+                    }
+                }
+
+                // Encode by multiplying by 2, so we can easily reference midpoints as ints
+                Vector2Int encodedCenterPoint = 2 * screenIndex;
+
+                // Ensure the center point has a vertex/normal
+                Vector3 centerLocation = WorldUtil.GridIndexToPosition(screenIndex, heights[screenIndex]);
+                if (!indexMap.ContainsKey(encodedCenterPoint)) {
+                    indexMap.Add(encodedCenterPoint, vertexCount);
+                    vertices[vertexCount] = centerLocation;
+                    vertexCount++;
+                }
+
+                // Ensure every midpoint has a vertex/normal
+                foreach (Vector2Int neighbor in neighbors) {
+                    if (!indexMap.ContainsKey(encodedCenterPoint + neighbor)) {
+                        Vector2Int neighborIndex = screenIndex + neighbor;
+                        Vector3 neighborLocation = WorldUtil.GridIndexToPosition(neighborIndex, heights[neighborIndex]);
+                        indexMap.Add(encodedCenterPoint + neighbor, vertexCount);
+                        vertices[vertexCount] = (centerLocation + neighborLocation) / 2f;
+                        vertexCount++;
+                    }
+                }
+            }
+
+            Mesh terrain = new Mesh {
+                vertices = vertices,
+                normals = source.normals,
+                triangles = source.triangles
+            };
+            terrain.RecalculateNormals();
+            return terrain;
+
+        }
+
+        public Mesh GetTerrain(Vector2Int centerTile, int screenWidth, int screenHeight)
+        {
+            Dictionary<Vector2Int, int> indexMap = new Dictionary<Vector2Int, int>();
+            Dictionary<Vector2Int, int> heights = new Dictionary<Vector2Int, int>();
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector3> normals = new List<Vector3>();
+            List<int> triangles = new List<int>();
+
+            List<Vector2Int> screenIndices = new List<Vector2Int>(WorldUtil.GetRectangleIndicesAround(centerTile, screenWidth, screenHeight));
+            
+            foreach (Vector2Int screenIndex in screenIndices) {
+                // Ensure the center point has a recorded height
+                if (!heights.ContainsKey(screenIndex)) {
+                    heights.Add(screenIndex, HexWorld.HexWorld.Instance.GetFirstAt(screenIndex, WorldObjectType.Tile)?.Location.GridHeight ?? 0);
+                }
+
+                // Ensure every neighbor has a recorded height
+                foreach (Vector2Int neighbor in neighbors) {
+                    if (!heights.ContainsKey(screenIndex + neighbor)) {
+                        heights.Add(screenIndex + neighbor, HexWorld.HexWorld.Instance.GetFirstAt(screenIndex + neighbor, WorldObjectType.Tile)?.Location.GridHeight ?? 0);
+                    }
+                }
+
+                // Encode by multiplying by 2, so we can easily reference midpoints as ints
+                Vector2Int encodedCenterPoint = 2 * screenIndex;
+
+                // Ensure the center point has a vertex/normal
+                Vector3 centerLocation = WorldUtil.GridIndexToPosition(screenIndex, heights[screenIndex]);
+                if (!indexMap.ContainsKey(encodedCenterPoint)) {
+                    indexMap.Add(encodedCenterPoint, vertices.Count);
+                    vertices.Add(centerLocation);
+                    normals.Add(Vector3.zero);
+                }
+
+                // Ensure every midpoint has a vertex/normal
+                foreach (Vector2Int neighbor in neighbors) {
+                    if (!indexMap.ContainsKey(encodedCenterPoint + neighbor)) {
+                        Vector2Int neighborIndex = screenIndex + neighbor;
+                        Vector3 neighborLocation = WorldUtil.GridIndexToPosition(neighborIndex, heights[neighborIndex]);
+                        indexMap.Add(encodedCenterPoint + neighbor, vertices.Count);
+                        vertices.Add((centerLocation + neighborLocation) / 2f);
+                        normals.Add(Vector3.zero);
+                    }
+                }
+
+                // Draw triangles for the hex
+                for (int i = 0; i < neighbors.Length; i++) {
+                    triangles.Add(indexMap[encodedCenterPoint]);
+                    triangles.Add(indexMap[encodedCenterPoint + neighbors[i]]);
+                    triangles.Add(indexMap[encodedCenterPoint + neighbors[(i + 1) % neighbors.Length]]);
+                }
+
+                Vector2Int[] encodedBetweenPoints = new Vector2Int[] {
+                    encodedCenterPoint + FacingUtil.E + FacingUtil.SE,
+                    encodedCenterPoint + FacingUtil.SE + FacingUtil.SW,
+                    encodedCenterPoint + FacingUtil.SW + FacingUtil.W,
+                    encodedCenterPoint + FacingUtil.W + FacingUtil.NW,
+                    encodedCenterPoint + FacingUtil.NW + FacingUtil.NE,
+                    encodedCenterPoint + FacingUtil.NE + FacingUtil.E
+                };
+
+                // Draw any triangles between existing hexes
+                for (int i = 0; i < neighbors.Length; i++) {
+                    if (indexMap.ContainsKey(encodedBetweenPoints[i])) {
+                        triangles.Add(indexMap[encodedCenterPoint + neighbors[i]]);
+                        triangles.Add(indexMap[encodedBetweenPoints[i]]);
+                        triangles.Add(indexMap[encodedCenterPoint + neighbors[(i + 1) % neighbors.Length]]);
+                        //TODO: don't duplicate triangles
+                    }
+                }
+            }
+
+            // Build and return the final mesh
+            Mesh terrain = new Mesh {
+                vertices = vertices.ToArray(),
+                normals = normals.ToArray(),
+                triangles = triangles.ToArray()
+            };
+            terrain.RecalculateNormals();
+            return terrain;
+        }
+
         private static Mesh Combine(params Mesh[] meshes)
         {
             CombineInstance[] combiners = new CombineInstance[meshes.Length];
@@ -193,7 +340,7 @@ namespace Zekzek.UnityModelMaker
             return new Vector3(scale.x * (hex.x + corner.x), scale.y * height, scale.z * (hex.y + corner.y));
         }
 
-        private Mesh ConvertToHardEdged(Mesh mesh)
+        public Mesh ConvertToHardEdged(Mesh mesh)
         {
             Vector3[] vertices = new Vector3[mesh.triangles.Length];
             for(int i = 0; i < mesh.triangles.Length; i++) {
@@ -211,11 +358,13 @@ namespace Zekzek.UnityModelMaker
                 triangles[i] = i;
             }
 
-            return new Mesh {
+            Mesh hardEdged = new Mesh {
                 vertices = vertices,
                 normals = normals,
                 triangles = triangles
             };
+            hardEdged.RecalculateNormals();
+            return hardEdged;
         }
     }
 }

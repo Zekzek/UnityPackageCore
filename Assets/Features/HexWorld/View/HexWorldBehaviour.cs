@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Zekzek.Stats;
+using Zekzek.UnityModelMaker;
 
 namespace Zekzek.HexWorld
 {
@@ -15,6 +16,9 @@ namespace Zekzek.HexWorld
 
         private static HexWorldBehaviour _instance;
         public static HexWorldBehaviour Instance => _instance;
+
+        private MeshFilter _meshFilter;
+        private MeshRenderer _meshRenderer;
 
         private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
         private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType = new Dictionary<WorldObjectType, WorldObjectBehaviour>();
@@ -44,6 +48,15 @@ namespace Zekzek.HexWorld
         {
             _instance = this;
             InitTypeCollections();
+        }
+
+        private void Start()
+        {
+            if (_meshRenderer == null) { _meshRenderer = GetComponent<MeshRenderer>(); }
+            if (_meshFilter == null) { _meshFilter = GetComponent<MeshFilter>(); }
+
+            _meshRenderer.material = MaterialMaker.Instance.Get(0.2f * Vector3.one);
+
         }
 
         private void Update()
@@ -114,6 +127,7 @@ namespace Zekzek.HexWorld
 
                 // Set up objects which have become visible
                 foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices, type)) {
+                    if (type == WorldObjectType.Rock || type == WorldObjectType.Bush) { continue; }
                     if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
                     if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
                     _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
@@ -131,6 +145,17 @@ namespace Zekzek.HexWorld
                     _statBlocksByType[type][worldObject.Id].gameObject.SetActive(true);
                 }
                 _dirtyByType[type] = false;
+
+                //DrawTerrainMesh();
+            }
+        }
+
+        private void DrawTerrainMesh()
+        {
+            if (_meshFilter.mesh) {
+                _meshFilter.mesh = MeshMaker.Instance.GetTerrain(centerTile, _screenWidth, _screenHeight);
+            } else {
+                _meshFilter.mesh = MeshMaker.Instance.UpdateTerrain(_meshFilter.mesh, centerTile, _screenWidth, _screenHeight);
             }
         }
 
