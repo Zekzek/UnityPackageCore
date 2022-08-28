@@ -26,8 +26,8 @@ public class CombatCanvas : MonoBehaviour
 
     private void Start()
     {
-        InputManager.Instance.AddListener<Vector2>(PlayerAction.Rotate, InputWatchType.OnStart, OnMove);
-        InputManager.Instance.AddListener<bool>(PlayerAction.Action, InputWatchType.OnStart, OnAction);
+        InputManager.Instance.AddListener<Vector2>(InputMode.CombatMenu, PlayerAction.Rotate, InputWatchType.OnStart, OnMove);
+        InputManager.Instance.AddListener<float>(InputMode.CombatMenu, PlayerAction.Action, InputWatchType.OnStart, OnAction);
     }
 
     private void OnMove(Vector2 input)
@@ -50,8 +50,6 @@ public class CombatCanvas : MonoBehaviour
             }
         }
     }
-
-    private void OnAction(bool value) => OnAction(value ? 1 : 0); 
 
     private void OnAction(float value)
     {

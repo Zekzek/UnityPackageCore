@@ -84,9 +84,9 @@ namespace Zekzek.CameraControl
             var targetRotation = Quaternion.LookRotation(-targetOffset); 
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * followSpeed);
 
-            Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Rotate);
-            RotateVertical(rotateAmount.y);
-            RotateHorizontal(rotateAmount.x);
+            //Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Rotate);
+            //RotateVertical(rotateAmount.y);
+            //RotateHorizontal(rotateAmount.x);
         }
 
         private void UpdateTargetPosition()

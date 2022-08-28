@@ -19,7 +19,7 @@ namespace Zekzek.HexWorld
             //TODO: remove workaround to force a selected object
             AddSelection(HexWorld.Instance.GetAll(WorldObjectType.Entity).First());
 
-            InputManager.Instance.AddListener<Vector2>(PlayerAction.Move, InputWatchType.Constant, OnMove);
+            InputManager.Instance.AddListener<Vector2>(InputMode.WorldNavigation, PlayerAction.Move, InputWatchType.Constant, OnMove);
         }
 
         public void AddSelection(params WorldObject[] targets) { _selected.AddRange(targets); }
@@ -52,9 +52,9 @@ namespace Zekzek.HexWorld
 //                }
 //            }
 
-            if (InputManager.Instance.IsStarted(InputManager.PlayerAction.Action)) {
-                TestFrontalAttack();
-            }
+            //if (InputManager.Instance.CheckAndClearStarted(InputManager.PlayerAction.Action)) {
+            //    TestFrontalAttack();
+            //}
         }
 
         private void OnMove(Vector2 moveInput)

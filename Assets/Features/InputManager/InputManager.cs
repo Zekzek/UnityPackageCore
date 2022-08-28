@@ -16,6 +16,12 @@ public class InputManager : MonoBehaviour
         OnStart,
         OnFinish
     }
+    public enum InputMode
+    {
+        WorldNavigation,
+        CombatMenu,
+        CombatTargetting
+    }
     public enum PlayerAction
     {
         Move,
@@ -24,14 +30,33 @@ public class InputManager : MonoBehaviour
         Action
     }
 
+    public InputMode Mode { get; private set; } = InputMode.CombatMenu;
+
     private static InputManager _instance;
     public static InputManager Instance => _instance;
 
     private readonly IDictionary<Enum, InputAction> _actionMap = new Dictionary<Enum, InputAction>();
     private readonly IList<Enum> _playerActionStart = new List<Enum>();
     private readonly IList<Enum> _playerActionFinish = new List<Enum>();
-
     private readonly IDictionary<Enum, List<object>> _callbacks = new Dictionary<Enum, List<object>>();
+
+
+    public Vector2 GetCursorPosition()
+    {
+        return Mouse.current.position.ReadValue();
+    }
+
+    public void AddListener<T>(InputMode mode, Enum action, InputWatchType watchType, Action<T> callback) where T : struct
+    {
+        if (!_actionMap.ContainsKey(action)) {
+            Debug.LogError("No action defined for: " + action);
+            return;
+        }
+
+        if (!_callbacks.ContainsKey(action)) { _callbacks.Add(action, new List<object>()); }
+        _callbacks[action].Add(new InputCallback<T> { Mode = mode, WatchType = watchType, Callback = callback });
+    }
+
 
     private void Awake()
     {
@@ -52,10 +77,13 @@ public class InputManager : MonoBehaviour
                 }
             }
         }
+        _playerActionStart.Clear();
+        _playerActionFinish.Clear();
     }
 
     private void ProcessCallback<T>(Enum key, InputCallback<T> callback) where T : struct
     {
+        if (callback.Mode != Mode) { return; }
         if (callback.WatchType == InputWatchType.OnStart && !IsStarted(key)) { return; }
         if (callback.WatchType == InputWatchType.OnFinish && !IsFinished(key)) { return; }
 
@@ -63,40 +91,14 @@ public class InputManager : MonoBehaviour
         callback.Callback.Invoke(input);
     }
 
-    public Vector2 GetCursorPosition()
+    private bool IsStarted(Enum actiontype)
     {
-        return Mouse.current.position.ReadValue();
+        return _playerActionStart.Contains(actiontype);
     }
 
-    public T Get<T>(PlayerAction key) where T : struct
+    private bool IsFinished(Enum actiontype)
     {
-        if (_actionMap.ContainsKey(key)) { return _actionMap[key].ReadValue<T>(); }
-        return default;
-    }
-
-    public bool IsStarted(Enum actiontype)
-    {
-        bool started = _playerActionStart.Contains(actiontype);
-        _playerActionStart.Remove(actiontype);
-        return started;
-    }
-
-    public bool IsFinished(Enum actiontype)
-    {
-        bool finished = _playerActionFinish.Contains(actiontype);
-        _playerActionFinish.Remove(actiontype);
-        return finished;
-    }
-
-    public void AddListener<T>(Enum action, InputWatchType watchType, Action<T> callback) where T : struct
-    {
-        if (!_actionMap.ContainsKey(action)) {
-            Debug.LogError("No action defined for: " + action);
-            return;
-        }
-
-        if (!_callbacks.ContainsKey(action)) { _callbacks.Add(action, new List<object>()); }
-        _callbacks[action].Add(new InputCallback<T> { WatchType = watchType, Callback = callback });
+        return _playerActionFinish.Contains(actiontype);
     }
 
     private void InitControls()
@@ -148,6 +150,7 @@ public class InputManager : MonoBehaviour
 
     private class InputCallback<T> where T : struct
     {
+        public InputMode Mode { get; set; }
         public InputWatchType WatchType { get; set; }
         public Action<T> Callback { get; set; }
     }

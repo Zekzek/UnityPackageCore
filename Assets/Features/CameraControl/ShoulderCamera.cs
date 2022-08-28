@@ -58,9 +58,9 @@ namespace Zekzek.CameraControl
 
             transform.LookAt(targetPosition + shoulderOffset);
 
-            Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Rotate);
-            RotateVertical(rotateAmount.y);
-            RotateHorizontal(rotateAmount.x);
+            //Vector2 rotateAmount = InputManager.Instance.Get<Vector2>(InputManager.PlayerAction.Rotate);
+            //RotateVertical(rotateAmount.y);
+            //RotateHorizontal(rotateAmount.x);
         }
 
         private void UpdateTargetPosition()
