@@ -20,14 +20,15 @@ public class InputManager : MonoBehaviour
     {
         WorldNavigation,
         CombatMenu,
-        CombatTargetting
+        CombatTargeting
     }
     public enum PlayerAction
     {
         Move,
         Rotate,
         Tap,
-        Action
+        Action,
+        Back
     }
 
     public InputMode Mode { get; private set; } = InputMode.CombatMenu;
@@ -39,7 +40,7 @@ public class InputManager : MonoBehaviour
     private readonly IList<Enum> _playerActionStart = new List<Enum>();
     private readonly IList<Enum> _playerActionFinish = new List<Enum>();
     private readonly IDictionary<Enum, List<object>> _callbacks = new Dictionary<Enum, List<object>>();
-
+    private readonly IList<InputMode> _modeHistory = new List<InputMode>();
 
     public Vector2 GetCursorPosition()
     {
@@ -57,6 +58,18 @@ public class InputManager : MonoBehaviour
         _callbacks[action].Add(new InputCallback<T> { Mode = mode, WatchType = watchType, Callback = callback });
     }
 
+    public void PushMode(InputMode mode)
+    {
+        _modeHistory.Add(Mode);
+        Mode = mode;
+    }
+
+    public void PopMode()
+    {
+        int lastIndex = _modeHistory.Count - 1;
+        Mode = _modeHistory[lastIndex];
+        _modeHistory.RemoveAt(lastIndex);
+    }
 
     private void Awake()
     {
@@ -103,37 +116,34 @@ public class InputManager : MonoBehaviour
 
     private void InitControls()
     {
-        InputAction moveAction = new InputAction();
-        moveAction.AddCompositeBinding("2DVector")
-            .With(UP, "<Keyboard>/w")
-            .With(DOWN, "<Keyboard>/s")
-            .With(LEFT, "<Keyboard>/a")
-            .With(RIGHT, "<Keyboard>/d");
-        Init(PlayerAction.Move, moveAction);
-
-        InputAction rotateAction = new InputAction();
-        rotateAction.AddCompositeBinding("2DVector")
-            .With(UP, "<Keyboard>/upArrow")
-            .With(DOWN, "<Keyboard>/downArrow")
-            .With(LEFT, "<Keyboard>/leftArrow")
-            .With(RIGHT, "<Keyboard>/rightArrow");
-        Init(PlayerAction.Rotate, rotateAction);
-
-        InputAction tapAction = new InputAction();
-        tapAction.AddBinding("<Mouse>/leftButton");
-        Init(PlayerAction.Tap, tapAction);
-
-        InputAction actionAction = new InputAction();
-        actionAction.AddBinding("<Keyboard>/space");
-        Init(PlayerAction.Action, actionAction);
+        Create2DVectorControl(PlayerAction.Move, up: "<Keyboard>/w", down: "<Keyboard>/s", left: "<Keyboard>/a", right: "<Keyboard>/d");
+        Create2DVectorControl(PlayerAction.Rotate, "<Keyboard>/upArrow", down: "<Keyboard>/downArrow", left: "<Keyboard>/leftArrow", right: "<Keyboard>/rightArrow");
+        CreateFloatControl(PlayerAction.Tap, "<Mouse>/leftButton");
+        CreateFloatControl(PlayerAction.Action, "<Keyboard>/space");
+        CreateFloatControl(PlayerAction.Back, "<Keyboard>/escape");
     }
 
-    private void Init(Enum key, InputAction action)
+    private void Create2DVectorControl(Enum key, string up, string down, string left, string right)
+    {
+        InputAction action = new InputAction();
+        action.AddCompositeBinding("2DVector").With(UP, up).With(DOWN, down).With(LEFT, left).With(RIGHT, right);
+        InitInputFor(key, action);
+    }
+
+    private void CreateFloatControl(Enum key, string button)
+    {
+        InputAction action = new InputAction();
+        action.AddBinding(button);
+        InitInputFor(key, action);
+    }
+
+    private InputAction InitInputFor(Enum key, InputAction action)
     {
         action.started += (_) => Begin(key);
         action.canceled += (_) => Finish(key);
         _actionMap.Add(key, action);
         action.Enable();
+        return action;
     }
 
     private void Begin(Enum actionType)

@@ -10,6 +10,8 @@ public class CombatCanvas : MonoBehaviour
     private MenuTextColumn _textColumn;
     private static CombatCanvas _instance;
     private WorldObject _user;
+    private AbilityData _abilityData;
+    private WorldLocation _targetLocation;
 
     public static void Set(WorldObject user)
     {
@@ -26,42 +28,90 @@ public class CombatCanvas : MonoBehaviour
 
     private void Start()
     {
-        InputManager.Instance.AddListener<Vector2>(InputMode.CombatMenu, PlayerAction.Rotate, InputWatchType.OnStart, OnMove);
-        InputManager.Instance.AddListener<float>(InputMode.CombatMenu, PlayerAction.Action, InputWatchType.OnStart, OnAction);
+        InputManager.Instance.AddListener<Vector2>(InputMode.CombatMenu, PlayerAction.Move, InputWatchType.OnStart, OnMenuMove);
+        InputManager.Instance.AddListener<Vector2>(InputMode.CombatMenu, PlayerAction.Rotate, InputWatchType.OnStart, OnMenuMove);
+        InputManager.Instance.AddListener<float>(InputMode.CombatMenu, PlayerAction.Action, InputWatchType.OnStart, OnMenuAction);
+        InputManager.Instance.AddListener<float>(InputMode.CombatMenu, PlayerAction.Back, InputWatchType.OnStart, OnMenuBack);
+
+        InputManager.Instance.AddListener<Vector2>(InputMode.CombatTargeting, PlayerAction.Move, InputWatchType.OnStart, OnTargetingMove);
+        InputManager.Instance.AddListener<Vector2>(InputMode.CombatTargeting, PlayerAction.Rotate, InputWatchType.OnStart, OnTargetingRotate);
+        InputManager.Instance.AddListener<float>(InputMode.CombatTargeting, PlayerAction.Action, InputWatchType.OnStart, OnTargetingAction);
+        InputManager.Instance.AddListener<float>(InputMode.CombatTargeting, PlayerAction.Back, InputWatchType.OnStart, OnTargetingBack);
     }
 
-    private void OnMove(Vector2 input)
+    private void OnMenuMove(Vector2 input)
     {
-        // Deadzone, should this be handled in InputManager?
-        if (input.sqrMagnitude<0.1f) { return; }
-
-        if (input.x * input.x > input.y * input.y) {
-            if (input.x > 0) {
-                //_textColumn.HandleExpand();
-                OnAction(1);
-            } else {
-                _textColumn.HandleCollapse();
-            }
-        } else {
-            if (input.y > 0) {
-                _textColumn.HandleUp();
-            } else {
-                _textColumn.HandleDown();
-            }
+        if (input.y > 0.5f) {
+            _textColumn.HandleUp();
+        } else if (input.y < -0.5f) {
+            _textColumn.HandleDown();
         }
     }
 
-    private void OnAction(float value)
+    private void OnMenuAction(float value)
     {
         if (value > 0.5f) {
             if (_textColumn.CanExpand()) {
                 _textColumn.HandleExpand();
             } else {
-                AbilityData abilityData = _user.Ability.GetAt(_textColumn.GetSelectedLocation());
-                var targetIndex = _user.Location.Current.GridIndex + _user.Location.Facing * abilityData.Range;
-                HexWorldBehaviour.Instance.UpdateHighlight(targetIndex, _user.Location.Current.RotationAngle, abilityData.Spread, abilityData.Reach);
-                // TODO: on subsequent use, activate ability
+                _abilityData = _user.Ability.GetAt(_textColumn.GetSelectedLocation());
+                _targetLocation = _user.Location.Current.MoveForward(_abilityData.Range);
+                DrawHighlight();
+                InputManager.Instance.PushMode(InputManager.InputMode.CombatTargeting);
             }
         }
+    }
+
+    private void OnMenuBack(float value)
+    {
+        _textColumn.HandleCollapse();
+    }
+
+    private void OnTargetingMove(Vector2 value)
+    {
+        Vector2Int updatedGridIndex = _targetLocation.GridIndex;
+        if (value.x > 0.5f) {
+            updatedGridIndex += FacingUtil.E;
+        } else if (value.x < -0.5f) {
+            updatedGridIndex += FacingUtil.W;
+        }
+        if (value.y > 0.5f) {
+            updatedGridIndex += FacingUtil.NE;
+        } else if (value.y < -0.5f) {
+            updatedGridIndex += FacingUtil.SW;
+        }
+
+        int updatedRange = WorldUtil.FindDistance(_user.Location.Current.GridIndex, updatedGridIndex);
+        if (updatedRange <= _abilityData.Range) {
+            _targetLocation = new WorldLocation(new Vector3Int(updatedGridIndex.x, 0, updatedGridIndex.y), _targetLocation.RotationAngle);
+            DrawHighlight();
+        }
+    }
+
+    private void OnTargetingRotate(Vector2 value)
+    {
+        if (value.x > 0.5f) {
+            _targetLocation = _targetLocation.RotateRight();
+            DrawHighlight();
+        } else if (value.x < -0.5f) {
+            _targetLocation = _targetLocation.RotateLeft();
+            DrawHighlight();
+        }
+    }
+
+    private void OnTargetingAction(float value)
+    {
+        //TODO
+    }
+
+    private void OnTargetingBack(float value)
+    {
+        HexWorldBehaviour.Instance.ClearHighlight();
+        InputManager.Instance.PopMode();
+    }
+
+    private void DrawHighlight()
+    {
+        HexWorldBehaviour.Instance.UpdateHighlight(_targetLocation.GridIndex, _targetLocation.RotationAngle, _abilityData.Spread, _abilityData.Reach);
     }
 }

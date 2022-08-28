@@ -31,6 +31,9 @@ namespace Zekzek.HexWorld
         public int GridHeight => Current.GridHeight;
         public float RotationAngle => Current.RotationAngle;
         public Vector2Int Facing => Current.Facing;
+        public void RotateLeft() => Schedule(Current.RotateLeft());
+        public void RotateRight() => Schedule(Current.RotateRight());
+
 
         public LocationComponent(uint worldObjectId, Vector3Int gridPosition, Vector2Int? facing = null, MovementSpeed speed = null) : base(worldObjectId)
         {

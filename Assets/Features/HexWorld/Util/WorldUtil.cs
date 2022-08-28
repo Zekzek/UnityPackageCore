@@ -72,6 +72,18 @@ namespace Zekzek.HexWorld
             }
         }
 
+        public static int FindDistance(Vector2Int start, Vector2Int end)
+        {
+            int deltaX = end.x - start.x;
+            int deltaY = end.y - start.y;
+
+            if ((deltaX > 0 && deltaY > 0) || (deltaX < 0 && deltaY < 0)) {
+                return Mathf.Abs(deltaX) + Mathf.Abs(deltaY);
+            } else {
+                return Math.Max(Mathf.Abs(deltaX), Mathf.Abs(deltaY));
+            }
+        }
+
         public static int FindVerticalDistance(int start, int end)
         {
             return Mathf.Abs(end - start);
