@@ -19,11 +19,19 @@ public class CombatCanvas : MonoBehaviour
         _instance._textColumn.Set(user.Ability, null);
     }
 
+    public static void Show(WorldObject user)
+    {
+        _instance._user = user;
+        _instance._textColumn.Set(user.Ability, null);
+        _instance.gameObject.SetActive(true);
+    }
+
     private void Awake()
     {
         MenuTextColumn.InitPrefab(_textColumnPrefab);
         _textColumn = Instantiate(_textColumnPrefab, transform);
         _instance = this;
+        gameObject.SetActive(false);
     }
 
     private void Start()
@@ -64,7 +72,14 @@ public class CombatCanvas : MonoBehaviour
 
     private void OnMenuBack(float value)
     {
-        _textColumn.HandleCollapse();
+        if (value > 0.5f) {
+            if (_textColumn.CanCollapse()) {
+                _textColumn.HandleCollapse();
+            } else {
+                InputManager.Instance.PopMode();
+                Hide();
+            }
+        }
     }
 
     private void OnTargetingMove(Vector2 value)
@@ -101,7 +116,11 @@ public class CombatCanvas : MonoBehaviour
 
     private void OnTargetingAction(float value)
     {
-        //TODO
+        //TODO: actually use the action
+        HexWorldBehaviour.Instance.ClearHighlight();
+        InputManager.Instance.PopMode();
+        InputManager.Instance.PopMode();
+        Hide();
     }
 
     private void OnTargetingBack(float value)
@@ -113,5 +132,10 @@ public class CombatCanvas : MonoBehaviour
     private void DrawHighlight()
     {
         HexWorldBehaviour.Instance.UpdateHighlight(_targetLocation.GridIndex, _targetLocation.RotationAngle, _abilityData.Spread, _abilityData.Reach);
+    }
+
+    private void Hide()
+    {
+        gameObject.SetActive(false);
     }
 }

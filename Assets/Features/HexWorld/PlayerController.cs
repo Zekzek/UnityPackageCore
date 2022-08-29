@@ -20,6 +20,7 @@ namespace Zekzek.HexWorld
             AddSelection(HexWorld.Instance.GetAll(WorldObjectType.Entity).First());
 
             InputManager.Instance.AddListener<Vector2>(InputMode.WorldNavigation, PlayerAction.Move, InputWatchType.Constant, OnMove);
+            InputManager.Instance.AddListener<float>(InputMode.WorldNavigation, PlayerAction.Action, InputWatchType.OnStart, OnAction);
         }
 
         public void AddSelection(params WorldObject[] targets) { _selected.AddRange(targets); }
@@ -72,6 +73,14 @@ namespace Zekzek.HexWorld
                 } else if (moveInput.y < 0 && backwardStep != null) {
                     worldObject.Location.Schedule(new List<NavStep> { backwardStep });
                 }
+            }
+        }
+
+        private void OnAction(float value)
+        {
+            if (value > 0.5f) {
+                CombatCanvas.Show(_selected[0]);
+                InputManager.Instance.PushMode(InputMode.CombatMenu);
             }
         }
 

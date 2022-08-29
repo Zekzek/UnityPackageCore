@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour
         GenerationUtil.Init(42, 5, TerrainType.Desert, TerrainType.Forest, TerrainType.Hills);
         WorldObject player = CreatePlayer();
         CameraController<LocationComponent>.Main.AddTarget(player.Location);
+        InputManager.Instance.PushMode(InputManager.InputMode.WorldNavigation);
     }
 
     private WorldObject CreatePlayer()
@@ -35,8 +36,6 @@ public class GameController : MonoBehaviour
         WeaponComponent playerWeapon = new WeaponComponent(player.Id);
         playerWeapon.Add("dagger");
         player.AddComponent(playerWeapon);
-
-        CombatCanvas.Set(player);
 
         return player;
     }

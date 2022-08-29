@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -31,7 +32,7 @@ public class InputManager : MonoBehaviour
         Back
     }
 
-    public InputMode Mode { get; private set; } = InputMode.CombatMenu;
+    public InputMode Mode { get; private set; }
 
     private static InputManager _instance;
     public static InputManager Instance => _instance;
@@ -60,12 +61,24 @@ public class InputManager : MonoBehaviour
 
     public void PushMode(InputMode mode)
     {
+        StartCoroutine(PushModeOnNextFrame(mode));
+    }
+
+    private IEnumerator PushModeOnNextFrame(InputMode mode)
+    {
+        yield return null;
         _modeHistory.Add(Mode);
         Mode = mode;
     }
 
     public void PopMode()
     {
+        StartCoroutine(PopModeOnNextFrame());
+    }
+
+    private IEnumerator PopModeOnNextFrame()
+    {
+        yield return null;
         int lastIndex = _modeHistory.Count - 1;
         Mode = _modeHistory[lastIndex];
         _modeHistory.RemoveAt(lastIndex);

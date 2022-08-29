@@ -105,6 +105,11 @@ public class MenuTextColumn : MonoBehaviour
         }
     }
 
+    public bool CanCollapse()
+    {
+        return !_child || _child.gameObject.activeSelf;
+    }
+
     public string[] GetSelectedLocation()
     {
         if (IsChildActive()) {
