@@ -69,9 +69,14 @@ namespace Zekzek.Ability
             return null;
         }
 
-        public AbilityData GetAt(params string[] location)
+        public AbilityData GetDataById(string abilityId)
         {
-            return GetAt(_abilityGroups, location);
+            foreach (AbilityData data in _knownAbilities) {
+                if (abilityId.Equals(data.Id)) {
+                    return data;
+                }
+            }
+            return null;
         }
 
         private AbilityData GetAt(Dictionary<string, object> groups, params string[] location)

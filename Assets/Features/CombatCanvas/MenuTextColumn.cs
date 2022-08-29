@@ -54,7 +54,8 @@ public class MenuTextColumn : MonoBehaviour
 
         int count = 0;
         foreach (string option in options) {
-            _containedEntries[count].Set(option);
+            AbilityData abilityData = _abilityComponent.GetDataById(option);
+            _containedEntries[count].Set(abilityData == null ? option : abilityData.Name);
             _containedEntries[count].gameObject.SetActive(true);
             count++;
         }
@@ -110,15 +111,12 @@ public class MenuTextColumn : MonoBehaviour
         return !_child || _child.gameObject.activeSelf;
     }
 
-    public string[] GetSelectedLocation()
+    public string GetSelection()
     {
         if (IsChildActive()) {
-            return _child.GetSelectedLocation();
+            return _child.GetSelection();
         } else {
-            string[] selection = new string[_location.Length];
-            Array.Copy(_location, selection, _location.Length);
-            selection[selection.Length - 1] = _options[_selected];
-            return selection;
+            return _options[_selected];
         }
     }
 

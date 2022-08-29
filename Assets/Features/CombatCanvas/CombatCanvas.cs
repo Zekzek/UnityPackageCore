@@ -62,7 +62,7 @@ public class CombatCanvas : MonoBehaviour
             if (_textColumn.CanExpand()) {
                 _textColumn.HandleExpand();
             } else {
-                _abilityData = _user.Ability.GetAt(_textColumn.GetSelectedLocation());
+                _abilityData = _user.Ability.GetDataById(_textColumn.GetSelection());
                 _targetLocation = _user.Location.Current.MoveForward(_abilityData.Range);
                 DrawHighlight();
                 InputManager.Instance.PushMode(InputManager.InputMode.CombatTargeting);
