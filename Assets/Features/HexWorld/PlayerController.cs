@@ -32,32 +32,6 @@ namespace Zekzek.HexWorld
             return _camera.TargetPosition;
         }
 
-        public void HandleInput()
-        {
-//            foreach (TargetableComponent targetable in _highlighted) { targetable.Highlight = false; }
-//            _highlighted.Clear();
-
-//            RaycastHit hit;
-//            Ray ray = _camera.Camera.ScreenPointToRay(InputManager.Instance.GetCursorPosition());
-//
-//            if (Physics.Raycast(ray, out hit)) {
-//                Transform objectHit = hit.transform;
-//                HexTileBehaviour tile = objectHit.gameObject.GetComponent<HexTileBehaviour>();
-//                if (tile != null && tile.Model != null) {
-//                    Highlight(tile.Model.Location.GridIndex, Vector2Int.zero, 0);
-//                    if (InputManager.Instance.Get<float>(InputManager.PlayerAction.Tap) > 0) {
-//                        foreach (WorldObject worldObject in _selected) {
-//                            worldObject.Location.NavigateTo(tile.Model.Location.GridPosition, worldObject.Location.Speed);
-//                        }
-//                    }
-//                }
-//            }
-
-            //if (InputManager.Instance.CheckAndClearStarted(InputManager.PlayerAction.Action)) {
-            //    TestFrontalAttack();
-            //}
-        }
-
         private void OnMove(Vector2 moveInput)
         {
             foreach (WorldObject worldObject in _selected) {
@@ -81,17 +55,6 @@ namespace Zekzek.HexWorld
             if (value > 0.5f) {
                 CombatCanvas.Show(_selected[0]);
                 InputManager.Instance.PushMode(InputMode.CombatMenu);
-            }
-        }
-
-        private void TestFrontalAttack()
-        {
-            foreach (WorldObject selection in _selected) {
-                Vector2Int frontGridIndex = selection.Location.Current.GridIndex + selection.Location.Facing;
-                IEnumerable<WorldObject> opponents = HexWorld.Instance.GetAt(frontGridIndex, WorldComponentType.Stats);
-                foreach (WorldObject opponent in opponents) {
-                    opponent.Stats.StatBlock.AddDelta(Stats.StatType.Health, -10f);
-                }
             }
         }
     }

@@ -117,8 +117,11 @@ public class CombatCanvas : MonoBehaviour
 
     private void OnTargetingAction(float value)
     {
-        //TODO: actually use the action
-        GetAffectedIndices();
+        //TODO: use ability for reaql instead of this dummy flow
+        IEnumerable<WorldObject> opponents = HexWorld.Instance.GetAt(GetAffectedIndices(), WorldComponentType.Stats);
+        foreach (WorldObject opponent in opponents) {
+            opponent.Stats.StatBlock.AddDelta(Zekzek.Stats.StatType.Health, -10f);
+        }
 
         HexWorldBehaviour.Instance.ClearHighlight();
         InputManager.Instance.PopMode();

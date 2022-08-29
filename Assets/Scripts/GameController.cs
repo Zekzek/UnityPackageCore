@@ -2,7 +2,6 @@ using UnityEngine;
 using Zekzek.Ability;
 using Zekzek.CameraControl;
 using Zekzek.HexWorld;
-using Zekzek.Stats;
 
 public class GameController : MonoBehaviour
 {
@@ -17,10 +16,6 @@ public class GameController : MonoBehaviour
     private WorldObject CreatePlayer()
     {
         WorldObject player = GenerationUtil.InstantiateEntity(new MovementSpeed(2, 1, 1, 0.5f, 2, 2, 2, 2, 1), Vector2Int.zero);
-
-        StatComponent playerStats = new StatComponent(player.Id);
-        playerStats.StatBlock.AddAmount(StatType.Health, 100);
-        player.AddComponent(playerStats);
 
         AbilityComponent playerAbilities = new AbilityComponent(player.Id);
         playerAbilities.Add("jab");

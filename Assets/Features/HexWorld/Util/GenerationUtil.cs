@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zekzek.Stats;
 
 namespace Zekzek.HexWorld
 {
@@ -23,6 +24,7 @@ namespace Zekzek.HexWorld
             GenerationParams generationParams = CalcGenerationParams(gridIndex.x, gridIndex.y);
             instance.AddComponent(new LocationComponent(instance.Id, new Vector3Int(gridIndex.x, generationParams.GridHeight, gridIndex.y), facing, speed));
             instance.AddComponent(InstantiateRelationship(generationParams));
+            instance.AddComponent(InstantiateStats(generationParams));
             HexWorld.Instance.Add(instance);
             return instance;
         }
@@ -34,6 +36,14 @@ namespace Zekzek.HexWorld
             relationship.AddDefaultAffinity(RelationshipType.Affection, generationParams[GenerationParamType.Affection]);
             return relationship;
         }
+
+        private static StatComponent InstantiateStats(GenerationParams generationParams)
+        {
+            StatComponent stats = new StatComponent(0);
+            stats.StatBlock.AddAmount(StatType.Health, 100);
+            return stats;
+        }
+
 
         public static void InstantiateAtGridIndex(int x, int z)
         {
