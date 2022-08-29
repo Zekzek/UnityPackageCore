@@ -123,7 +123,7 @@ namespace Zekzek.HexWorld
             return indices;
         }
 
-        public static IEnumerable<Vector2Int> GetIndicesAround(Vector2Int center, int spread, int reach)
+        public static IEnumerable<Vector2Int> GetIndicesAround(Vector2Int center, float rotation, int spread, int reach)
         {
             List<Vector2Int> indices = new List<Vector2Int>();
 
@@ -135,7 +135,9 @@ namespace Zekzek.HexWorld
                 if (angle > -121 && angle <= -60 && spread < 4) { continue; }
                 if ((angle > 121 || angle <= -121) && spread < 5) { continue; }
 
-                indices.Add(gridIndex);
+                Vector2Int rotated = FacingUtil.RotateAround(gridIndex, center, rotation);
+
+                indices.Add(rotated);
             }
             return indices;
         }

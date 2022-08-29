@@ -159,12 +159,10 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public void UpdateHighlight(Vector2Int center, float rotation, int spread, int reach)
+        public void UpdateHighlight(IEnumerable<Vector2Int> gridIndices)
         {
             ClearHighlight();
-            foreach (Vector2Int offset in WorldUtil.GetIndicesAround(Vector2Int.zero, spread, reach)) {
-                Highlight(center, offset, rotation - 90);
-            }
+            Highlight(gridIndices);
         }
 
         public void ClearHighlight()
@@ -173,11 +171,9 @@ namespace Zekzek.HexWorld
             _highlighted.Clear();
         }
 
-        private void Highlight(Vector2Int center, Vector2Int offset, float rotation)
+        private void Highlight(IEnumerable<Vector2Int> gridIndices)
         {
-            Vector2Int rotated = FacingUtil.RotateAround(center + offset, center, rotation);
-
-            IEnumerable<WorldObject> targetableObjects = HexWorld.Instance.GetAt(new[] { rotated }, WorldComponentType.Targetable);
+            IEnumerable<WorldObject> targetableObjects = HexWorld.Instance.GetAt(gridIndices, WorldComponentType.Targetable);
 
             foreach (WorldObject targetableObject in targetableObjects) {
                 if (targetableObject != null) {

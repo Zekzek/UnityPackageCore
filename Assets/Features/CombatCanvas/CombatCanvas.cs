@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Zekzek.Ability;
 using Zekzek.HexWorld;
@@ -117,6 +118,8 @@ public class CombatCanvas : MonoBehaviour
     private void OnTargetingAction(float value)
     {
         //TODO: actually use the action
+        GetAffectedIndices();
+
         HexWorldBehaviour.Instance.ClearHighlight();
         InputManager.Instance.PopMode();
         InputManager.Instance.PopMode();
@@ -131,11 +134,16 @@ public class CombatCanvas : MonoBehaviour
 
     private void DrawHighlight()
     {
-        HexWorldBehaviour.Instance.UpdateHighlight(_targetLocation.GridIndex, _targetLocation.RotationAngle, _abilityData.Spread, _abilityData.Reach);
+        HexWorldBehaviour.Instance.UpdateHighlight(GetAffectedIndices());
     }
 
     private void Hide()
     {
         gameObject.SetActive(false);
+    }
+
+    private IEnumerable<Vector2Int> GetAffectedIndices()
+    {
+        return WorldUtil.GetIndicesAround(_targetLocation.GridIndex, _targetLocation.RotationAngle - 90, _abilityData.Spread, _abilityData.Reach);
     }
 }
