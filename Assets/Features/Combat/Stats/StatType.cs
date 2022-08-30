@@ -1,4 +1,4 @@
-namespace Zekzek.Stats
+namespace Zekzek.Combat
 {
     public enum StatType
     {

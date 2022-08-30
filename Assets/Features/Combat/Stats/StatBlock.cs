@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Zekzek.Stats
+namespace Zekzek.Combat
 {
     public class StatBlock
     {

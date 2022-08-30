@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Zekzek.Stats
+namespace Zekzek.Combat
 {
     public class StatBlockBehaviour : MonoBehaviour
     {
@@ -12,7 +12,7 @@ namespace Zekzek.Stats
         {
             if (Model == null) { return; }
 
-            healthBar.SetFill(Model.StatBlock.GetPercent(Stats.StatType.Health));
+            healthBar.SetFill(Model.StatBlock.GetPercent(StatType.Health));
             LookAtCamera();
         }
 

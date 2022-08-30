@@ -1,6 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
-using Zekzek.Stats;
+using Zekzek.Combat;
 
 public class StatBlockTest : MonoBehaviour
 {

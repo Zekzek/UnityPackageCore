@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Zekzek.Stats;
+using Zekzek.Combat;
 using Zekzek.UnityModelMaker;
 
 namespace Zekzek.HexWorld
@@ -62,8 +62,6 @@ namespace Zekzek.HexWorld
         private void Update()
         {
             UpdateAllVisible();
-            PlayerController.Instance.HandleInput();
-
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
         }
 

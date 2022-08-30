@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
-using Zekzek.Ability;
-using Zekzek.Stats;
+using Zekzek.Combat;
 
 namespace Zekzek.HexWorld
 {

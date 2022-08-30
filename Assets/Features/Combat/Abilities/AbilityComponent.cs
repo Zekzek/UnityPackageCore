@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Zekzek.HexWorld;
 
-namespace Zekzek.Ability
+namespace Zekzek.Combat
 {
     public class AbilityComponent : WorldObjectComponent
     {

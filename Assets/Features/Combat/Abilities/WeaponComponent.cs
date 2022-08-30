@@ -1,7 +1,7 @@
 
 using Zekzek.HexWorld;
 
-namespace Zekzek.Ability
+namespace Zekzek.Combat
 {
     public class WeaponComponent : WorldObjectComponent
     {

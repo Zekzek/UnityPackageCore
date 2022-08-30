@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Zekzek.Ability
+namespace Zekzek.Combat
 {
     [Serializable]
     public class AbilityData: AbilityModifierData

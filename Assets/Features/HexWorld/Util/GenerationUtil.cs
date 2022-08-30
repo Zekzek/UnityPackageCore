@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Zekzek.Stats;
+using Zekzek.Combat;
 
 namespace Zekzek.HexWorld
 {
