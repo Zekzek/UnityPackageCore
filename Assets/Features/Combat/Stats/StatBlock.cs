@@ -10,6 +10,8 @@ namespace Zekzek.Combat
         private readonly IDictionary<StatType, float> _missing = new Dictionary<StatType, float>();
         private readonly ISet<SlotType> _openSlots = new HashSet<SlotType>();
         private readonly Dictionary<SlotType, StatBlock> _equipment = new Dictionary<SlotType, StatBlock>();
+        
+        //TODO: buffs and debuffs should include a StatBlock, but be more (name, duration, potency/stacks, stackable/extendable/combinable, etc) - should they be defined in content?
         private readonly List<StatBlock> _buffs = new List<StatBlock>();
         private readonly List<StatBlock> _debuffs = new List<StatBlock>();
 

@@ -119,9 +119,12 @@ namespace Zekzek.Combat
         private void OnTargetingAction(float value)
         {
             //TODO: use ability for reaql instead of this dummy flow
-            IEnumerable<WorldObject> opponents = HexWorld.HexWorld.Instance.GetAt(GetAffectedIndices(), WorldComponentType.Stats);
-            foreach (WorldObject opponent in opponents) {
-                opponent.Stats.StatBlock.AddDelta(StatType.Health, -10f);
+            IEnumerable<WorldObject> targets = HexWorld.HexWorld.Instance.GetAt(GetAffectedIndices(), WorldComponentType.Stats);
+            foreach (WorldObject target in targets) {
+                if (CombatUtils.TryGetResult(_user.Stats.StatBlock, _abilityData, target.Stats.StatBlock, out StatChange userChange, out StatChange targetChange)) {
+                    CombatUtils.Apply(userChange, _user.Stats);
+                    CombatUtils.Apply(targetChange, target.Stats);
+                }
             }
 
             HexWorldBehaviour.Instance.ClearHighlight();
