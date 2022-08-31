@@ -297,6 +297,63 @@ namespace Zekzek.UnityModelMaker
             return terrain;
         }
 
+        public Mesh GetOutline(params Vector3[] points)
+        {
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector3> normals = new List<Vector3>();
+            List<int> triangles = new List<int>();
+
+            Vector3[] lastOutlineRing = null;
+            for (int i = 0; i < points.Length; i++) {
+                Vector3[] outlineRingNormals = new Vector3[] {
+                    Vector3.up,
+                    Vector3.left,
+                    Vector3.forward,
+                };
+                normals.AddRange(outlineRingNormals);
+                Vector3[] outlineRing = new Vector3[] {
+                    points[i] + 0.1f * outlineRingNormals[0],
+                    points[i] + 0.1f * outlineRingNormals[1],
+                    points[i] + 0.1f * outlineRingNormals[2],
+                };
+                vertices.AddRange(outlineRing);
+                if (lastOutlineRing != null) {
+                    int vertexCount = vertices.Count;
+                    triangles.AddRange(new int[] { vertexCount - 6, vertexCount - 3, vertexCount - 5 });
+                    triangles.AddRange(new int[] { vertexCount - 5, vertexCount - 3, vertexCount - 2 });
+                    triangles.AddRange(new int[] { vertexCount - 5, vertexCount - 2, vertexCount - 4 });
+                    triangles.AddRange(new int[] { vertexCount - 4, vertexCount - 2, vertexCount - 1 });
+                    triangles.AddRange(new int[] { vertexCount - 4, vertexCount - 1, vertexCount - 6 });
+                    triangles.AddRange(new int[] { vertexCount - 6, vertexCount - 1, vertexCount - 3 });
+
+                    triangles.AddRange(new int[] { vertexCount - 5, vertexCount - 3, vertexCount - 6 });
+                    triangles.AddRange(new int[] { vertexCount - 2, vertexCount - 3, vertexCount - 5 });
+                    triangles.AddRange(new int[] { vertexCount - 4, vertexCount - 2, vertexCount - 5 });
+                    triangles.AddRange(new int[] { vertexCount - 1, vertexCount - 2, vertexCount - 4 });
+                    triangles.AddRange(new int[] { vertexCount - 6, vertexCount - 1, vertexCount - 4 });
+                    triangles.AddRange(new int[] { vertexCount - 3, vertexCount - 1, vertexCount - 6 });
+                }
+                lastOutlineRing = outlineRing;
+            }
+
+            Mesh mesh = new Mesh {
+                vertices = vertices.ToArray(),
+                normals = normals.ToArray(),
+                triangles = triangles.ToArray()
+            };
+            return mesh;
+        }
+
+        public Mesh GetTree()
+        {
+            return null;
+        }
+
+        public Mesh GetTreeHighlight()
+        {
+            return null;
+        }
+
         private static Mesh Combine(params Mesh[] meshes)
         {
             CombineInstance[] combiners = new CombineInstance[meshes.Length];
