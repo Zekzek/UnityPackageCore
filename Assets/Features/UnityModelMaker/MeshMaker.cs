@@ -364,6 +364,19 @@ namespace Zekzek.UnityModelMaker
             return mesh;
         }
 
+        public Vector3[] GetPointsFromSpokes(Vector3 center, params Vector2[] lengths)
+        {
+            Vector3[] points = new Vector3[lengths.Length + 1];
+            for(int i = 0; i < lengths.Length; i++) {
+                points[i] = center + new Vector3(
+                    lengths[i].x * Mathf.Sin(2 * Mathf.PI * i / lengths.Length), 
+                    lengths[i].y,
+                    lengths[i].x * Mathf.Cos(2 * Mathf.PI * i / lengths.Length));
+            }
+            points[lengths.Length] = points[0];
+            return points;
+        }
+
         public Mesh GetDisk(Vector3 center, params Vector3[] points)
         {
             List<Vector3> vertices = new List<Vector3>();
