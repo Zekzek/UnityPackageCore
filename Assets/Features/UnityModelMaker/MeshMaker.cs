@@ -297,35 +297,54 @@ namespace Zekzek.UnityModelMaker
             return terrain;
         }
 
-        public Mesh GetOutline(params Vector3[] points)
+        public Mesh GetOutline(float width, params Vector3[] points)
         {
             List<Vector3> vertices = new List<Vector3>();
             List<Vector3> normals = new List<Vector3>();
             List<int> triangles = new List<int>();
 
+            // Calculate slope between lines
+            Vector3[] slopes = new Vector3[points.Length - 1];
+            for (int i = 0; i < slopes.Length; i++) {
+                slopes[i] = (points[i+1] - points[i]).normalized;
+            }
+
+            // Find directions relative to each points position in the outline (excluding ends)
+            Vector3[] outs = new Vector3[points.Length];
+            Vector3[] perpendiculars = new Vector3[points.Length];
+            for (int i = 1; i < points.Length - 1; i++) {
+                perpendiculars[i] = Vector3.Cross(slopes[i], slopes[i-1]).normalized;
+                outs[i] = -Vector3.Cross((slopes[i] + slopes[i - 1]).normalized, perpendiculars[i]);
+            }
+
+            // Find directions relative to end points, completing the shape when they match
+            if (points[0].Equals(points[points.Length - 1])) {
+                perpendiculars[points.Length - 1] = perpendiculars[0] = Vector3.Cross(slopes[0], slopes[slopes.Length - 1]).normalized;
+                outs[points.Length -1] = outs[0] = -Vector3.Cross((slopes[0] + slopes[slopes.Length - 1]).normalized, perpendiculars[0]);
+            } else {
+                outs[0] = outs[1];
+                outs[outs.Length - 1] = outs[outs.Length - 2];
+                perpendiculars[0] = perpendiculars[1];
+                perpendiculars[perpendiculars.Length - 1] = perpendiculars[perpendiculars.Length - 2];
+            }
+
+            // Generate outline vertices, normals, and triangles for each point
             Vector3[] lastOutlineRing = null;
             for (int i = 0; i < points.Length; i++) {
                 Vector3[] outlineRingNormals = new Vector3[] {
-                    Vector3.up,
-                    Vector3.left,
-                    Vector3.forward,
+                    outs[i], //should be negative if an inward corner
+                    perpendiculars[i],
+                    -perpendiculars[i]
                 };
                 normals.AddRange(outlineRingNormals);
                 Vector3[] outlineRing = new Vector3[] {
-                    points[i] + 0.1f * outlineRingNormals[0],
-                    points[i] + 0.1f * outlineRingNormals[1],
-                    points[i] + 0.1f * outlineRingNormals[2],
+                    points[i] + outlineRingNormals[0] * width,
+                    points[i] + outlineRingNormals[1] * width/2f,
+                    points[i] + outlineRingNormals[2] * width/2f
                 };
                 vertices.AddRange(outlineRing);
                 if (lastOutlineRing != null) {
                     int vertexCount = vertices.Count;
-                    triangles.AddRange(new int[] { vertexCount - 6, vertexCount - 3, vertexCount - 5 });
-                    triangles.AddRange(new int[] { vertexCount - 5, vertexCount - 3, vertexCount - 2 });
-                    triangles.AddRange(new int[] { vertexCount - 5, vertexCount - 2, vertexCount - 4 });
-                    triangles.AddRange(new int[] { vertexCount - 4, vertexCount - 2, vertexCount - 1 });
-                    triangles.AddRange(new int[] { vertexCount - 4, vertexCount - 1, vertexCount - 6 });
-                    triangles.AddRange(new int[] { vertexCount - 6, vertexCount - 1, vertexCount - 3 });
-
                     triangles.AddRange(new int[] { vertexCount - 5, vertexCount - 3, vertexCount - 6 });
                     triangles.AddRange(new int[] { vertexCount - 2, vertexCount - 3, vertexCount - 5 });
                     triangles.AddRange(new int[] { vertexCount - 4, vertexCount - 2, vertexCount - 5 });
@@ -336,6 +355,49 @@ namespace Zekzek.UnityModelMaker
                 lastOutlineRing = outlineRing;
             }
 
+            // Combine the final mesh
+            Mesh mesh = new Mesh {
+                vertices = vertices.ToArray(),
+                normals = normals.ToArray(),
+                triangles = triangles.ToArray()
+            };
+            return mesh;
+        }
+
+        public Mesh GetDisk(Vector3 center, params Vector3[] points)
+        {
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector3> normals = new List<Vector3>();
+            List<int> triangles = new List<int>();
+
+            //TODO: fiond a better way to get 'up'
+            Vector3 up = Vector3.Cross(points[0], points[1]).normalized;
+
+            // Generate outline vertices, normals, and triangles for each point to the center
+            vertices.Add(center);
+            normals.Add(up);
+            for (int i = 0; i < points.Length; i++) {
+                vertices.Add(points[i]);
+                normals.Add(points[i]);
+                if (vertices.Count >= 3) {
+                    triangles.Add(0);
+                    triangles.Add(i);
+                    triangles.Add(i - 1);
+                    triangles.Add(0);
+                    triangles.Add(i - 1);
+                    triangles.Add(i);
+                }
+            }
+
+            // Finish the loop
+            triangles.Add(0);
+            triangles.Add(vertices.Count - 1);
+            triangles.Add(vertices.Count - 2);
+            triangles.Add(0);
+            triangles.Add(vertices.Count - 2);
+            triangles.Add(vertices.Count - 1);
+
+            // Combine the final mesh
             Mesh mesh = new Mesh {
                 vertices = vertices.ToArray(),
                 normals = normals.ToArray(),
