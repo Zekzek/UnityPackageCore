@@ -125,7 +125,7 @@ namespace Zekzek.HexWorld
 
                 // Set up objects which have become visible
                 foreach (WorldObject worldObject in HexWorld.Instance.GetAt(screenIndices, type)) {
-                    if (type == WorldObjectType.Rock || type == WorldObjectType.Bush) { continue; }
+                    if (type == WorldObjectType.Rock) { continue; }
                     if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
                     if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
                     _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);

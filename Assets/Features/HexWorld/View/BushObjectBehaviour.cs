@@ -5,22 +5,24 @@ namespace Zekzek.HexWorld
 {
     public class BushObjectBehaviour : WorldObjectBehaviour
     {
-        public override WorldObject Model { get => base.Model; set { base.Model = value; SetMesh(); } }
+        public override WorldObject Model { get => base.Model; set { base.Model = value; SetMesh((int)value.Id); } }
 
         private List<GameObject> _children = new List<GameObject>();
 
-        private void Start()
+        private void SetMesh(int seed)
         {
-            SetMesh();
+            SetMesh(
+                2 + Noise.Noise.GetPositiveInt(seed) % 2, 
+                2 + Noise.Noise.GetPositiveInt(seed, 1) % 4,
+                90 + Noise.Noise.GetPositiveInt(seed, 1) % 180,
+                new Vector2(0.5f + Noise.Noise.GetPercent(seed, 2) / 2f, 0.1f + Noise.Noise.GetPercent(seed, 3) / 4f),
+                new Vector2(0.1f + Noise.Noise.GetPercent(seed, 4) / 3f, Noise.Noise.GetPercent(seed, 3) / 4f));
         }
 
-        private void SetMesh()
+        private void SetMesh(int layerCount, int pointCount, int spinStep, Vector2 peak, Vector2 valley)
         {
-            SetMesh(3, 4, new Vector2(1, 0.2f), new Vector2(0.4f, 0.1f));
-        }
+            Debug.Log($"Generate Bush Mesh: {layerCount}, {pointCount}, {peak}, {valley}");
 
-        private void SetMesh(int layerCount, int pointCount, Vector2 peak, Vector2 valley)
-        {
             foreach(GameObject child in _children) {
                 child.SetActive(false);
             }
@@ -35,9 +37,11 @@ namespace Zekzek.HexWorld
                 while (2 * i >= _children.Count) {
                     GameObject diskObect = new GameObject("Disk" + i);
                     diskObect.transform.parent = gameObject.transform;
+                    diskObect.transform.localPosition = Vector3.zero;
                     _children.Add(diskObect);
                     GameObject outlineObect = new GameObject("Outline" + i);
                     outlineObect.transform.parent = gameObject.transform;
+                    outlineObect.transform.localPosition = Vector3.zero;
                     _children.Add(outlineObect);
                 }
 
@@ -45,15 +49,16 @@ namespace Zekzek.HexWorld
                 ApplyMesh(_children[2 * i], Vector3.zero, disk);
                 _children[2 * i].transform.localScale = scale;
                 _children[2 * i].transform.localRotation = Quaternion.Euler(0, spin, 0);
+                _children[2 * i].SetActive(true);
 
-
-                outline ??= GetOutlineMesh(0.01f, points);
+                outline ??= GetOutlineMesh(0.05f, points);
                 ApplyMesh(_children[2 * i + 1], Vector3.up, outline);
                 _children[2 * i + 1].transform.localScale = scale;
                 _children[2 * i + 1].transform.localRotation = Quaternion.Euler(0, spin, 0);
+                _children[2 * i + 1].SetActive(true);
 
-                scale = new Vector3(0.7f * scale.x, 1.8f * scale.y, 0.7f * scale.z);
-                spin += 110;
+                scale = new Vector3(0.7f * scale.x, 1.3f * scale.y, 0.7f * scale.z);
+                spin += spinStep;
             }
         }
     }

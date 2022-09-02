@@ -25,6 +25,12 @@ namespace Zekzek.Noise
             return mangledBits;
         }
 
+        public static int GetPositiveInt(int key1, int key2 = 0, int key3 = 0, uint seed = 0, uint offset = 0)
+        {
+            int value = (int)GetUint(key1, key2, key3, seed, offset);
+            return value < 0 ? -value : value;
+        }
+
         public static float GetPercent(int key1, int key2 = 0, int key3 = 0, uint seed = 0, uint offset = 0)
         {
             return GetUint(key1, key2, key3, seed, offset) / (float)uint.MaxValue;
@@ -37,7 +43,7 @@ namespace Zekzek.Noise
 
         public static float Rand(int key1, int key2 = 0, int key3 = 0, uint seed = 0, uint offset = 0)
         {
-            InternalState = GetUint(key1, key2, key3, seed, offset + InternalState);
+            InternalState = GetUint(key1, key2, key3, seed, (uint)(offset + InternalState));
             return InternalState / (float)uint.MaxValue;
         }
     }

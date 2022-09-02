@@ -383,6 +383,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tree
       objectReference: {fileID: 0}
+    - target: {fileID: 638490428639964051, guid: dc8a45f25430fe5468de2e320fdcc0f2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8769860375434952709, guid: dc8a45f25430fe5468de2e320fdcc0f2, type: 3}
       propertyPath: m_RootOrder
       value: 2
