@@ -17,8 +17,6 @@ namespace Zekzek.HexWorld
             }
         }
 
-        protected override Type ModelType => default;
-
         private void UpdateMesh()
         {
             if (_meshRenderer == null) { _meshRenderer = GetComponent<MeshRenderer>(); }

@@ -6,7 +6,6 @@ namespace Zekzek.HexWorld
 {
     public class HexTileBehaviour : WorldObjectBehaviour
     {
-        protected override Type ModelType => default;
         private TargetableComponent _targetableComponent;
 
         [SerializeField] private GameObject tileObject;
