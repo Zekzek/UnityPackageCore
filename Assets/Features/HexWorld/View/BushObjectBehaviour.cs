@@ -12,6 +12,7 @@ namespace Zekzek.HexWorld
         private void SetMesh(int seed)
         {
             SetMesh(
+                GenerationUtil.GetColor(Model.Location.GridIndex),
                 2 + Noise.Noise.GetPositiveInt(seed) % 2, 
                 2 + Noise.Noise.GetPositiveInt(seed, 1) % 4,
                 90 + Noise.Noise.GetPositiveInt(seed, 1) % 180,
@@ -19,10 +20,8 @@ namespace Zekzek.HexWorld
                 new Vector2(0.1f + Noise.Noise.GetPercent(seed, 4) / 3f, Noise.Noise.GetPercent(seed, 3) / 4f));
         }
 
-        private void SetMesh(int layerCount, int pointCount, int spinStep, Vector2 peak, Vector2 valley)
+        private void SetMesh(Vector3 color, int layerCount, int pointCount, int spinStep, Vector2 peak, Vector2 valley)
         {
-            Debug.Log($"Generate Bush Mesh: {layerCount}, {pointCount}, {peak}, {valley}");
-
             foreach(GameObject child in _children) {
                 child.SetActive(false);
             }
@@ -52,7 +51,7 @@ namespace Zekzek.HexWorld
                 _children[2 * i].SetActive(true);
 
                 outline ??= GetOutlineMesh(0.05f, points);
-                ApplyMesh(_children[2 * i + 1], Vector3.up, outline);
+                ApplyMesh(_children[2 * i + 1], color, outline);
                 _children[2 * i + 1].transform.localScale = scale;
                 _children[2 * i + 1].transform.localRotation = Quaternion.Euler(0, spin, 0);
                 _children[2 * i + 1].SetActive(true);

@@ -18,6 +18,13 @@ namespace Zekzek.HexWorld
             _terrainTypes.AddRange(terrains);
         }
 
+        public static Vector3 GetColor(Vector2Int gridIndex)
+        {
+            GenerationParams generationParams = CalcGenerationParams(gridIndex.x, gridIndex.y);
+            float heightRatio = 0.5f + generationParams.GridHeight / (float)WorldLocation.MAX_HEIGHT / 2f;
+            return heightRatio * new Vector3(generationParams[GenerationParamType.Temperature], generationParams[GenerationParamType.Fertility], generationParams[GenerationParamType.Moisture]).normalized;
+        }
+
         public static WorldObject InstantiateEntity(MovementSpeed speed, Vector2Int gridIndex, Vector2Int? facing = null)
         {
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
@@ -57,7 +64,7 @@ namespace Zekzek.HexWorld
 
         private static void InstantiateTile(Vector3Int gridPosition, GenerationParams generationParams)
         {
-            float heightRatio = generationParams.GridHeight / (float)WorldLocation.MAX_HEIGHT;
+            float heightRatio = 0.5f + generationParams.GridHeight / (float)WorldLocation.MAX_HEIGHT / 2f;
             WorldObject tile = new WorldObject(WorldObjectType.Tile);
             tile.AddComponent(new LocationComponent(tile.Id, gridPosition));
             tile.AddComponent(new PlatformComponent(tile.Id, heightRatio * new Vector3(generationParams[GenerationParamType.Temperature], generationParams[GenerationParamType.Fertility], generationParams[GenerationParamType.Moisture]).normalized));
