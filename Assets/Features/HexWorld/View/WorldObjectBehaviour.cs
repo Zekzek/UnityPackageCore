@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Zekzek.UnityModelMaker;
 
@@ -33,17 +34,7 @@ namespace Zekzek.HexWorld
             return MeshMaker.Instance.GetPointsFromSpokes(Vector3.zero, spokes);
         }
 
-        protected Mesh GetDiskMesh(params Vector3[] points)
-        {
-            return MeshMaker.Instance.ConvertToHardEdged(MeshMaker.Instance.GetDisk(Vector3.zero, points));
-        }
-
-        protected Mesh GetOutlineMesh(float width, params Vector3[] points)
-        {
-            return MeshMaker.Instance.ConvertToHardEdged(MeshMaker.Instance.GetOutline(width, points));
-        }
-
-        protected void ApplyMesh(GameObject gameObject, Vector3 color, Mesh mesh)
+        protected static void ApplyMesh(GameObject gameObject, Vector3 color, Mesh mesh)
         {
             MeshRenderer meshRenderer = gameObject.GetComponent<MeshRenderer>();
             MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();

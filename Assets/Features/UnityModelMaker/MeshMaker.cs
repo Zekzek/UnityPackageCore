@@ -429,7 +429,7 @@ namespace Zekzek.UnityModelMaker
             return null;
         }
 
-        private static Mesh Combine(params Mesh[] meshes)
+        public static Mesh Combine(params Mesh[] meshes)
         {
             CombineInstance[] combiners = new CombineInstance[meshes.Length];
             for(int i = 0; i < combiners.Length; i++) {
@@ -441,28 +441,26 @@ namespace Zekzek.UnityModelMaker
             return combined;
         }
 
-        private static Mesh ScaleAndTranslate(Mesh source, Vector3 scale, Vector3 offset)
+        public static Mesh ScaleRotateTranslate(Mesh source, Vector3 scale, Vector3 rotate, Vector3 translate)
         {
             Vector3[] vertices = new Vector3[source.vertexCount];
             for (int i = 0; i < source.vertexCount; i++) {
-                vertices[i] = Vector3.Scale(source.vertices[i], scale) + offset;
+                vertices[i] = Quaternion.Euler(rotate.x, rotate.y, rotate.z) * (Vector3.Scale(source.vertices[i], scale) + translate);
             }
 
             return new Mesh() { vertices = vertices, normals = source.normals, triangles = source.triangles };
         }
 
-        private static Mesh AddBarnacles(Mesh source, Vector3 scale, int count)
+        public static Mesh AddBarnacles(Mesh source, Vector3 scale, int count)
         {
             Mesh[] meshes = new Mesh[count + 1];
             meshes[0] = source;
-
             Vector3 extent = source.bounds.extents;
-            Vector3 barnacleExtent = Vector3.Scale(extent, scale);
 
-            if (count > 0) { meshes[1] = ScaleAndTranslate(source, scale, new Vector3(extent.x + barnacleExtent.x, 0, extent.z + barnacleExtent.z)); }
-            if (count > 1) { meshes[2] = ScaleAndTranslate(source, scale, new Vector3(extent.x + barnacleExtent.x, 0, -extent.z - barnacleExtent.z)); }
-            if (count > 2) { meshes[3] = ScaleAndTranslate(source, scale, new Vector3(-extent.x - barnacleExtent.x, 0, -extent.z - barnacleExtent.z)); }
-            if (count > 3) { meshes[4] = ScaleAndTranslate(source, scale, new Vector3(-extent.x - barnacleExtent.x, 0, extent.z + barnacleExtent.z)); }
+            if (count > 0) { meshes[1] = ScaleRotateTranslate(source, scale, Vector3.zero, new Vector3(extent.x, 0, extent.z)); }
+            if (count > 1) { meshes[2] = ScaleRotateTranslate(source, scale, Vector3.zero, new Vector3(extent.x, 0, -extent.z)); }
+            if (count > 2) { meshes[3] = ScaleRotateTranslate(source, scale, Vector3.zero, new Vector3(-extent.x, 0, -extent.z)); }
+            if (count > 3) { meshes[4] = ScaleRotateTranslate(source, scale, Vector3.zero, new Vector3(-extent.x, 0, extent.z)); }
 
             return Combine(meshes);
         }
@@ -470,6 +468,22 @@ namespace Zekzek.UnityModelMaker
         private Vector3 CalcHexPoint(Vector2 hex, Vector2 corner, float height, Vector3 scale)
         {
             return new Vector3(scale.x * (hex.x + corner.x), scale.y * height, scale.z * (hex.y + corner.y));
+        }
+
+        public static Mesh GetLayered(Mesh mesh, int layerCount, Vector3 scale, Vector3 rotate, Vector3 translate)
+        {
+            List<Mesh> meshes = new List<Mesh>(layerCount);
+            Mesh lastMesh = mesh;
+            meshes.Add(lastMesh);
+
+            for (int i = 1; i < layerCount; i++) {
+                lastMesh = MeshMaker.ScaleRotateTranslate(lastMesh, scale, rotate, translate);
+                meshes.Add(lastMesh);
+            }
+
+            Mesh combinedMesh = MeshMaker.Combine(meshes.ToArray());
+            return MeshMaker.Instance.ConvertToHardEdged(combinedMesh);
+
         }
 
         public Mesh ConvertToHardEdged(Mesh mesh)
