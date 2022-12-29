@@ -18,6 +18,8 @@ namespace Zekzek.HexWorld
             }
         }
 
+        public bool IsMoving => _scheduledLocations.Count > 1;
+
         public WorldLocation Previous {
             get {
                 ForgetPastLocations();
@@ -69,8 +71,8 @@ namespace Zekzek.HexWorld
         public void Schedule(List<NavStep> path)
         {
             ClearSchedule();
+            if (path == null) { return; }
             lock (WorldUtil.SYNC_TARGET) {
-                if (path == null) { return; }
                 foreach (NavStep step in path) {
                     _scheduledLocations.Add(step.WorldTime, new TimedLocation { time = step.WorldTime, location = step.Location });
                     HexWorld.Instance.AddPositionToExistingItem(WorldObjectId, step.Location.GridIndex);

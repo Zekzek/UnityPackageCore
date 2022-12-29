@@ -50,6 +50,16 @@ namespace Zekzek.HexWorld
             return new Vector3Int(gridIndex.x, gridHeight, gridIndex.y);
         }
 
+        public static Vector2Int GridIndexToGridRegion(Vector2Int index, int regionScale = 1)
+        {
+            if(regionScale == 0)
+                return index;
+            float x = (0.5f + (3 * index.x + index.y) / 7f);
+            float y = (0.5f + (2 * index.y - index.x) / 7f);
+            Vector2Int region = new Vector2Int(Mathf.FloorToInt(x), Mathf.FloorToInt(y));
+            return GridIndexToGridRegion(region, regionScale - 1);
+        }
+
         public static float FindFastestTravelTime(Vector3Int start, Vector3Int end, MovementSpeed speed)
         {
             return FindDistance(start, end) / speed.FastestHorizontal + FindVerticalDistance(start.y, end.y) / speed.FastestVertical;

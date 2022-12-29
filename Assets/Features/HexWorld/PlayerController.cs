@@ -36,6 +36,9 @@ namespace Zekzek.HexWorld
         private void OnMove(Vector2 moveInput)
         {
             foreach (WorldObject worldObject in _selected) {
+                // To avoid rescheduling every frame, only update if done with last move
+                if (worldObject.Location.IsMoving) { continue; }
+                
                 WorldUtil.FindNeighbors(worldObject.Id, worldObject.Location.Current, worldObject.Location.Speed, WorldScheduler.Instance.Time, out NavStep forcedStep, out NavStep forwardStep, out NavStep backwardStep, out NavStep leftStep, out NavStep rightStep);
                 if (forcedStep != null) {
                     worldObject.Location.Schedule(new List<NavStep> { forcedStep });
