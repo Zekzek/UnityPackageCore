@@ -102,12 +102,8 @@ namespace Zekzek.HexWorld
             lock (WorldUtil.SYNC_TARGET) {
                 if (idsByPosition.ContainsKey(gridIndex)) {
                     // a position may be logged several time for a single id to account for movement over time that may need to be removed individually
-                    List<uint> ids = new List<uint>();
-                    foreach (uint id in idsByPosition[gridIndex]) {
-                        if (!ids.Contains(id)) {
-                            ids.Add(id);
-                        }
-                    }
+                    HashSet<uint> ids = new HashSet<uint>();
+                    ids.UnionWith(idsByPosition[gridIndex]);
                     return ids;
                 }
                 return Enumerable.Empty<uint>();
@@ -117,9 +113,9 @@ namespace Zekzek.HexWorld
         public IEnumerable<uint> GetIdsAt(IEnumerable<Vector2Int> gridIndices)
         {
             lock (WorldUtil.SYNC_TARGET) {
-                List<uint> items = new List<uint>();
+                HashSet<uint> items = new HashSet<uint>();
                 foreach (Vector2Int gridIndex in gridIndices) {
-                    items.AddRange(GetIdsAt(gridIndex));
+                    items.UnionWith(GetIdsAt(gridIndex));
                 }
                 return items;
             }
@@ -129,10 +125,8 @@ namespace Zekzek.HexWorld
         {
             lock (WorldUtil.SYNC_TARGET) {
                 List<T> items = new List<T>();
-                foreach (Vector2Int gridIndex in gridIndices) {
-                    foreach (uint id in GetIdsAt(gridIndex)) {
-                        items.Add(Get(id));
-                    }
+                foreach (uint id in GetIdsAt(gridIndices)) {
+                    items.Add(Get(id));
                 }
                 return items;
             }

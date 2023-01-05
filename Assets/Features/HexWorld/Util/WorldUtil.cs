@@ -60,6 +60,11 @@ namespace Zekzek.HexWorld
             return GridIndexToGridRegion(region, regionScale - 1);
         }
 
+        public static bool IsGridIndexCenter(Vector2Int index, int regionSize)
+        {   
+            return index.x % regionSize == 0 && index.y % regionSize == 0;
+        }
+
         public static float FindFastestTravelTime(Vector3Int start, Vector3Int end, MovementSpeed speed)
         {
             return FindDistance(start, end) / speed.FastestHorizontal + FindVerticalDistance(start.y, end.y) / speed.FastestVertical;

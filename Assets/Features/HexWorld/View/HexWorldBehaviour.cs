@@ -105,7 +105,7 @@ namespace Zekzek.HexWorld
         private void UpdateAllVisible()
         {
             CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
-            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(centerTile, _screenWidth, _screenHeight);
+            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight);
             IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
 
             bool noChange = true;
@@ -158,15 +158,51 @@ namespace Zekzek.HexWorld
                 //    Profiler.EndSample();
                 //}
             }
+            if (noChange) { noChange = !DoUpdateVisibleTileChunk(); }
             if (noChange) { DoUpdateAllVisibleChunk(); }
+        }
+
+        private bool DoUpdateVisibleTileChunk()
+        {
+            WorldObjectType type = WorldObjectType.Tile;
+            if (_appearingObjectsByType[type].Count == 0) { return false; }
+
+            Profiler.BeginSample("Redraw " + _updateSpeedByType[type] + "/" + _appearingObjectsByType[type].Count + " " + type + " chunks");
+            for (int i = 0; i < _updateSpeedByType[type]; i++) {
+                if (_appearingObjectsByType[type].Count == 0) { break; }
+                WorldObject worldObject = HexWorld.Instance.Get(_appearingObjectsByType[type][0]);
+                _appearingObjectsByType[type].RemoveAt(0);
+
+                Vector2Int gridIndex = worldObject.Location.Current.GridIndex;
+                int distance = WorldUtil.FindDistance(CenterTile, gridIndex);
+                int regionSize = (int)(Mathf.Sqrt(Mathf.Max(distance - 2, 1)));
+                if (!WorldUtil.IsGridIndexCenter(worldObject.Location.Current.GridIndex, regionSize)) { continue; }
+
+                if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
+                _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
+                _unusedBehavioursByType[type].RemoveAt(0);
+                _behavioursByType[type][worldObject.Id].Model = worldObject;
+                _behavioursByType[type][worldObject.Id].transform.localScale = regionSize * Vector3.one;
+
+                if (worldObject.Stats == null) { continue; }
+                if (_unusedStatBlocksByType[type].Count == 0) { AllocateStatBlock(type); }
+                _statBlocksByType[type].Add(worldObject.Id, _unusedStatBlocksByType[type][0]);
+                _unusedStatBlocksByType[type].RemoveAt(0);
+                _statBlocksByType[type][worldObject.Id].transform.parent = _behavioursByType[type][worldObject.Id].transform;
+                _statBlocksByType[type][worldObject.Id].Model = worldObject.Stats;
+            }
+            Profiler.EndSample();
+            return true;
         }
 
         private void DoUpdateAllVisibleChunk()
         {
             foreach (WorldObjectType type in _behavioursByType.Keys) {
+                if (type == WorldObjectType.Tile) { continue; }
                 Profiler.BeginSample("Redraw " + _updateSpeedByType[type] + "/" + _appearingObjectsByType[type].Count + " " + type + " chunks");
+                if (_appearingObjectsByType[type].Count == 0) { continue; }
                 for (int i = 0; i < _updateSpeedByType[type]; i++) {
-                    if (_appearingObjectsByType[type].Count == 0) { continue; }
+                    if (_appearingObjectsByType[type].Count == 0) { break; }
                     WorldObject worldObject = HexWorld.Instance.Get(_appearingObjectsByType[type][0]);
                     _appearingObjectsByType[type].RemoveAt(0);
 
@@ -174,7 +210,7 @@ namespace Zekzek.HexWorld
                     _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
                     _unusedBehavioursByType[type].RemoveAt(0);
                     _behavioursByType[type][worldObject.Id].Model = worldObject;
-                    //_behavioursByType[type][worldObject.Id].gameObject.SetActive(true);
+                    _behavioursByType[type][worldObject.Id].gameObject.SetActive(true);
 
                     if (worldObject.Stats == null) { continue; }
                     if (_unusedStatBlocksByType[type].Count == 0) { AllocateStatBlock(type); }
@@ -182,10 +218,10 @@ namespace Zekzek.HexWorld
                     _unusedStatBlocksByType[type].RemoveAt(0);
                     _statBlocksByType[type][worldObject.Id].transform.parent = _behavioursByType[type][worldObject.Id].transform;
                     _statBlocksByType[type][worldObject.Id].Model = worldObject.Stats;
-                    //_statBlocksByType[type][worldObject.Id].gameObject.SetActive(true);
+                    _statBlocksByType[type][worldObject.Id].gameObject.SetActive(true);
                 }
+                Profiler.EndSample();
             }
-            Profiler.EndSample();
         }
 
         private void DrawTerrainMesh()
