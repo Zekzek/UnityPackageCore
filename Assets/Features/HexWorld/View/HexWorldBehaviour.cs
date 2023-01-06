@@ -105,12 +105,11 @@ namespace Zekzek.HexWorld
         private void UpdateAllVisible()
         {
             CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
-            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight);
+            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight).Where(i=>WorldUtil.IsGridIndexCenter(i));
             IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
 
             bool noChange = true;
             foreach (WorldObjectType type in _behavioursByType.Keys) {
-                if (!noChange) { continue; }
                 if (!_dirtyByType[type]) { continue; }
                 noChange = false;
                 int redrawDebt = _appearingObjectsByType[type].Count;
@@ -157,6 +156,7 @@ namespace Zekzek.HexWorld
                 //    DrawTerrainMesh();
                 //    Profiler.EndSample();
                 //}
+                return;
             }
             if (noChange) { noChange = !DoUpdateVisibleTileChunk(); }
             if (noChange) { DoUpdateAllVisibleChunk(); }
@@ -173,16 +173,10 @@ namespace Zekzek.HexWorld
                 WorldObject worldObject = HexWorld.Instance.Get(_appearingObjectsByType[type][0]);
                 _appearingObjectsByType[type].RemoveAt(0);
 
-                Vector2Int gridIndex = worldObject.Location.Current.GridIndex;
-                int distance = WorldUtil.FindDistance(CenterTile, gridIndex);
-                int regionSize = (int)(Mathf.Sqrt(Mathf.Max(distance - 2, 1)));
-                if (!WorldUtil.IsGridIndexCenter(worldObject.Location.Current.GridIndex, regionSize)) { continue; }
-
                 if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
                 _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
                 _unusedBehavioursByType[type].RemoveAt(0);
                 _behavioursByType[type][worldObject.Id].Model = worldObject;
-                _behavioursByType[type][worldObject.Id].transform.localScale = regionSize * Vector3.one;
 
                 if (worldObject.Stats == null) { continue; }
                 if (_unusedStatBlocksByType[type].Count == 0) { AllocateStatBlock(type); }

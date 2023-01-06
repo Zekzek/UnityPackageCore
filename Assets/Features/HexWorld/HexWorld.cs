@@ -54,18 +54,16 @@ namespace Zekzek.HexWorld
             List<WorldObject> items = new List<WorldObject>();
             lock (WorldUtil.SYNC_TARGET) {
                 foreach (Vector2Int gridIndex in gridIndices) {
-                    bool tileFound = false;
-                    foreach (uint id in GetIdsAt(gridIndex)) {
-                        WorldObject worldObject = Get(id);
-                        if (worldObject.Type == objectType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
-                            items.Add(worldObject);
-                        }
-                        if (worldObject.Type == WorldObjectType.Tile) { tileFound = true; }
+                    if (objectType == WorldObjectType.Tile) {
+                        items.Add(GetTileAt(gridIndex));
                     }
-                    // There must always be a tile
-                    if (!tileFound && objectType == WorldObjectType.Tile) {
-                        GenerationUtil.InstantiateAtGridIndex(gridIndex.x, gridIndex.y);
-                        items.Add(GetFirstAt(gridIndex, WorldObjectType.Tile));
+                    else {
+                        foreach (uint id in GetIdsAt(gridIndex)) {
+                            WorldObject worldObject = Get(id);
+                            if (worldObject.Type == objectType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
+                                items.Add(worldObject);
+                            }
+                        }
                     }
                 }
             }
@@ -99,6 +97,22 @@ namespace Zekzek.HexWorld
             }
             return default;
         }
+
+        public WorldObject GetTileAt(Vector2Int gridIndex)
+        {
+            lock (WorldUtil.SYNC_TARGET) {
+                foreach (uint id in GetIdsAt(gridIndex)) {
+                    WorldObject worldObject = Get(id);
+                    if (worldObject.Type == WorldObjectType.Tile) {
+                        return worldObject;
+                    }
+                }
+                // There must always be a tile
+                GenerationUtil.InstantiateAtGridIndex(gridIndex.x, gridIndex.y);
+                return GetFirstAt(gridIndex, WorldObjectType.Tile);
+            }
+        }
+
 
         public bool IsOccupied(Vector2Int gridIndex, WorldObjectType objectType, float worldTime = -1)
         {
