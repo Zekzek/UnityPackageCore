@@ -1,0 +1,59 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "AbilityData",
+  "description": "An active ability accessible in the action menu",
+  "type": "object",
+
+  "properties": {
+    "id": {
+      "description": "The unique identifier for the ability",
+      "type": "string"
+    },
+
+    "name": {
+      "description": "Player-visible name for the ability",
+      "type": "string"
+    },
+
+    "location": {
+      "description": "Action menu location where this ability will be displayed",
+      "type": "string"
+    },
+
+    "blueAffinity": {
+      "type": "number",
+      "minimum": 1
+    },
+
+    "greenAffinity": {
+      "type": "number",
+      "minimum": 1
+    },
+
+    "redAffinity": {
+      "type": "number",
+      "minimum": 1
+    },
+
+    "reach": {
+      "type": "number",
+      "minimum": 1
+    },
+
+    "range": {
+      "type": "number",
+      "minimum": 1
+    },
+
+    "spread": {
+      "type": "number",
+      "minimum": 1
+    },
+
+    "damageTypes": {
+      "type": "array"
+    }
+  },
+
+  "required": [ "id", "name", "location" ]
+}

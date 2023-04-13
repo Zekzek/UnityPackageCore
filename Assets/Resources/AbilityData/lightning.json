@@ -1,10 +1,9 @@
 {
   "id": "lightning",
   "name": "Lightning",
+  "location": "Magic",
 
   "blueAffinity": 5,
   "range": 5,
-  "damageTypes": [ "Lightning" ],
-
-  "location":  "Magic"
+  "damageTypes": [ "Lightning" ]
 }

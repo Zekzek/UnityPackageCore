@@ -1,12 +1,11 @@
 {
   "id": "water",
   "name": "Water",
+  "location": "Magic",
 
   "redAffinity": 3,
   "greenAffinity": 3,
   "reach": 2,
   "spread": 2,
-  "damageTypes": [ "Water" ],
-
-  "location":  "Magic"
+  "damageTypes": [ "Water" ]
 }
