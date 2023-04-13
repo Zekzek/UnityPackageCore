@@ -44,7 +44,22 @@
         "type": "number",
         "minimum": 1
       },
-  
+
+      "speed": {
+        "type": "number",
+        "minimum": 0.1
+      },
+
+      "power": {
+        "type": "number",
+        "minimum": 0.1
+      },
+
+      "potency": {
+        "type": "number",
+        "minimum": 0.1
+      },
+
       "damageTypes": {
         "type": "array"
       },
@@ -54,5 +69,6 @@
       }
     },
   
+    "additionalProperties": false,
     "required": [ "id", "name", "damageTypes", "tags" ]
   }
