@@ -1,10 +1,10 @@
 {
   "id": "dagger",
   "name": "Dagger",
+  "damageTypes": [ "Pierce", "Slash" ],
+  "tags": [ "weapon" ],
 
   "greenAffinity": 5,
   "speed": 2,
-  "power": 0.5,
-  "damageTypes": [ "Pierce", "Slash" ],
-  "tags": [ "weapon" ]
+  "power": 0.5
 }

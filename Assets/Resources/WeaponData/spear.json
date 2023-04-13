@@ -1,11 +1,11 @@
 {
   "id": "spear",
   "name": "Spear",
+  "damageTypes": [ "Pierce", "Slash" ],
+  "tags": [ "weapon" ],
 
   "redAffinity": 2,
   "greenAffinity": 2,
   "spread": 2,
-  "reach": 1,
-  "damageTypes": [ "Pierce", "Slash" ]
-  "tags": [ "weapon" ]
+  "reach": 1
 }

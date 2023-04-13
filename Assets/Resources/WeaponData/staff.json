@@ -1,13 +1,12 @@
 {
   "id": "staff",
   "name": "Staff",
+  "damageTypes": [ "Slash" ],
+  "tags": [ "weapon" ],
 
   "blueAffinity": 2,
   "redAffinity": 2,
   "range": 2,
   "spread": 2,
-  "potency": 1.5,
-  "location": "Weapon",
-  "damageTypes": [ "Slash" ],
-  "tags": [ "weapon" ]
+  "potency": 1.5
 }

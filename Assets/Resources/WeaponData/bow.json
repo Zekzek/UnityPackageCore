@@ -1,9 +1,9 @@
 {
   "id": "bow",
   "name": "Bow",
+  "damageTypes": [ "Pierce" ],
+  "tags": [ "weapon" ],
 
   "greenAffinity": 5,
-  "reach": 4,
-  "damageTypes": [ "Pierce" ],
-  "tags": [ "weapon" ]
+  "reach": 4
 }

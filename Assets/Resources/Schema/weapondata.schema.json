@@ -1,0 +1,58 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "WeaponData",
+    "description": "An equipable weapon that modifies abilities",
+    "type": "object",
+  
+    "properties": {
+      "id": {
+        "description": "The unique identifier for the ability",
+        "type": "string"
+      },
+  
+      "name": {
+        "description": "Player-visible name for the ability",
+        "type": "string"
+      },
+  
+      "blueAffinity": {
+        "type": "number",
+        "minimum": 1
+      },
+  
+      "greenAffinity": {
+        "type": "number",
+        "minimum": 1
+      },
+  
+      "redAffinity": {
+        "type": "number",
+        "minimum": 1
+      },
+  
+      "reach": {
+        "type": "number",
+        "minimum": 1
+      },
+  
+      "range": {
+        "type": "number",
+        "minimum": 1
+      },
+  
+      "spread": {
+        "type": "number",
+        "minimum": 1
+      },
+  
+      "damageTypes": {
+        "type": "array"
+      },
+
+      "tags": {
+        "type":"array"
+      }
+    },
+  
+    "required": [ "id", "name", "damageTypes", "tags" ]
+  }

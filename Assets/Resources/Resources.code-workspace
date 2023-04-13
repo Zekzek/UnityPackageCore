@@ -7,10 +7,12 @@
 	"settings": {
 		"json.schemas": [
 			{
-				"fileMatch": [
-					"AbilityData/*.json"
-				],
+				"fileMatch": [ "AbilityData/*.json" ],
 				"url": "/Schema/abilitydata.schema.json"
+			},
+			{
+				"fileMatch": [ "WeaponData/*.json" ],
+				"url": "/Schema/weapondata.schema.json"
 			}
 		]
 	}
