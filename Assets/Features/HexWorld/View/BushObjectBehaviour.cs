@@ -6,7 +6,12 @@ namespace Zekzek.HexWorld
 {
     public class BushObjectBehaviour : WorldObjectBehaviour
     {
-        public override WorldObject Model { get => base.Model; set { base.Model = value; SetMesh(); } }
+        public override WorldObject Model { 
+            get => base.Model; 
+            set { base.Model = value;
+                if (value != null) { SetMesh(); }
+            }
+        }
 
         private GameObject[] _children = null;
 

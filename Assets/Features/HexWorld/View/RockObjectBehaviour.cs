@@ -13,7 +13,7 @@ namespace Zekzek.HexWorld
             get => _model;
             set {
                 _model = value;
-                UpdateMesh();
+                if (_model != null) { UpdateMesh(); }
             }
         }
 

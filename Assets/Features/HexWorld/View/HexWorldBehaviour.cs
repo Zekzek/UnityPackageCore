@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Zekzek.Combat;
@@ -51,7 +52,10 @@ namespace Zekzek.HexWorld
         private void Awake()
         {
             _instance = this;
-            InitTypeCollections();
+            //InitTypeCollections();
+            foreach(BehaviourModelMapping thing in prefabList) {
+                HexWorldLoader.Instance.AddType(thing.type, transform, thing.prefab);
+            }
         }
 
         private void Start()
@@ -108,58 +112,63 @@ namespace Zekzek.HexWorld
             IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight).Where(i=>WorldUtil.IsGridIndexCenter(i));
             IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
 
-            bool noChange = true;
-            foreach (WorldObjectType type in _behavioursByType.Keys) {
-                if (!_dirtyByType[type]) { continue; }
-                noChange = false;
-                int redrawDebt = _appearingObjectsByType[type].Count;
-                if (redrawDebt > 0) { _updateSpeedByType[type] *= 2; } else if (_updateSpeedByType[type] > 1) { _updateSpeedByType[type] /= 2; }
+            HexWorldLoader.Instance.ScheduleUpdateVisible(currentActiveIds);
+            HexWorldLoader.Instance.Run(0.0005f);
 
-                // Hide objects which are no longer visible
-                List<uint> previousActveBehaviourIds = _behavioursByType[type].Keys.ToList();
-                Profiler.BeginSample("Hide(B) " + type + " (" + previousActveBehaviourIds.Count + ")" );
-                foreach (uint previousActiveId in previousActveBehaviourIds) {
-                    if (!currentActiveIds.Contains(previousActiveId)) {
-                        //_behavioursByType[type][previousActiveId].gameObject.SetActive(false);
-                        _unusedBehavioursByType[type].Add(_behavioursByType[type][previousActiveId]);
-                        _behavioursByType[type].Remove(previousActiveId);
-                    }
-                }
-                Profiler.EndSample();
-                Profiler.BeginSample("Hide(S) " + type);
-                List<uint> previousActveStatBlockIds = _statBlocksByType[type].Keys.ToList();
-                foreach (uint previousActiveId in previousActveStatBlockIds) {
-                    if (!currentActiveIds.Contains(previousActiveId)) {
-                        //_statBlocksByType[type][previousActiveId].gameObject.SetActive(false);
-                        _unusedStatBlocksByType[type].Add(_statBlocksByType[type][previousActiveId]);
-                        _statBlocksByType[type].Remove(previousActiveId);
-                    }
-                }
-                Profiler.EndSample();
 
-                // Set up objects which have become visible
-                Profiler.BeginSample("Find " + type);
-                ICollection<WorldObject> visibleObjects = HexWorld.Instance.GetAt(screenIndices, type);
-                Profiler.EndSample();
-                Profiler.BeginSample("Schedule " + type);
-                foreach (WorldObject worldObject in visibleObjects) {
-                    if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
-                    if (_appearingObjectsByType[type].Contains(worldObject.Id)) { continue; }
-                    _appearingObjectsByType[type].Add(worldObject.Id);
-                }
-                Profiler.EndSample();
-                
-                _dirtyByType[type] = false;
 
-                //if (type == WorldObjectType.Tile) {
-                //    Profiler.BeginSample("Draw Terrain Mesh");
-                //    DrawTerrainMesh();
-                //    Profiler.EndSample();
-                //}
-                return;
-            }
-            if (noChange) { noChange = !DoUpdateVisibleTileChunk(); }
-            if (noChange) { DoUpdateAllVisibleChunk(); }
+            //            bool noChange = true;
+            //            foreach (WorldObjectType type in _behavioursByType.Keys) {
+            //                if (!_dirtyByType[type]) { continue; }
+            //                noChange = false;
+            //                int redrawDebt = _appearingObjectsByType[type].Count;
+            //                if (redrawDebt > 0) { _updateSpeedByType[type] *= 2; } else if (_updateSpeedByType[type] > 1) { _updateSpeedByType[type] /= 2; }
+            //
+            //                // Hide objects which are no longer visible
+            //                List<uint> previousActveBehaviourIds = _behavioursByType[type].Keys.ToList();
+            //                Profiler.BeginSample("Hide(B) " + type + " (" + previousActveBehaviourIds.Count + ")" );
+            //                foreach (uint previousActiveId in previousActveBehaviourIds) {
+            //                    if (!currentActiveIds.Contains(previousActiveId)) {
+            //                        //_behavioursByType[type][previousActiveId].gameObject.SetActive(false);
+            //                        _unusedBehavioursByType[type].Add(_behavioursByType[type][previousActiveId]);
+            //                        _behavioursByType[type].Remove(previousActiveId);
+            //                    }
+            //                }
+            //                Profiler.EndSample();
+            //                Profiler.BeginSample("Hide(S) " + type);
+            //                List<uint> previousActveStatBlockIds = _statBlocksByType[type].Keys.ToList();
+            //                foreach (uint previousActiveId in previousActveStatBlockIds) {
+            //                    if (!currentActiveIds.Contains(previousActiveId)) {
+            //                        //_statBlocksByType[type][previousActiveId].gameObject.SetActive(false);
+            //                        _unusedStatBlocksByType[type].Add(_statBlocksByType[type][previousActiveId]);
+            //                        _statBlocksByType[type].Remove(previousActiveId);
+            //                    }
+            //                }
+            //                Profiler.EndSample();
+            //
+            //                // Set up objects which have become visible
+            //                Profiler.BeginSample("Find " + type);
+            //                ICollection<WorldObject> visibleObjects = HexWorld.Instance.GetAt(screenIndices, type);
+            //                Profiler.EndSample();
+            //                Profiler.BeginSample("Schedule " + type);
+            //                foreach (WorldObject worldObject in visibleObjects) {
+            //                    if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
+            //                    if (_appearingObjectsByType[type].Contains(worldObject.Id)) { continue; }
+            //                    _appearingObjectsByType[type].Add(worldObject.Id);
+            //                }
+            //                Profiler.EndSample();
+            //                
+            //                _dirtyByType[type] = false;
+            //
+            //                //if (type == WorldObjectType.Tile) {
+            //                //    Profiler.BeginSample("Draw Terrain Mesh");
+            //                //    DrawTerrainMesh();
+            //                //    Profiler.EndSample();
+            //                //}
+            //                return;
+            //            }
+            //            if (noChange) { noChange = !DoUpdateVisibleTileChunk(); }
+            //            if (noChange) { DoUpdateAllVisibleChunk(); }
         }
 
         private bool DoUpdateVisibleTileChunk()

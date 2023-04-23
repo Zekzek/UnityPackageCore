@@ -24,14 +24,14 @@ namespace Zekzek.HexWorld
                 InitTargetComponent();
 
                 if (value != null) {
-                    _targetableComponent.OnHighlightChanged += HandleHighlightChanged;
-                    HandleHighlightChanged();
+                    //_targetableComponent.OnHighlightChanged += HandleHighlightChanged;
+                    //HandleHighlightChanged();
                 }
 
-                Material colorMaterial = MaterialMaker.Instance.Get(Model.Platform.ColorCode);
-                foreach (Renderer renderer in colorRenderers) {
-                    renderer.material = colorMaterial;
-                }
+                //Material colorMaterial = MaterialMaker.Instance.Get(Model.Platform.ColorCode);
+                //foreach (Renderer renderer in colorRenderers) {
+                //    renderer.material = colorMaterial;
+                //}
             }
         }
 
