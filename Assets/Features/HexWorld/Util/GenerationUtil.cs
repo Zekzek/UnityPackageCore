@@ -27,6 +27,9 @@ namespace Zekzek.HexWorld
 
         public static WorldObject InstantiateEntity(MovementSpeed speed, Vector2Int gridIndex, Vector2Int? facing = null)
         {
+            // Ensure a tile has been generated under the entity
+            HexWorld.Instance.GetIdsAt(gridIndex);
+
             WorldObject instance = new WorldObject(WorldObjectType.Entity);
             GenerationParams generationParams = CalcGenerationParams(gridIndex.x, gridIndex.y);
             instance.AddComponent(new LocationComponent(instance.Id, new Vector3Int(gridIndex.x, generationParams.GridHeight, gridIndex.y), facing, speed));

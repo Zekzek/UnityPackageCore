@@ -97,7 +97,7 @@ namespace Zekzek.HexWorld
             }
         }
 
-        public IEnumerable<uint> GetIdsAt(Vector2Int gridIndex)
+        public virtual IEnumerable<uint> GetIdsAt(Vector2Int gridIndex)
         {
             lock (WorldUtil.SYNC_TARGET) {
                 if (idsByPosition.ContainsKey(gridIndex)) {

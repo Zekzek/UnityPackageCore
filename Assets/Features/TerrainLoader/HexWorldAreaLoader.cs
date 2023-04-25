@@ -85,7 +85,6 @@ public class HexWorldAreaLoader
             _showIdsByType[type].Remove(id);
         } else {
             // schedule 'hide'
-            UnityEngine.Debug.Log("Schedule Hide " + id);
             _hideIdsByType[type].Add(id);
         }
     }
@@ -99,7 +98,6 @@ public class HexWorldAreaLoader
             _hideIdsByType[type].Remove(id);
         } else {
             // schedule 'show'
-            UnityEngine.Debug.Log("Schedule Show " + id);
             _showIdsByType[type].Add(id);
         }
     }

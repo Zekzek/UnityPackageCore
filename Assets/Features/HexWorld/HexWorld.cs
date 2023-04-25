@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Zekzek.HexWorld
@@ -28,6 +29,18 @@ namespace Zekzek.HexWorld
             return items;
         }
 
+        public override IEnumerable<uint> GetIdsAt(Vector2Int gridIndex)
+        {
+            IEnumerable<uint> ids = base.GetIdsAt(gridIndex);
+            if (ids.Count() == 0) {
+                // Force creation of elements at this location
+                GenerationUtil.InstantiateAtGridIndex(gridIndex.x, gridIndex.y);
+                ids = base.GetIdsAt(gridIndex);
+            }
+
+            return ids;
+        }
+
         public IEnumerable<WorldObject> GetAt(Vector2Int gridIndex, WorldComponentType componentType, float worldTime = -1) { return GetAt(new[] { gridIndex }, componentType, worldTime); }
 
         public IEnumerable<WorldObject> GetAt(IEnumerable<Vector2Int> gridIndices, WorldComponentType componentType, float worldTime = -1)
@@ -54,15 +67,10 @@ namespace Zekzek.HexWorld
             List<WorldObject> items = new List<WorldObject>();
             lock (WorldUtil.SYNC_TARGET) {
                 foreach (Vector2Int gridIndex in gridIndices) {
-                    if (objectType == WorldObjectType.Tile) {
-                        items.Add(GetTileAt(gridIndex));
-                    }
-                    else {
-                        foreach (uint id in GetIdsAt(gridIndex)) {
-                            WorldObject worldObject = Get(id);
-                            if (worldObject.Type == objectType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
-                                items.Add(worldObject);
-                            }
+                    foreach (uint id in GetIdsAt(gridIndex)) {
+                        WorldObject worldObject = Get(id);
+                        if (worldObject.Type == objectType && gridIndex.Equals(worldObject.Location.GetAt(worldTime).GridIndex)) {
+                            items.Add(worldObject);
                         }
                     }
                 }
@@ -107,9 +115,8 @@ namespace Zekzek.HexWorld
                         return worldObject;
                     }
                 }
-                // There must always be a tile
-                GenerationUtil.InstantiateAtGridIndex(gridIndex.x, gridIndex.y);
-                return GetFirstAt(gridIndex, WorldObjectType.Tile);
+                // Tiles are generated from a formula, so this case should never occur
+                return null;
             }
         }
 
