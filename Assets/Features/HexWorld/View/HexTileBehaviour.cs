@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using Zekzek.UnityModelMaker;
 
 namespace Zekzek.HexWorld
@@ -24,14 +23,16 @@ namespace Zekzek.HexWorld
                 InitTargetComponent();
 
                 if (value != null) {
-                    //_targetableComponent.OnHighlightChanged += HandleHighlightChanged;
-                    //HandleHighlightChanged();
+                    _targetableComponent.OnHighlightChanged += HandleHighlightChanged;
+                    HandleHighlightChanged();
                 }
 
-                //Material colorMaterial = MaterialMaker.Instance.Get(Model.Platform.ColorCode);
-                //foreach (Renderer renderer in colorRenderers) {
-                //    renderer.material = colorMaterial;
-                //}
+                if (Model != null) {
+                    Material colorMaterial = MaterialMaker.Instance.Get(Model.Platform.ColorCode);
+                    foreach (Renderer renderer in colorRenderers) {
+                        renderer.material = colorMaterial;
+                    }
+                }
             }
         }
 
