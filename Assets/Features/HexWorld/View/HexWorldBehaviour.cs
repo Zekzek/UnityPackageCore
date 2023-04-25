@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
 using Zekzek.Combat;
 using Zekzek.UnityModelMaker;
 
@@ -22,17 +19,6 @@ namespace Zekzek.HexWorld
 
         private MeshFilter _meshFilter;
         private MeshRenderer _meshRenderer;
-
-        private readonly Dictionary<WorldObjectType, Transform> _containersByType = new Dictionary<WorldObjectType, Transform>();
-        private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType = new Dictionary<WorldObjectType, WorldObjectBehaviour>();
-        
-        private readonly Dictionary<WorldObjectType, Dictionary<uint, WorldObjectBehaviour>> _behavioursByType = new Dictionary<WorldObjectType, Dictionary<uint, WorldObjectBehaviour>>();
-        private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _unusedBehavioursByType = new Dictionary<WorldObjectType, List<WorldObjectBehaviour>>();
-        private readonly Dictionary<WorldObjectType, Dictionary<uint, StatBlockBehaviour>> _statBlocksByType = new Dictionary<WorldObjectType, Dictionary<uint, StatBlockBehaviour>>();
-        private readonly Dictionary<WorldObjectType, List<StatBlockBehaviour>> _unusedStatBlocksByType = new Dictionary<WorldObjectType, List<StatBlockBehaviour>>();
-        private readonly Dictionary<WorldObjectType, bool> _dirtyByType = new Dictionary<WorldObjectType, bool>();
-        private readonly Dictionary<WorldObjectType, int> _updateSpeedByType = new Dictionary<WorldObjectType, int>();
-        private readonly Dictionary<WorldObjectType, List<uint>> _appearingObjectsByType = new Dictionary<WorldObjectType, List<uint>>();
         
         private List<TargetableComponent> _highlighted = new List<TargetableComponent>();
 
@@ -42,9 +28,6 @@ namespace Zekzek.HexWorld
             set {
                 if (value != centerTile) {
                     centerTile = value;
-                    foreach (WorldObjectType key in _dirtyByType.Keys.ToList()) {
-                        _dirtyByType[key] = true;
-                    }
                 }
             }
         }
@@ -52,9 +35,8 @@ namespace Zekzek.HexWorld
         private void Awake()
         {
             _instance = this;
-            //InitTypeCollections();
-            foreach(BehaviourModelMapping thing in prefabList) {
-                HexWorldLoader.Instance.AddType(thing.type, transform, thing.prefab);
+            foreach(BehaviourModelMapping mapping in prefabList) {
+                HexWorldAreaLoader.Instance.AddType(mapping.type, transform, mapping.prefab);
             }
         }
 
@@ -73,167 +55,14 @@ namespace Zekzek.HexWorld
             WorldScheduler.Instance.Time += _playSpeed * Time.deltaTime;
         }
 
-        private void InitTypeCollections()
-        {
-            foreach (BehaviourModelMapping mapping in prefabList) {
-                var type = mapping.type;
-                _behavioursByType.Add(type, new Dictionary<uint, WorldObjectBehaviour>());
-                _unusedBehavioursByType.Add(type, new List<WorldObjectBehaviour>());
-                _statBlocksByType.Add(type, new Dictionary<uint, StatBlockBehaviour>());
-                _unusedStatBlocksByType.Add(type, new List<StatBlockBehaviour>());
-                _appearingObjectsByType.Add(type, new List<uint>());
-                _updateSpeedByType.Add(type, 512);
-                _dirtyByType.Add(type, true);
-                if (!_prefabsByType.ContainsKey(type)) {
-                    _prefabsByType[type] = mapping.prefab;
-                }
-                if (!_containersByType.ContainsKey(type)) {
-                    _containersByType[type] = new GameObject($"{type}Container").transform;
-                    _containersByType[type].parent = transform;
-                }
-            }
-        }
-
-        private void AllocatePrefab(WorldObjectType type)
-        {
-            WorldObjectBehaviour behaviour = Instantiate(_prefabsByType[type], _containersByType[type]);
-            _unusedBehavioursByType[type].Add(behaviour);
-        }
-
-        private void AllocateStatBlock(WorldObjectType type)
-        {
-            StatBlockBehaviour behaviour = Instantiate(statBlockPrefab);
-            _unusedStatBlocksByType[type].Add(behaviour);
-        }
-
         private void UpdateAllVisible()
         {
             CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
             IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight).Where(i=>WorldUtil.IsGridIndexCenter(i));
             IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
 
-            HexWorldLoader.Instance.ScheduleUpdateVisible(currentActiveIds);
-            HexWorldLoader.Instance.Run(0.0005f);
-
-
-
-            //            bool noChange = true;
-            //            foreach (WorldObjectType type in _behavioursByType.Keys) {
-            //                if (!_dirtyByType[type]) { continue; }
-            //                noChange = false;
-            //                int redrawDebt = _appearingObjectsByType[type].Count;
-            //                if (redrawDebt > 0) { _updateSpeedByType[type] *= 2; } else if (_updateSpeedByType[type] > 1) { _updateSpeedByType[type] /= 2; }
-            //
-            //                // Hide objects which are no longer visible
-            //                List<uint> previousActveBehaviourIds = _behavioursByType[type].Keys.ToList();
-            //                Profiler.BeginSample("Hide(B) " + type + " (" + previousActveBehaviourIds.Count + ")" );
-            //                foreach (uint previousActiveId in previousActveBehaviourIds) {
-            //                    if (!currentActiveIds.Contains(previousActiveId)) {
-            //                        //_behavioursByType[type][previousActiveId].gameObject.SetActive(false);
-            //                        _unusedBehavioursByType[type].Add(_behavioursByType[type][previousActiveId]);
-            //                        _behavioursByType[type].Remove(previousActiveId);
-            //                    }
-            //                }
-            //                Profiler.EndSample();
-            //                Profiler.BeginSample("Hide(S) " + type);
-            //                List<uint> previousActveStatBlockIds = _statBlocksByType[type].Keys.ToList();
-            //                foreach (uint previousActiveId in previousActveStatBlockIds) {
-            //                    if (!currentActiveIds.Contains(previousActiveId)) {
-            //                        //_statBlocksByType[type][previousActiveId].gameObject.SetActive(false);
-            //                        _unusedStatBlocksByType[type].Add(_statBlocksByType[type][previousActiveId]);
-            //                        _statBlocksByType[type].Remove(previousActiveId);
-            //                    }
-            //                }
-            //                Profiler.EndSample();
-            //
-            //                // Set up objects which have become visible
-            //                Profiler.BeginSample("Find " + type);
-            //                ICollection<WorldObject> visibleObjects = HexWorld.Instance.GetAt(screenIndices, type);
-            //                Profiler.EndSample();
-            //                Profiler.BeginSample("Schedule " + type);
-            //                foreach (WorldObject worldObject in visibleObjects) {
-            //                    if (previousActveBehaviourIds.Contains(worldObject.Id)) { continue; }
-            //                    if (_appearingObjectsByType[type].Contains(worldObject.Id)) { continue; }
-            //                    _appearingObjectsByType[type].Add(worldObject.Id);
-            //                }
-            //                Profiler.EndSample();
-            //                
-            //                _dirtyByType[type] = false;
-            //
-            //                //if (type == WorldObjectType.Tile) {
-            //                //    Profiler.BeginSample("Draw Terrain Mesh");
-            //                //    DrawTerrainMesh();
-            //                //    Profiler.EndSample();
-            //                //}
-            //                return;
-            //            }
-            //            if (noChange) { noChange = !DoUpdateVisibleTileChunk(); }
-            //            if (noChange) { DoUpdateAllVisibleChunk(); }
-        }
-
-        private bool DoUpdateVisibleTileChunk()
-        {
-            WorldObjectType type = WorldObjectType.Tile;
-            if (_appearingObjectsByType[type].Count == 0) { return false; }
-
-            Profiler.BeginSample("Redraw " + _updateSpeedByType[type] + "/" + _appearingObjectsByType[type].Count + " " + type + " chunks");
-            for (int i = 0; i < _updateSpeedByType[type]; i++) {
-                if (_appearingObjectsByType[type].Count == 0) { break; }
-                WorldObject worldObject = HexWorld.Instance.Get(_appearingObjectsByType[type][0]);
-                _appearingObjectsByType[type].RemoveAt(0);
-
-                if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
-                _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
-                _unusedBehavioursByType[type].RemoveAt(0);
-                _behavioursByType[type][worldObject.Id].Model = worldObject;
-
-                if (worldObject.Stats == null) { continue; }
-                if (_unusedStatBlocksByType[type].Count == 0) { AllocateStatBlock(type); }
-                _statBlocksByType[type].Add(worldObject.Id, _unusedStatBlocksByType[type][0]);
-                _unusedStatBlocksByType[type].RemoveAt(0);
-                _statBlocksByType[type][worldObject.Id].transform.parent = _behavioursByType[type][worldObject.Id].transform;
-                _statBlocksByType[type][worldObject.Id].Model = worldObject.Stats;
-            }
-            Profiler.EndSample();
-            return true;
-        }
-
-        private void DoUpdateAllVisibleChunk()
-        {
-            foreach (WorldObjectType type in _behavioursByType.Keys) {
-                if (type == WorldObjectType.Tile) { continue; }
-                Profiler.BeginSample("Redraw " + _updateSpeedByType[type] + "/" + _appearingObjectsByType[type].Count + " " + type + " chunks");
-                if (_appearingObjectsByType[type].Count == 0) { continue; }
-                for (int i = 0; i < _updateSpeedByType[type]; i++) {
-                    if (_appearingObjectsByType[type].Count == 0) { break; }
-                    WorldObject worldObject = HexWorld.Instance.Get(_appearingObjectsByType[type][0]);
-                    _appearingObjectsByType[type].RemoveAt(0);
-
-                    if (_unusedBehavioursByType[type].Count == 0) { AllocatePrefab(type); }
-                    _behavioursByType[type].Add(worldObject.Id, _unusedBehavioursByType[type][0]);
-                    _unusedBehavioursByType[type].RemoveAt(0);
-                    _behavioursByType[type][worldObject.Id].Model = worldObject;
-                    _behavioursByType[type][worldObject.Id].gameObject.SetActive(true);
-
-                    if (worldObject.Stats == null) { continue; }
-                    if (_unusedStatBlocksByType[type].Count == 0) { AllocateStatBlock(type); }
-                    _statBlocksByType[type].Add(worldObject.Id, _unusedStatBlocksByType[type][0]);
-                    _unusedStatBlocksByType[type].RemoveAt(0);
-                    _statBlocksByType[type][worldObject.Id].transform.parent = _behavioursByType[type][worldObject.Id].transform;
-                    _statBlocksByType[type][worldObject.Id].Model = worldObject.Stats;
-                    _statBlocksByType[type][worldObject.Id].gameObject.SetActive(true);
-                }
-                Profiler.EndSample();
-            }
-        }
-
-        private void DrawTerrainMesh()
-        {
-            if (_meshFilter.mesh) {
-                _meshFilter.mesh = MeshMaker.Instance.GetTerrain(centerTile, _screenWidth, _screenHeight);
-            } else {
-                _meshFilter.mesh = MeshMaker.Instance.UpdateTerrain(_meshFilter.mesh, centerTile, _screenWidth, _screenHeight);
-            }
+            HexWorldAreaLoader.Instance.ScheduleUpdateVisible(currentActiveIds);
+            HexWorldAreaLoader.Instance.Run(0.0005f);
         }
 
         public void UpdateHighlight(IEnumerable<Vector2Int> gridIndices)

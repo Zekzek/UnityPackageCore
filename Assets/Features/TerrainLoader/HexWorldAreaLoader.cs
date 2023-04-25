@@ -4,10 +4,10 @@ using System.Linq;
 using UnityEngine;
 using Zekzek.HexWorld;
 
-public class HexWorldLoader
+public class HexWorldAreaLoader
 {
-    private static HexWorldLoader _instance;
-    public static HexWorldLoader Instance => _instance == null ? _instance = new HexWorldLoader() : _instance;
+    private static HexWorldAreaLoader _instance;
+    public static HexWorldAreaLoader Instance => _instance == null ? _instance = new HexWorldAreaLoader() : _instance;
 
     // Scheduling
     private readonly Stopwatch _timer;
@@ -16,14 +16,14 @@ public class HexWorldLoader
     private readonly Dictionary<WorldObjectType, List<uint>> _usedIdsByType;
     private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _usedObjectsByType;
     private readonly Dictionary<WorldObjectType, List<WorldObjectBehaviour>> _unusedObjectsByType;
-    private readonly List<uint> _lastActiveIds;
+    private IEnumerable<uint> _lastActiveIds;
 
     // GameObjects
     private readonly Dictionary<WorldObjectType, Transform> _containersByType;
     private readonly Dictionary<WorldObjectType, WorldObjectBehaviour> _prefabsByType;
 
 
-    private HexWorldLoader()
+    private HexWorldAreaLoader()
     {
         _timer = new Stopwatch();
         _hideIdsByType = new Dictionary<WorldObjectType, List<uint>>();
@@ -51,7 +51,9 @@ public class HexWorldLoader
 
     public void ScheduleUpdateVisible(IEnumerable<uint> ids)
     {
-        UnityEngine.Debug.Log(string.Join(", ", ids));
+        if (Equals(ids, _lastActiveIds)) { return; }
+        _lastActiveIds = ids;
+
         foreach(KeyValuePair<WorldObjectType, List<uint>> pair in _usedIdsByType) {
             foreach(uint id in pair.Value) {
                 if (!ids.Contains(id)) {
