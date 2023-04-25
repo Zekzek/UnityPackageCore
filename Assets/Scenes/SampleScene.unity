@@ -798,11 +798,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenWidth
-      value: 30
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: _screenHeight
-      value: 20
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4618408805285309783, guid: f1eef98bae68c084aa713b3a6326914a, type: 3}
       propertyPath: statBlockPrefab

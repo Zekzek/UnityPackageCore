@@ -26,6 +26,7 @@ public class HexWorldAreaLoader
     private HexWorldAreaLoader()
     {
         _timer = new Stopwatch();
+        _timer.Start();
         _hideIdsByType = new Dictionary<WorldObjectType, List<uint>>();
         _showIdsByType = new Dictionary<WorldObjectType, List<uint>>();
         _usedIdsByType = new Dictionary<WorldObjectType, List<uint>>();
@@ -103,14 +104,15 @@ public class HexWorldAreaLoader
         }
     }
 
-    public void Run(float duration)
+    public void Run(float durationMs)
     {
-        float timeoutAtMs = _timer.ElapsedMilliseconds + duration * 1000f;
+        float timeoutAtMs = _timer.ElapsedMilliseconds + durationMs;
         bool hideScheduled = true;
         bool showScheduled = true;
 
         // perform hide on everything scheduled, quit when timeout is reached
         while (hideScheduled && _timer.ElapsedMilliseconds < timeoutAtMs) {
+
             hideScheduled = false;
             foreach (KeyValuePair<WorldObjectType, List<uint>> pair in _hideIdsByType) {
                 if (pair.Value.Count > 0) {

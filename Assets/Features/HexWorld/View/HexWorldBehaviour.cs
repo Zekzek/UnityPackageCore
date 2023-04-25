@@ -59,10 +59,16 @@ namespace Zekzek.HexWorld
         {
             CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
             IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight).Where(i=>WorldUtil.IsGridIndexCenter(i));
+            
+            //TODO: remove this hacky way to force tiles to load
+            foreach(var thing in screenIndices) {
+                HexWorld.Instance.GetTileAt(thing);
+            }
+            
             IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
 
             HexWorldAreaLoader.Instance.ScheduleUpdateVisible(currentActiveIds);
-            HexWorldAreaLoader.Instance.Run(0.0005f);
+            HexWorldAreaLoader.Instance.Run(10);
         }
 
         public void UpdateHighlight(IEnumerable<Vector2Int> gridIndices)
