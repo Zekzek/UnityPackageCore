@@ -58,8 +58,7 @@ namespace Zekzek.HexWorld
         private void UpdateAllVisible()
         {
             CenterTile = WorldUtil.PositionToGridIndex(PlayerController.Instance.GetSelectionPosition());
-            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight).Where(i=>WorldUtil.IsGridIndexCenter(i));
-            
+            IEnumerable<Vector2Int> screenIndices = WorldUtil.GetRectangleIndicesAround(CenterTile, _screenWidth, _screenHeight);
             IEnumerable<uint> currentActiveIds = HexWorld.Instance.GetIdsAt(screenIndices);
 
             HexWorldAreaLoader.Instance.ScheduleUpdateVisible(currentActiveIds);

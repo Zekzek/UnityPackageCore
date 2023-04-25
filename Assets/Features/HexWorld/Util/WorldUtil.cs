@@ -99,18 +99,6 @@ namespace Zekzek.HexWorld
             return Mathf.Abs(end - start);
         }
 
-        public static int FindTileSize(Vector2Int gridIndex)
-        {
-            int distanceFromCenter = FindDistance(HexWorldBehaviour.Instance.CenterTile, gridIndex);
-            return (int)(Mathf.Sqrt(Mathf.Max(distanceFromCenter - 5, 1)));
-        }
-
-        public static bool IsGridIndexCenter(Vector2Int index)
-        {
-            int regionSize = FindTileSize(index);
-            return regionSize == 1 || (index.x % regionSize == 0 && index.y % regionSize == 0);
-        }
-
         public static IEnumerable<Vector2Int> GetRectangleIndicesAround(Vector2Int center, int width, int height)
         {
             List<Vector2Int> indices = new List<Vector2Int>();
